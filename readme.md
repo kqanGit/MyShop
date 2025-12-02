@@ -315,3 +315,4 @@ Nhóm thống nhất tuân thủ các quy tắc sau:
 | **GĐ 5: Tính năng nâng cao** | Tuần 4-5 | Phát triển 4 tính năng nâng cao đã đăng ký. |
 | **GĐ 6: Kiểm thử & Sửa lỗi**| Tuần 6 | Manual Test, Automated Test, Sửa các lỗi phát sinh (bug). |
 | **GĐ 7: Hoàn tất** | Tuần 6 | Viết tài liệu, chuẩn bị báo cáo, demo. |
+
