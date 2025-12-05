@@ -11,6 +11,13 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
+
+            <!-- Button Styles PointerOver -->
+            <Color x:Key="ButtonBackgroundPointerOver">#7A7BFF</Color>
+            <Color x:Key="ButtonForegroundPointerOver">White</Color>
+            <Color x:Key="ButtonBackgroundPressed">#7A7BFF</Color>
+            <Color x:Key="ButtonForegroundPressed">White</Color>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
