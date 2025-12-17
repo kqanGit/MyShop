@@ -1,29 +1,26 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace MyShop.Domain.Entities
+namespace MyShop.Domain.Entities;
+
+public partial class User
 {
-    [Table("User")]
-    public class User
-    {
-        [Key]
-        [Column("user_id")]
-        public int UserId { get; set; }
+    public int UserId { get; set; }
 
-        [Column("user_name")]
-        public string UserName { get; set; }
+    public string? UserName { get; set; }
 
-        [Column("password")]
-        public string Password { get; set; }
+    public string? Password { get; set; }
 
-        [Column("full_name")]
-        public string FullName { get; set; }
+    public string? FullName { get; set; }
 
-        [Column("role_id")]
-        public int? RoleId { get; set; }
+    public int? RoleId { get; set; }
 
-        [Column("status")]
-        public bool? Status { get; set; }
-    }
+    public BitArray? Status { get; set; }
+
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual Role? Role { get; set; }
+
+    public virtual ICollection<UserConfig> UserConfigs { get; set; } = new List<UserConfig>();
 }

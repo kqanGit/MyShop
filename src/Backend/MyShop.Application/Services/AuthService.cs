@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -32,13 +33,17 @@ namespace MyShop.Application.Services
 
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
-            // Note: Status is nullable bool? in new schema, checking HasValue and Value or handling null
+            // Note: Status is nullable BitArray? in new schema
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == request.Username && (u.Status == true));
+                .FirstOrDefaultAsync(u => u.UserName == request.Username);
+
+            // Manual check for Status because BitArray translation in SQL is tricky
+            // Status[0] represents the first bit.
+            bool isActive = user?.Status != null && user.Status.Length > 0 && user.Status[0];
 
             // Note: Password in DB might not be hashed yet? Assuming BCrypt for now based on previous code.
             // If DB stores plain text, this verify will fail. 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+            if (user == null || !isActive || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 throw new UnauthorizedAccessException("Invalid username or password");
             }
@@ -81,7 +86,7 @@ namespace MyShop.Application.Services
                 FullName = request.FullName,
                 // PhoneNumber field removed
                 RoleId = 1, // Default Role ID ???
-                Status = true
+                Status = new BitArray(new[] { true })
             };
 
             _context.Users.Add(user);

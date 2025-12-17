@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = async function(knex) {
+exports.up = async function (knex) {
     await knex.raw(`
         CREATE TABLE "Role" (
         "role_id" int PRIMARY KEY,
@@ -28,7 +28,7 @@ exports.up = async function(knex) {
         CREATE TABLE "Customer" (
         "customer_id" int PRIMARY KEY,
         "full_name" varchar,
-        "phone" char[10] UNIQUE,
+        "phone" char(10) UNIQUE,
         "address" varchar,
         "point" int,
         "tier_id" int,
@@ -107,14 +107,14 @@ exports.up = async function(knex) {
         ALTER TABLE "OrderDetail" ADD FOREIGN KEY ("product_id") REFERENCES "Product"("product_id");
     `);
 
-    
+
 };
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = async function(knex) {
+exports.down = async function (knex) {
     await knex.raw(`
         DROP TABLE IF EXISTS "User_Config";
         DROP TABLE IF EXISTS "OrderDetail";
