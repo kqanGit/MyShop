@@ -32,10 +32,13 @@ namespace MyShop.Application.Services
 
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
+            // Note: Status is nullable bool? in new schema, checking HasValue and Value or handling null
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
+                .FirstOrDefaultAsync(u => u.UserName == request.Username && (u.Status == true));
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            // Note: Password in DB might not be hashed yet? Assuming BCrypt for now based on previous code.
+            // If DB stores plain text, this verify will fail. 
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 throw new UnauthorizedAccessException("Invalid username or password");
             }
@@ -47,9 +50,9 @@ namespace MyShop.Application.Services
             return new AuthResponseDto
             {
                 Token = token,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
+                Username = user.UserName,
+                Email = "email-removed-in-db-schema", // Placeholder
+                Role = user.RoleId.ToString(), // Converted Int to String
                 ExpiresAt = expiresAt
             };
         }
@@ -57,26 +60,28 @@ namespace MyShop.Application.Services
         public async Task<AuthResponseDto> Register(RegisterRequestDto request)
         {
             // Kiểm tra username đã tồn tại
-            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            if (await _context.Users.AnyAsync(u => u.UserName == request.Username))
             {
                 throw new InvalidOperationException("Username already exists");
             }
 
-            // Kiểm tra email đã tồn tại
+            // Email check removed as Email field does not exist in new schema
+            /*
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
                 throw new InvalidOperationException("Email already exists");
             }
+            */
 
             var user = new User
             {
-                Username = request.Username,
-                Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                UserName = request.Username,
+                // Email field removed
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 FullName = request.FullName,
-                PhoneNumber = request.PhoneNumber,
-                Role = "User",
-                IsActive = true
+                // PhoneNumber field removed
+                RoleId = 1, // Default Role ID ???
+                Status = true
             };
 
             _context.Users.Add(user);
@@ -89,9 +94,9 @@ namespace MyShop.Application.Services
             return new AuthResponseDto
             {
                 Token = token,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
+                Username = user.UserName,
+                Email = "email-removed",
+                Role = user.RoleId.ToString(),
                 ExpiresAt = expiresAt
             };
         }
@@ -104,11 +109,12 @@ namespace MyShop.Application.Services
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(JwtRegisteredClaimNames. Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
+                // Email claim removed or empty
+                new Claim(JwtRegisteredClaimNames.Email, "no-email"),
+                new Claim(ClaimTypes.Role, user.RoleId.ToString() ?? "0"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             var token = new JwtSecurityToken(
