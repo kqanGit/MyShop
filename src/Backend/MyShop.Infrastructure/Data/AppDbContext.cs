@@ -204,7 +204,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("User");
 
             entity.Property(e => e.UserId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("user_id");
             entity.Property(e => e.FullName)
                 .HasColumnType("character varying")

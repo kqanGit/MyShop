@@ -10,7 +10,7 @@ exports.up = async function (knex) {
         );
 
         CREATE TABLE "User" (
-        "user_id" int PRIMARY KEY,
+        "user_id" SERIAL PRIMARY KEY,
         "user_name" varchar,
         "password" varchar,
         "full_name" varchar,
