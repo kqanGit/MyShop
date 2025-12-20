@@ -2,16 +2,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MyShop.Application.Services;
+using MyShop.Domain.Repositories;
 using MyShop.Infrastructure.Data;
+using MyShop.Infrastructure.Repositories;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1️⃣ Add DbContext (Postgres)
+// DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2️⃣ Add JWT Authentication
+// JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -28,17 +30,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// 3️⃣ Register Services
+// CORS (optional for browser clients)
+// builder.Services.AddCors(...);
+
+// Register Services and Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+// builder.Services.AddScoped<IProductRepository, ProductRepository>(); // when implemented
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// 4️⃣ Add Controllers + Swagger
+// Controllers + Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 5️⃣ Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -46,6 +52,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+ app.UseCors("Frontend"); // if configured
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -1,50 +1,26 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace MyShop.Domain.Entities
+namespace MyShop.Domain.Entities;
+
+public partial class User
 {
-    [Table("users")]
-    public class User
-    {
-        [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
+    public int UserId { get; set; }
 
-        [Required]
-        [Column("username")]
-        [MaxLength(50)]
-        public string Username { get; set; }
+    public string? UserName { get; set; }
 
-        [Required]
-        [Column("email")]
-        [MaxLength(100)]
-        public string Email { get; set; }
+    public string? Password { get; set; }
 
-        [Required]
-        [Column("password_hash")]
-        [MaxLength(255)]
-        public string PasswordHash { get; set; }
+    public string? FullName { get; set; }
 
-        [Column("full_name")]
-        [MaxLength(100)]
-        public string FullName { get; set; }
+    public int? RoleId { get; set; }
 
-        [Column("phone_number")]
-        [MaxLength(20)]
-        public string PhoneNumber { get; set; }
+    public BitArray? Status { get; set; }
 
-        [Column("role")]
-        [MaxLength(20)]
-        public string Role { get; set; } = "User";
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-        [Column("is_active")]
-        public bool IsActive { get; set; } = true;
+    public virtual Role? Role { get; set; }
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    }
+    public virtual ICollection<UserConfig> UserConfigs { get; set; } = new List<UserConfig>();
 }

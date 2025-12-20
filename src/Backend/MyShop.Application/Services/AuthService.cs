@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MyShop.Application.DTOs;
 using MyShop.Domain.Entities;
-using MyShop.Infrastructure.Data;
+using MyShop.Domain.Repositories;
 using BCrypt.Net;
 
 namespace MyShop.Application.Services
@@ -16,26 +16,26 @@ namespace MyShop.Application.Services
     public interface IAuthService
     {
         Task<AuthResponseDto> Login(LoginRequestDto request);
-        Task<AuthResponseDto> Register(RegisterRequestDto request);
     }
 
     public class AuthService : IAuthService
     {
-        private readonly AppDbContext _context;
+        private readonly IUserRepository _users;
         private readonly IConfiguration _configuration;
 
-        public AuthService(AppDbContext context, IConfiguration configuration)
+        public AuthService(IUserRepository users, IConfiguration configuration)
         {
-            _context = context;
+            _users = users;
             _configuration = configuration;
         }
 
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
+            var user = await _users.GetByUsernameAsync(request.Username);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            bool isActive = user?.Status != null && user.Status.Length > 0 && user.Status[0];
+
+            if (user == null || !isActive || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 throw new UnauthorizedAccessException("Invalid username or password");
             }
@@ -47,51 +47,9 @@ namespace MyShop.Application.Services
             return new AuthResponseDto
             {
                 Token = token,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
-                ExpiresAt = expiresAt
-            };
-        }
-
-        public async Task<AuthResponseDto> Register(RegisterRequestDto request)
-        {
-            // Kiểm tra username đã tồn tại
-            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
-            {
-                throw new InvalidOperationException("Username already exists");
-            }
-
-            // Kiểm tra email đã tồn tại
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            {
-                throw new InvalidOperationException("Email already exists");
-            }
-
-            var user = new User
-            {
-                Username = request.Username,
-                Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                FullName = request.FullName,
-                PhoneNumber = request.PhoneNumber,
-                Role = "User",
-                IsActive = true
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var token = GenerateJwtToken(user);
-            var expiresAt = DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["JwtSettings:ExpirationMinutes"]));
-
-            return new AuthResponseDto
-            {
-                Token = token,
-                Username = user.Username,
-                Email = user.Email,
-                Role = user.Role,
+                Username = user.UserName,
+                Email = "email-removed-in-db-schema",
+                Role = user.RoleId.ToString(),
                 ExpiresAt = expiresAt
             };
         }
@@ -104,11 +62,11 @@ namespace MyShop.Application.Services
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(JwtRegisteredClaimNames. Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
+                new Claim(JwtRegisteredClaimNames.Email, "no-email"),
+                new Claim(ClaimTypes.Role, user.RoleId.ToString() ?? "0"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             var token = new JwtSecurityToken(
