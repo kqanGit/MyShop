@@ -6,7 +6,7 @@ namespace MyShop.Domain.Repositories
 {
     public interface ICustomerRepository : IRepository<Customer>
     {
-        Task<Customer?> GetByEmailAsync(string email);
-        Task<IEnumerable<Customer>> GetByPhoneAsync(string phoneNumber);
+        Task<Customer?> GetByPhoneAsync(string phoneNumber);
+        Task<Customer?> GetCustomerWithMembershipAsync(int id);
     }
 }
