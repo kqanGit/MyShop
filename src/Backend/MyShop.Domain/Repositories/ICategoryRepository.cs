@@ -6,6 +6,6 @@ namespace MyShop.Domain.Repositories
 {
     public interface ICategoryRepository : IRepository<Category>
     {
-        Task<IEnumerable<Category>> GetChildrenAsync(int parentCategoryId);
+        Task<bool> CheckStockAsync(int productId, int quantityRequested);
     }
 }

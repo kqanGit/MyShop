@@ -6,10 +6,7 @@ namespace MyShop.Domain.Repositories
 {
     public interface IProductRepository : IRepository<Product>
     {
-        Task<IEnumerable<Product>> GetAllProductsAsync();
-        Task<Product> GetProductByIdAsync(int productId);
-        Task AddProductAsync(Product product);
-        Task UpdateProductAsync(Product product);
-        Task DeleteProductAsync(int productId);
+        Task<IEnumerable<Product>> GetProductsByFilterAsync(string keyword, int? categoryId, decimal? minPrice, decimal? maxPrice);
+        Task<bool> CheckStockAsync(int productId, int quantityRequested);
     }
 }

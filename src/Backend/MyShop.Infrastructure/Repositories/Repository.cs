@@ -26,23 +26,26 @@ namespace MyShop.Infrastructure.Repositories
             return await Set.ToListAsync();
         }
 
+
         public virtual async Task<T> AddAsync(T entity)
         {
             await Set.AddAsync(entity);
-            await Context.SaveChangesAsync();
+
             return entity;
         }
 
-        public virtual async Task UpdateAsync(T entity)
+        public virtual Task UpdateAsync(T entity)
         {
             Set.Update(entity);
-            await Context.SaveChangesAsync();
+   
+            return Task.CompletedTask;
         }
 
-        public virtual async Task DeleteAsync(T entity)
+        public virtual Task DeleteAsync(T entity)
         {
             Set.Remove(entity);
-            await Context.SaveChangesAsync();
+         
+            return Task.CompletedTask;
         }
 
         public virtual async Task<bool> ExistsAsync(object id)

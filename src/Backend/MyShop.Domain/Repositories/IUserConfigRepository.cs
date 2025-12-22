@@ -7,6 +7,6 @@ namespace MyShop.Domain.Repositories
     public interface IUserConfigRepository : IRepository<UserConfig>
     {
         // Add specific queries here when needed, e.g. by user id
-        Task<IEnumerable<UserConfig>> GetByUserIdAsync(int userId);
+        Task<UserConfig?> GetByUserIdAsync(int userId);
     }
 }

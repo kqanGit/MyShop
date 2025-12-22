@@ -5,9 +5,9 @@ using MyShop.Domain.Entities;
 
 namespace MyShop.Infrastructure.Data;
 
-public partial class AppDbContext : DbContext
+public partial class MyshopDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    public MyshopDbContext(DbContextOptions<MyshopDbContext> options)
         : base(options)
     {
     }
@@ -15,6 +15,10 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
+
+    public virtual DbSet<KnexMigration> KnexMigrations { get; set; }
+
+    public virtual DbSet<KnexMigrationsLock> KnexMigrationsLocks { get; set; }
 
     public virtual DbSet<Membership> Memberships { get; set; }
 
@@ -40,9 +44,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Category");
 
-            entity.Property(e => e.CategoryId)
-                .ValueGeneratedNever()
-                .HasColumnName("category_id");
+            entity.Property(e => e.CategoryId).HasColumnName("category_id");
             entity.Property(e => e.CategoryName)
                 .HasColumnType("character varying")
                 .HasColumnName("category_name");
@@ -56,9 +58,7 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.Phone, "Customer_phone_key").IsUnique();
 
-            entity.Property(e => e.CustomerId)
-                .ValueGeneratedNever()
-                .HasColumnName("customer_id");
+            entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.Address)
                 .HasColumnType("character varying")
                 .HasColumnName("address");
@@ -78,15 +78,37 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("Customer_tier_id_fkey");
         });
 
+        modelBuilder.Entity<KnexMigration>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("knex_migrations_pkey");
+
+            entity.ToTable("knex_migrations");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Batch).HasColumnName("batch");
+            entity.Property(e => e.MigrationTime).HasColumnName("migration_time");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<KnexMigrationsLock>(entity =>
+        {
+            entity.HasKey(e => e.Index).HasName("knex_migrations_lock_pkey");
+
+            entity.ToTable("knex_migrations_lock");
+
+            entity.Property(e => e.Index).HasColumnName("index");
+            entity.Property(e => e.IsLocked).HasColumnName("is_locked");
+        });
+
         modelBuilder.Entity<Membership>(entity =>
         {
             entity.HasKey(e => e.TierId).HasName("Membership_pkey");
 
             entity.ToTable("Membership");
 
-            entity.Property(e => e.TierId)
-                .ValueGeneratedNever()
-                .HasColumnName("tier_id");
+            entity.Property(e => e.TierId).HasColumnName("tier_id");
             entity.Property(e => e.Discount).HasColumnName("discount");
             entity.Property(e => e.Threshold).HasColumnName("threshold");
             entity.Property(e => e.TierName)
@@ -100,9 +122,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Order");
 
-            entity.Property(e => e.OrderId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("order_id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DiscountAmount).HasColumnName("discount_amount");
             entity.Property(e => e.FinalPrice).HasColumnName("final_price");
@@ -158,9 +178,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Product");
 
-            entity.Property(e => e.ProductId)
-                .ValueGeneratedNever()
-                .HasColumnName("product_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
             entity.Property(e => e.Cost).HasColumnName("cost");
             entity.Property(e => e.Image)
@@ -189,9 +207,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Role");
 
-            entity.Property(e => e.RoleId)
-                .ValueGeneratedNever()
-                .HasColumnName("role_id");
+            entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.RoleName)
                 .HasColumnType("character varying")
                 .HasColumnName("role_name");
@@ -203,9 +219,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("User");
 
-            entity.Property(e => e.UserId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("user_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.FullName)
                 .HasColumnType("character varying")
                 .HasColumnName("full_name");
@@ -214,6 +228,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("password");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.Status)
+                .HasDefaultValueSql("'1'::\"bit\"")
                 .HasColumnType("bit(1)")
                 .HasColumnName("status");
             entity.Property(e => e.UserName)
@@ -231,9 +246,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("User_Config");
 
-            entity.Property(e => e.SettingId)
-                .ValueGeneratedNever()
-                .HasColumnName("setting_id");
+            entity.Property(e => e.SettingId).HasColumnName("setting_id");
             entity.Property(e => e.LastModule)
                 .HasColumnType("character varying")
                 .HasColumnName("last_module");
@@ -251,9 +264,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("Voucher");
 
-            entity.Property(e => e.VoucherId)
-                .ValueGeneratedNever()
-                .HasColumnName("voucher_id");
+            entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
             entity.Property(e => e.Description)
                 .HasColumnType("character varying")
                 .HasColumnName("description");
