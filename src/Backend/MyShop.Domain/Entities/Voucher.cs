@@ -7,19 +7,19 @@ public partial class Voucher
 {
     public int VoucherId { get; set; }
 
-    public string? VoucherCode { get; set; }
+    public string VoucherCode { get; set; }
 
-    public string? Description { get; set; }
+    public string Description { get; set; }
 
-    public int? Type { get; set; }
+    public int Type { get; set; }
 
-    public decimal? Discount { get; set; }
+    public decimal Discount { get; set; }
 
-    public decimal? MinThreshold { get; set; }
+    public decimal MinThreshold { get; set; }
 
-    public DateOnly? StartDate { get; set; }
+    public DateTime? StartDate { get; set; }
 
-    public DateOnly? EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     public bool? IsRemoved { get; set; }
 
