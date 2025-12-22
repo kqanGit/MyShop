@@ -6,7 +6,7 @@ namespace MyShop.Domain.Repositories
 {
     public interface IMembershipRepository : IRepository<Membership>
     {
-        Task<Membership?> GetActiveByCustomerIdAsync(int customerId);
-        Task<IEnumerable<Membership>> GetByTierAsync(string tier);
+        Task<Membership?> GetByTierNameAsync(string tierName);
+        Task<Membership?> GetTierByPointAsync(int point);
     }
 }
