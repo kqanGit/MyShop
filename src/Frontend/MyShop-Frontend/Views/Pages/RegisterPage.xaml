@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
-    x:Class="MyShop_Frontend.Views.Pages.LoginPage"
+    x:Class="MyShop_Frontend.Views.Pages.RegisterPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:MyShop_Frontend.Views.Pages"
@@ -8,13 +8,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:MyShop_Frontend.Views.Controls"
     mc:Ignorable="d">
-
+    
     <StackPanel Width="380" 
                 Height="600"
-                       HorizontalAlignment="Center"
+            HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Spacing="18">
-        <TextBlock Text="Login"
+        <TextBlock Text="Register"
                           FontSize="34"
                           Foreground="#151D48"
                           FontWeight="Bold"
@@ -45,36 +45,31 @@
                             Height="50"
                             CornerRadius="16"/>
 
-        <CheckBox Content="Remember me" Foreground="Black" />
+        <TextBlock Text="Confirm Password"
+                        Foreground="#000000"
+                        Opacity="0.5"
+                        FontSize="16"/>
+        <PasswordBox 
+                        Foreground="Black"
+                        Background="#FFFFFF"
+                        BorderBrush="#80000000"
+                        BorderThickness="1.2"
+                        Height="50"
+                        CornerRadius="16"/>
 
-        <controls:AppButton Content="Sign In"
+        <controls:AppButton Content="Register"
                        Height="45"
                        Width="380"
                        Background="#5D5FEF"
                        Foreground="White"
                        FontWeight="SemiBold"
                        BorderThickness="0"
-                       CornerRadius="16"
-                       Click="SignInButton_Click"/>
+                       CornerRadius="16"/>
 
-        <StackPanel Orientation="Horizontal"
-                           HorizontalAlignment="Center">
-            <TextBlock Text="New user?"  
-                              VerticalAlignment="Center" 
-                              Foreground="#6B6796"/>
-            <HyperlinkButton Content="Create new account" 
-                                    VerticalAlignment="Center" 
-                                    Foreground="blue"
-                                    Click="CreateNewAccount_Click"/>
-        </StackPanel>
-
-        <HyperlinkButton Content="Config server" 
-                                HorizontalAlignment="Right" 
-                                VerticalAlignment="Bottom" 
-                                Margin="0,50,0,8" 
+        <HyperlinkButton Content="Already have an account" 
+                                HorizontalAlignment="Center" 
                                 Foreground="blue"
-                                Click="ConfigServerButton_Click"/>
+                                Click="BackToLogin_click"/>
 
     </StackPanel>
-
 </Page>

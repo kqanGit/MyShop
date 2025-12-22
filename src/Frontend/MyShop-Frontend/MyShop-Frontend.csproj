@@ -18,7 +18,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\LoginImage.jpg" />
+    <None Remove="Views\Controls\AuthLayout.xaml" />
     <None Remove="Views\Pages\LoginPage.xaml" />
+    <None Remove="Views\Pages\RegisterPage.xaml" />
+    <None Remove="Views\Themes\AppTheme.xaml" />
+    <None Remove="Views\Themes\Generic.xaml" />
+    <None Remove="Views\Windows\ServerConfigWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,14 +63,42 @@
     <Folder Include="Helpers\Converters\" />
     <Folder Include="Helpers\Extensions\" />
     <Folder Include="Models\Auth\" />
-    <Folder Include="Servies\" />
     <Folder Include="ViewModels\Dashboard\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
-    <Folder Include="Views\Controls\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Themes\AppTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Pages\LoginPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\RegisterPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Controls\AuthLayout.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Windows\ServerConfigWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Windows\AuthenticationWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

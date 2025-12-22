@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
+using MyShop_Frontend.Servies;
 using MyShop_Frontend.Views.Pages;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace MyShop_Frontend
     /// </summary>
     public partial class App : Application
     {
-        private Window? _window;
+        public static WindowsService Windows { get; } = new WindowsService();
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -45,8 +46,9 @@ namespace MyShop_Frontend
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            _window = new LoginPage();
-            _window.Activate();
+            //Window _window = new LoginPage();
+            //_window.Activate();
+            Windows.ShowAuthWindow();
         }
 
 
