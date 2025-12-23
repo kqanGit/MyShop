@@ -46,14 +46,14 @@ namespace MyShop_Frontend.Views.Pages
 
             await ViewModel._login();
 
-            if (ViewModel.IsAuthenticated)
-            {
-                var mainWindow = new MainWindow();
-                mainWindow.Activate();
+            //if (ViewModel.IsAuthenticated)
+            //{
+            //    var mainWindow = new MainWindow();
+            //    mainWindow.Activate();
 
-                var authWindow = App.Windows.AuthWindow;
-                authWindow?.Close();
-            }
+            //    var authWindow = App.Windows.AuthWindow;
+            //    authWindow?.Close();
+            //}
         }
     }
 }

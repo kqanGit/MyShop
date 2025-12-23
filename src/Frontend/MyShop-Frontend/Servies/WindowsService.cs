@@ -61,6 +61,15 @@ namespace MyShop_Frontend.Servies
         {
             SvConfigWindow?.Close(); // Closed event sẽ tự Show lại AuthWindow
         }
+
+        public void ShowMainWindow()
+        {
+            var mainWindow = new MainWindow();
+            mainWindow.Activate();
+
+            // Đóng cửa sổ hiện tại (AuthWindow)
+            App.Windows.AuthWindow?.Close();
+        }
     }
 
 
