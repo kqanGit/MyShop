@@ -7,7 +7,7 @@ exports.seed = async function(knex) {
   await knex('Order').del();
   await knex('Order').insert([
     { 
-      order_id: 1, 
+      // order_id: 1, 
       order_code: "DH001", 
       customer_id: 3, // Khách Vàng
       user_id: 3,     // Staff
@@ -19,7 +19,7 @@ exports.seed = async function(knex) {
       status: 2 
     },
     { 
-      order_id: 2, 
+      // order_id: 2, 
       order_code: "DH002", 
       customer_id: 2, // Khách Bạc
       user_id: 4,     // Staff
@@ -31,7 +31,7 @@ exports.seed = async function(knex) {
       status: 2 
     },
     { 
-      order_id: 3, 
+      // order_id: 3, 
       order_code: "DH003", 
       customer_id: 1, // Khách vãng lai
       user_id: 3,     // Staff

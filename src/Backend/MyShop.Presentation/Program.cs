@@ -7,6 +7,9 @@ using MyShop.Infrastructure.Data;
 using MyShop.Infrastructure.Repositories;
 using System.Text;
 
+// Ensure Npgsql accepts non-UTC DateTime, or set all times to UTC in code. Prefer UTC; this switch unblocks legacy data.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // DbContext
@@ -35,7 +38,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Register Services and Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-// builder.Services.AddScoped<IProductRepository, ProductRepository>(); // when implemented
+
+// Repositories used by OrderService
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IMembershipRepository, MembershipRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+// Services
+builder.Services.AddScoped<IOrderService, OrderService>(); 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Controllers + Swagger

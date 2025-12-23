@@ -101,7 +101,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("Order");
 
             entity.Property(e => e.OrderId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("order_id");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DiscountAmount).HasColumnName("discount_amount");

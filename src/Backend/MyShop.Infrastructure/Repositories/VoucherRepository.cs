@@ -21,7 +21,7 @@ namespace MyShop.Infrastructure.Repositories
 
         public async Task<IEnumerable<Voucher>> GetActiveAsync()
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateTime.Now;
             return await Set.Where(v => v.IsRemoved == false && v.StartDate.HasValue && v.EndDate.HasValue && v.StartDate <= today && v.EndDate >= today).ToListAsync();
         }
     }

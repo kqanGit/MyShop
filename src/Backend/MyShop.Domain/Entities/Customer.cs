@@ -13,11 +13,11 @@ public partial class Customer
 
     public string? Address { get; set; }
 
-    public int? Point { get; set; }
+    public int Point { get; set; }
 
     public int? TierId { get; set; }
 
-    public DateOnly? CreateDate { get; set; }
+    public DateTime? CreateDate { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 

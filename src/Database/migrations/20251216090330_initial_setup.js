@@ -32,7 +32,7 @@ exports.up = async function (knex) {
         "address" varchar,
         "point" int,
         "tier_id" int,
-        "create_date" date
+        "create_date" timestamp
         );
 
         CREATE TABLE "Membership" (
@@ -66,8 +66,8 @@ exports.up = async function (knex) {
         "type" int,
         "discount" decimal,
         "min_threshold" decimal,
-        "start_date" date,
-        "end_date" date,
+        "start_date" timestamp,
+        "end_date" timestamp,
         "is_removed" boolean
         );
 
@@ -76,7 +76,7 @@ exports.up = async function (knex) {
         "order_code" varchar,
         "customer_id" int,
         "user_id" int,
-        "order_date" date,
+        "order_date" timestamp,
         "total_price" decimal,
         "voucher_id" int,
         "discount_amount" decimal,

@@ -27,10 +27,9 @@ namespace MyShop.Infrastructure.Repositories
 
         public async Task<IEnumerable<Order>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate)
         {
-            var from = DateOnly.FromDateTime(fromDate);
-            var to = DateOnly.FromDateTime(toDate);
+          
             return await Set
-                .Where(o => o.OrderDate.HasValue && o.OrderDate >= from && o.OrderDate <= to)
+                .Where(o => o.OrderDate.HasValue && o.OrderDate >= fromDate && o.OrderDate <= toDate)
                 .ToListAsync();
         }
 
