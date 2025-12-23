@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="MyShop_Frontend.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MyShop_Frontend"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="MyShop-Frontend">
+
+    <NavigationView PaneDisplayMode="Left" 
+                IsSettingsVisible="False"
+                ContentTransitions="{x:Null}"
+                IsPaneOpen="True"
+                OpenPaneLength="200"
+                CompactPaneLength="56">
+
+        <NavigationView.Resources>
+            <Style TargetType="NavigationViewItem">
+                <Setter Property="Height" Value="55"/>
+                <Setter Property="Opacity" Value="0.9"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="CornerRadius" Value="16"/>
+                <Setter Property="Margin" Value="0,4,0,4"/>
+            </Style>
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground"
+                         Color="Transparent"/>
+
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundPressed" Color="#5D5FEF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundPressed" Color="White" />
+
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#5D5FEF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="White" />
+
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPointerOver" Color="#5D5FEF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPointerOver" Color="White" />
+
+            <SolidColorBrush x:Key="NavigationViewItemBackgroundSelectedPressed" Color="#5D5FEF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelectedPressed" Color="White" />
+        </NavigationView.Resources>
+
+        <NavigationView.PaneHeader>
+            <StackPanel Orientation="Horizontal" Spacing="12" Margin="16,40,16,25 ">
+                <TextBlock Text="My Shop"
+                       FontSize="25"
+                       FontWeight="SemiBold"
+                       Foreground="#111827"
+                       VerticalAlignment="Center"/>
+            </StackPanel>
+        </NavigationView.PaneHeader>
+
+        <!-- Menu Items -->
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Dashboard" Tag="Dashboard">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xEB05;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Order" Tag="Order">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE7BF;"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Products" Icon="Shop" Tag="Product"/>
+            <NavigationViewItem Content="Customers" Icon="People" Tag="Customers"/>
+            <NavigationViewItem Content="Report" Tag="Report">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE9F9;"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Help" Icon="Help" Tag="Help"/>
+        <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings"/>
+    </NavigationView.MenuItems>
+
+    <!-- Sign Out -->
+    <NavigationView.FooterMenuItems>
+            <NavigationViewItem Content="Sign Out" Margin="0,10,0,16">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xF3B1;"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.FooterMenuItems>
+
+    </NavigationView>
+</Window>
