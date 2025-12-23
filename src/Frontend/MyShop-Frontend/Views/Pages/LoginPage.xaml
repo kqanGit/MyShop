@@ -9,71 +9,72 @@
     xmlns:controls="using:MyShop_Frontend.Views.Controls"
     mc:Ignorable="d">
 
-    <StackPanel Width="380" 
-                Height="600"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Spacing="18">
-        <TextBlock Text="Login"
-                          FontSize="34"
-                          Foreground="#151D48"
-                          FontWeight="Bold"
-                          HorizontalAlignment="Left"/>
+    <StackPanel 
+        Width="380" 
+        Height="600"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Spacing="18">
+        <TextBlock 
+            Text="Login"
+            FontSize="34"
+            Foreground="#151D48"
+            FontWeight="Bold"
+            HorizontalAlignment="Left"/>
 
-        <TextBlock Text="Username"
-                          Foreground="#000000"
-                          Opacity="0.5"
-                          FontSize="16"/>
+        <TextBlock 
+            Text="Username"
+            Foreground="#000000"
+            Opacity="0.5"
+            FontSize="16"/>
         <TextBox 
-                        Foreground="Black"
-                        Background="#FFFFFF"
-                        BorderBrush="#80000000"
-                        BorderThickness="1.2"
-                        Height="50"
-                        CornerRadius="16">
+            Text="{x:Bind ViewModel.Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Foreground="Black"
+            Background="#FFFFFF"
+            BorderBrush="#80000000"
+            BorderThickness="1.2"
+            Height="50"
+            CornerRadius="16">
         </TextBox>
 
-        <TextBlock Text="Password"
-                          Foreground="#000000"
-                          Opacity="0.5"
-                          FontSize="16"/>
-        <PasswordBox x:Name="PasswordInput"
-                            Foreground="Black"
-                            Background="#FFFFFF"
-                            BorderBrush="#80000000"
-                            BorderThickness="1.2"
-                            Height="50"
-                            CornerRadius="16"/>
+        <TextBlock 
+            Text="Password"
+            Foreground="#000000"
+            Opacity="0.5"
+            FontSize="16"/>
+        <PasswordBox 
+            x:Name="PasswordInput"
+            Foreground="Black"
+            Background="#FFFFFF"
+            BorderBrush="#80000000"
+            BorderThickness="1.2"
+            Height="50"
+            CornerRadius="16"/>
 
-        <CheckBox Content="Remember me" Foreground="Black" />
+        <CheckBox 
+            Content="Remember me" 
+            Foreground="Black" />
 
-        <controls:AppButton Content="Sign In"
-                       Height="45"
-                       Width="380"
-                       Background="#5D5FEF"
-                       Foreground="White"
-                       FontWeight="SemiBold"
-                       BorderThickness="0"
-                       CornerRadius="16"
-                       Click="SignInButton_Click"/>
+        <controls:AppButton 
+            Content="Sign In"
+            Height="45"
+            Width="380"
+            Background="#5D5FEF"
+            Foreground="White"
+            FontWeight="SemiBold"
+            BorderThickness="0"
+            CornerRadius="16"
+            Click="SignInButton_Click"/>
 
-        <StackPanel Orientation="Horizontal"
-                           HorizontalAlignment="Center">
-            <TextBlock Text="New user?"  
-                              VerticalAlignment="Center" 
-                              Foreground="#6B6796"/>
-            <HyperlinkButton Content="Create new account" 
-                                    VerticalAlignment="Center" 
-                                    Foreground="blue"
-                                    Click="CreateNewAccount_Click"/>
-        </StackPanel>
 
-        <HyperlinkButton Content="Config server" 
-                                HorizontalAlignment="Right" 
-                                VerticalAlignment="Bottom" 
-                                Margin="0,50,0,8" 
-                                Foreground="blue"
-                                Click="ConfigServerButton_Click"/>
+
+        <HyperlinkButton 
+            Content="Config server" 
+            HorizontalAlignment="Right" 
+            VerticalAlignment="Bottom" 
+            Margin="0,50,0,8" 
+            Foreground="blue"
+            Click="ConfigServerButton_Click"/>
 
     </StackPanel>
 
