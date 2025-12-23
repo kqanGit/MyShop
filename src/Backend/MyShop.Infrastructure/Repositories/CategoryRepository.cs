@@ -13,7 +13,7 @@ namespace MyShop.Infrastructure.Repositories
         public CategoryRepository(AppDbContext context) : base(context)
         {
         }
-
+ 
         public async Task<IEnumerable<Product>> GetProductsByFilterAsync(string keyword, int? categoryId, decimal? minPrice, decimal? maxPrice)
         {
             var query = Context.Products.AsQueryable();
