@@ -53,5 +53,10 @@ namespace MyShop.Infrastructure.Repositories
             var existing = await Set.FindAsync(id);
             return existing != null;
         }
+
+        public virtual async Task SaveChangesAsync()
+        {
+             await Context.SaveChangesAsync();
+        }
     }
 }

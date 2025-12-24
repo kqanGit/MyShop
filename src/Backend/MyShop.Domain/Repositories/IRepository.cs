@@ -11,5 +11,6 @@ namespace MyShop.Domain.Repositories
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
         Task<bool> ExistsAsync(object id);
+        Task SaveChangesAsync();
     }
 }
