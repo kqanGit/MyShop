@@ -23,4 +23,6 @@ public partial class User
     public virtual Role? Role { get; set; }
 
     public virtual ICollection<UserConfig> UserConfigs { get; set; } = new List<UserConfig>();
+
+    public string? PhoneNumber { get; set; }
 }

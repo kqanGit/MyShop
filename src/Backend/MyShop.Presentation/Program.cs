@@ -30,6 +30,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // 3️⃣ Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IConfigService, ConfigService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // 4️⃣ Add Controllers + Swagger
 builder.Services.AddControllers();

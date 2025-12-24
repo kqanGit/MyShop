@@ -18,6 +18,7 @@ namespace MyShop.Application.Services
     {
         Task<AuthResponseDto> Login(LoginRequestDto request);
         Task<AuthResponseDto> Register(RegisterRequestDto request);
+        Task Logout(string refreshToken);
     }
 
     public class AuthService : IAuthService
@@ -104,6 +105,13 @@ namespace MyShop.Application.Services
                 Role = user.RoleId.ToString(),
                 ExpiresAt = expiresAt
             };
+        }
+
+        public async Task Logout(string refreshToken)
+        {
+            // In a real app with refresh tokens, we would revoke it here.
+            // For now, we just acknowledge the logout request.
+            await Task.CompletedTask;
         }
 
         private string GenerateJwtToken(User user)
