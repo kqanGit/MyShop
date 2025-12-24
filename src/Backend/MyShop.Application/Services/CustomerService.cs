@@ -42,7 +42,7 @@ namespace MyShop.Application.Services
                 FullName = c.FullName,
                 Phone = c.Phone,
                 Address = c.Address,
-                Point = c.Point ?? 0,
+                Point = c.Point,
                 TierName = c.Tier != null ? c.Tier.TierName : "N/A"
             }).ToListAsync();
         }
@@ -61,9 +61,9 @@ namespace MyShop.Application.Services
                 FullName = customer.FullName,
                 Phone = customer.Phone,
                 Address = customer.Address,
-                Point = customer.Point ?? 0,
+                Point = customer.Point,
                 TierName = customer.Tier?.TierName ?? "N/A",
-                CreateDate = customer.CreateDate?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue,
+                CreateDate = customer.CreateDate ?? DateTime.MinValue,
                 Membership = customer.Tier != null ? new MembershipDto
                 {
                     TierId = customer.Tier.TierId,
@@ -87,7 +87,7 @@ namespace MyShop.Application.Services
                 Address = request.Address,
                 Point = 0,
                 TierId = defaultTier?.TierId,
-                CreateDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                CreateDate = DateTime.UtcNow
             };
 
             _context.Customers.Add(customer);
@@ -121,7 +121,7 @@ namespace MyShop.Application.Services
                 FullName = customer.FullName,
                 Phone = customer.Phone,
                 Address = customer.Address,
-                Point = customer.Point ?? 0,
+                Point = customer.Point,
                 TierName = customer.Tier?.TierName ?? "N/A"
             };
         }

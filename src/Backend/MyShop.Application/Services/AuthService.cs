@@ -16,11 +16,8 @@ namespace MyShop.Application.Services
     public interface IAuthService
     {
         Task<AuthResponseDto> Login(LoginRequestDto request);
-<<<<<<< HEAD
         Task<AuthResponseDto> Register(RegisterRequestDto request);
         Task Logout(string refreshToken);
-=======
->>>>>>> 482549e406c032a60045ea39697f831380492a6e
     }
 
     public class AuthService : IAuthService
@@ -54,6 +51,39 @@ namespace MyShop.Application.Services
                 Token = token,
                 Username = user.UserName,
                 Email = "email-removed-in-db-schema",
+                Role = user.RoleId.ToString(),
+                ExpiresAt = expiresAt
+            };
+        }
+
+        public async Task<AuthResponseDto> Register(RegisterRequestDto request)
+        {
+            if (await _users.GetByUsernameAsync(request.Username) != null)
+            {
+                throw new InvalidOperationException("Username already exists");
+            }
+
+            var user = new User
+            {
+                UserName = request.Username,
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                FullName = request.FullName,
+                RoleId = 1, // Default Role ID
+                Status = new BitArray(new[] { true })
+            };
+
+            await _users.AddAsync(user);
+            await _users.SaveChangesAsync();
+            
+            var token = GenerateJwtToken(user);
+            var expiresAt = DateTime.UtcNow.AddMinutes(
+                int.Parse(_configuration["JwtSettings:ExpirationMinutes"]));
+
+            return new AuthResponseDto
+            {
+                Token = token,
+                Username = user.UserName,
+                Email = "email-removed",
                 Role = user.RoleId.ToString(),
                 ExpiresAt = expiresAt
             };
