@@ -4,12 +4,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MyShop.Application.DTOs;
 using MyShop.Domain.Entities;
-using MyShop.Infrastructure.Data;
+using MyShop.Domain.Repositories;
 using BCrypt.Net;
 
 namespace MyShop.Application.Services
@@ -17,33 +16,30 @@ namespace MyShop.Application.Services
     public interface IAuthService
     {
         Task<AuthResponseDto> Login(LoginRequestDto request);
+<<<<<<< HEAD
         Task<AuthResponseDto> Register(RegisterRequestDto request);
         Task Logout(string refreshToken);
+=======
+>>>>>>> 482549e406c032a60045ea39697f831380492a6e
     }
 
     public class AuthService : IAuthService
     {
-        private readonly AppDbContext _context;
+        private readonly IUserRepository _users;
         private readonly IConfiguration _configuration;
 
-        public AuthService(AppDbContext context, IConfiguration configuration)
+        public AuthService(IUserRepository users, IConfiguration configuration)
         {
-            _context = context;
+            _users = users;
             _configuration = configuration;
         }
 
         public async Task<AuthResponseDto> Login(LoginRequestDto request)
         {
-            // Note: Status is nullable BitArray? in new schema
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == request.Username);
+            var user = await _users.GetByUsernameAsync(request.Username);
 
-            // Manual check for Status because BitArray translation in SQL is tricky
-            // Status[0] represents the first bit.
             bool isActive = user?.Status != null && user.Status.Length > 0 && user.Status[0];
 
-            // Note: Password in DB might not be hashed yet? Assuming BCrypt for now based on previous code.
-            // If DB stores plain text, this verify will fail. 
             if (user == null || !isActive || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 throw new UnauthorizedAccessException("Invalid username or password");
@@ -57,51 +53,7 @@ namespace MyShop.Application.Services
             {
                 Token = token,
                 Username = user.UserName,
-                Email = "email-removed-in-db-schema", // Placeholder
-                Role = user.RoleId.ToString(), // Converted Int to String
-                ExpiresAt = expiresAt
-            };
-        }
-
-        public async Task<AuthResponseDto> Register(RegisterRequestDto request)
-        {
-            // Kiểm tra username đã tồn tại
-            if (await _context.Users.AnyAsync(u => u.UserName == request.Username))
-            {
-                throw new InvalidOperationException("Username already exists");
-            }
-
-            // Email check removed as Email field does not exist in new schema
-            /*
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            {
-                throw new InvalidOperationException("Email already exists");
-            }
-            */
-
-            var user = new User
-            {
-                UserName = request.Username,
-                // Email field removed
-                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                FullName = request.FullName,
-                // PhoneNumber field removed
-                RoleId = 1, // Default Role ID ???
-                Status = new BitArray(new[] { true })
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var token = GenerateJwtToken(user);
-            var expiresAt = DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["JwtSettings:ExpirationMinutes"]));
-
-            return new AuthResponseDto
-            {
-                Token = token,
-                Username = user.UserName,
-                Email = "email-removed",
+                Email = "email-removed-in-db-schema",
                 Role = user.RoleId.ToString(),
                 ExpiresAt = expiresAt
             };
@@ -124,7 +76,6 @@ namespace MyShop.Application.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? ""),
-                // Email claim removed or empty
                 new Claim(JwtRegisteredClaimNames.Email, "no-email"),
                 new Claim(ClaimTypes.Role, user.RoleId.ToString() ?? "0"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
