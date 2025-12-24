@@ -46,11 +46,9 @@ namespace MyShop.Presentation.Controllers
         {
             try
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null) return Unauthorized();
-                int userId = int.Parse(userIdClaim.Value);
+   
 
-                var result = await _orderService.GetMyOrdersAsync(request, userId);
+                var result = await _orderService.GetMyOrdersAsync(request);
 
                 return Ok(result);
             }

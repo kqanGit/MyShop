@@ -14,7 +14,7 @@ namespace MyShop.Application.Services
     {
         Task<OrderResultDto> CheckoutAsync(CreateOrderRequest request, int userId);
 
-        Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request, int userId);
+        Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request);
     }
     public class OrderService : IOrderService
     {
@@ -191,11 +191,10 @@ namespace MyShop.Application.Services
             }
         }
 
-         public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request, int userId)
+         public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request)
         {
             // Call repository with correct date range
             var (orders, totalCount) = await _orderRepo.GetPagedOrdersAsync(
-                userId,
                 request.PageIndex,
                 request.PageSize,
                 request.FromDate,

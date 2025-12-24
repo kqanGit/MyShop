@@ -7,6 +7,6 @@ namespace MyShop.Domain.Repositories
     public interface IOrderRepository : IRepository<Order>
     {
         Task<Order?> GetOrderWithDetailsAsync(int orderId);
-        Task<(List<Order>, int)> GetPagedOrdersAsync(int userId, int pageIndex, int pageSize, DateTime? fromDate, DateTime? toDate);
+        Task<(List<Order>, int)> GetPagedOrdersAsync(int pageIndex, int pageSize, DateTime? fromDate, DateTime? toDate);
     }
 }
