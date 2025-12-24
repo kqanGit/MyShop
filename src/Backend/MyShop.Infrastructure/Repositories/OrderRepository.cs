@@ -29,7 +29,7 @@ namespace MyShop.Infrastructure.Repositories
         {
           
             return await Set
-                .Where(o => o.OrderDate.HasValue && o.OrderDate >= fromDate && o.OrderDate <= toDate)
+                .Where(o => o.OrderDate >= fromDate && o.OrderDate <= toDate)
                 .ToListAsync();
         }
 
