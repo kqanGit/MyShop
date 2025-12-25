@@ -43,6 +43,10 @@ namespace MyShop_Frontend
                 {
                     ContentFrame.Navigate(typeof(Views.Pages.CustomerPage));
                 }
+                else if (tag == "Product")
+                {
+                    ContentFrame.Navigate(typeof(Views.Pages.ProductPage));
+                }
                 // Chỉ xử lý nếu Tag là "SignOut"
                 else if (tag == "SignOut")
                 {
