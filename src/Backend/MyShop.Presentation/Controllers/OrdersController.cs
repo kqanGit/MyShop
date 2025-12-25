@@ -52,6 +52,29 @@ namespace MyShop.Presentation.Controllers
 
                 return Ok(result);
             }
+
+        [HttpGet("{id}")] 
+        [Authorize]
+        public async Task<IActionResult> GetOrderById(int id)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null) return Unauthorized();
+                int userId = int.Parse(userIdClaim.Value);
+
+                var result = await _orderService.GetOrderByIdAsync(id, userId);
+
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message }); 
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message }); 
+            }
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });

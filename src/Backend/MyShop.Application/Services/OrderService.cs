@@ -15,6 +15,7 @@ namespace MyShop.Application.Services
         Task<OrderResultDto> CheckoutAsync(CreateOrderRequest request, int userId);
 
         Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request);
+        Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId);
     }
     public class OrderService : IOrderService
     {
@@ -213,6 +214,45 @@ namespace MyShop.Application.Services
             }).ToList();
 
             return new PagedResult<OrderSummaryDto>(dtos, totalCount, request.PageIndex, request.PageSize);
+        public async Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId)
+        {
+      
+            var order = await _orderRepo.GetOrderWithDetailsAsync(orderId);
+
+            if (order == null)
+            {
+                throw new KeyNotFoundException("Can not find this order");
+            }
+
+            var result = new OrderResponseDto
+            {
+                OrderId = order.OrderId,
+                OrderCode = order.OrderCode,
+                OrderDate = order.OrderDate,
+
+                Status = order.Status switch
+                {
+                    1 => "Mới tạo",
+                    2 => "Đang giao",
+                    3 => "Hoàn thành",
+                    _ => "Không xác định"
+                },
+                VoucherCode = order.Voucher.VoucherCode ?? "None",
+                TotalPrice = order.TotalPrice,
+                DiscountAmount = order.DiscountAmount,
+                FinalPrice = order.FinalPrice,
+
+                OrderDetails = order.OrderDetails.Select(od => new OrderDetailResponseDto
+                {
+                    ProductId = od.ProductId,
+                    ProductName = od.Product.ProductName, 
+                    Quantity = od.Quantity,
+                    PriceAtPurchase = od.CurrentPrice,
+                    TotalLine = od.TotalLine
+                }).ToList()
+            };
+
+            return result;
         }
     }
 }

@@ -29,5 +29,26 @@ namespace MyShop.Presentation.Controllers
                 return Unauthorized(new { message = ex.Message });
             }
         }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request)
+        {
+            await _authService.Logout(request.RefreshToken);
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        {
+            try
+            {
+                var response = await _authService.Register(request);
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
