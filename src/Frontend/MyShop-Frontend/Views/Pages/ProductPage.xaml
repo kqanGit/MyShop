@@ -81,7 +81,9 @@
 
             <StackPanel Grid.Column="1">
                 <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ComboBox PlaceholderText="All Categories" HorizontalAlignment="Stretch"/>
+                <ComboBox PlaceholderText="All Categories" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Grid.Column="2">
@@ -95,8 +97,11 @@
 
         <!-- Price Range (Simplified as slider) -->
         <StackPanel Grid.Row="2" Margin="0,0,0,24">
-            <TextBlock Text="Price Range: $0.00 - $100.00" FontWeight="SemiBold" Margin="0,0,0,4"/>
-            <Slider Minimum="0" Maximum="100" />
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
+                <TextBlock Text="Price Range: $0.00 -" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding MaxPriceFilter, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
+            </StackPanel>
+            <Slider Minimum="0" Maximum="100" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
                 <TextBlock Text="Showing 10 of 88 products" VerticalAlignment="Center" Foreground="Gray"/>
                 <TextBlock Text="Order:" VerticalAlignment="Center" Margin="16,0,0,0"/>
