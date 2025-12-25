@@ -1,6 +1,8 @@
 using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Base;
 using MyShop_Frontend.Helpers.MockData;
+using MyShop_Frontend.Helpers.Command;
+using System.Windows.Input;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,6 +71,48 @@ namespace MyShop_Frontend.ViewModels.Products
             }
         }
 
+        private ObservableCollection<string> _sortOptions;
+        public ObservableCollection<string> SortOptions
+        {
+            get => _sortOptions;
+            set { _sortOptions = value; OnPropertyChanged(nameof(SortOptions)); }
+        }
+
+        private string _selectedSortOption;
+        public string SelectedSortOption
+        {
+            get => _selectedSortOption;
+            set
+            {
+                if (_selectedSortOption != value)
+                {
+                    _selectedSortOption = value;
+                    OnPropertyChanged(nameof(SelectedSortOption));
+                    FilterProducts();
+                }
+            }
+        }
+
+        private bool _isAscending = true;
+        public bool IsAscending
+        {
+            get => _isAscending;
+            set
+            {
+                if (_isAscending != value)
+                {
+                    _isAscending = value;
+                    OnPropertyChanged(nameof(IsAscending));
+                    OnPropertyChanged(nameof(SortOrderText));
+                    FilterProducts();
+                }
+            }
+        }
+
+        public string SortOrderText => IsAscending ? "Ascending" : "Descending";
+
+        public ICommand ToggleSortOrderCommand { get; }
+
         private List<Product> _allProducts;
 
         public ProductViewModel()
@@ -82,11 +126,22 @@ namespace MyShop_Frontend.ViewModels.Products
             Categories = new ObservableCollection<string>(categories);
             SelectedCategory = "All Categories";
 
+            // Initialize Sort Options
+            SortOptions = new ObservableCollection<string> { "None", "Price", "Name" };
+            SelectedSortOption = "None";
+
+            ToggleSortOrderCommand = new RelayCommand(_ => ToggleSortOrder());
+
             // Optional: Set initial MaxPriceFilter based on data
             if (_allProducts.Any())
             {
                 _maxPriceFilter = (double)_allProducts.Max(p => p.Price);
             }
+        }
+
+        private void ToggleSortOrder()
+        {
+            IsAscending = !IsAscending;
         }
 
         private void FilterProducts()
@@ -105,6 +160,17 @@ namespace MyShop_Frontend.ViewModels.Products
             }
 
             filtered = filtered.Where(p => (double)p.Price <= MaxPriceFilter);
+
+            // Apply Sorting
+            switch (SelectedSortOption)
+            {
+                case "Price":
+                    filtered = IsAscending ? filtered.OrderBy(p => p.Price) : filtered.OrderByDescending(p => p.Price);
+                    break;
+                case "Name":
+                    filtered = IsAscending ? filtered.OrderBy(p => p.ProductName) : filtered.OrderByDescending(p => p.ProductName);
+                    break;
+            }
 
             Products.Clear();
             foreach (var product in filtered)

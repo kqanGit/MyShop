@@ -39,13 +39,7 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                <AutoSuggestBox PlaceholderText="Search here..." QueryIcon="Find" Width="200" VerticalAlignment="Center"/>
-                <Button>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE710;"/>
-                        <TextBlock Text="New Category"/>
-                    </StackPanel>
-                </Button>
+                
                 <Button>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE898;"/>
@@ -88,7 +82,9 @@
 
             <StackPanel Grid.Column="2">
                 <TextBlock Text="Sort By" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ComboBox PlaceholderText="Name" HorizontalAlignment="Stretch"/>
+                <ComboBox PlaceholderText="Name" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding SortOptions}"
+                          SelectedItem="{Binding SelectedSortOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             
              <Button Grid.Column="3" Content="Clear Filters" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
@@ -105,7 +101,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
                 <TextBlock Text="Showing 10 of 88 products" VerticalAlignment="Center" Foreground="Gray"/>
                 <TextBlock Text="Order:" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                <HyperlinkButton Content="Ascending"/>
+                <HyperlinkButton Content="{Binding SortOrderText}" Command="{Binding ToggleSortOrderCommand}"/>
             </StackPanel>
         </StackPanel>
 
