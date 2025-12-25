@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MyShop_Frontend.Helpers.MockData
 {
-    public static class MockData
+    public static class Customer_MockData
     {
         public static List<Customer> GetCustomers()
         {
