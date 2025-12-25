@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,10 +24,31 @@ namespace MyShop_Frontend
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+        public ViewModels.MainViewModel ViewModel { get; } = new();
         public MainWindow()
         {
             this.InitializeComponent();
+            (this.Content as FrameworkElement).DataContext = ViewModel;
         }
+
+        private void RootNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        {
+            var invokedItem = args.InvokedItemContainer as NavigationViewItem;
+
+            if (invokedItem != null)
+            {
+                string tag = invokedItem.Tag?.ToString();
+
+                // Chỉ xử lý nếu Tag là "SignOut"
+                if (tag == "SignOut")
+                {
+                    ViewModel.SignOutCommand.Execute(null);
+                    this.Close(); // Đóng cửa sổ hiện tại sau khi đăng xuất
+                }
+            }
+        }
+
+        
 
     }
 }
