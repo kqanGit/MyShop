@@ -1,4 +1,4 @@
-using MyShop_Frontend.Helpers;
+using MyShop_Frontend.Helpers.MockData;
 using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Base;
 using System.Collections.ObjectModel;
