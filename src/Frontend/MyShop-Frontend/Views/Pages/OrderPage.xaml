@@ -23,16 +23,46 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Header Controls -->
-        <Grid Grid.Row="0" Margin="0,0,0,24">
+        <Grid Grid.Row="0" Margin="0,0,0,12">
             <TextBlock Text="Order Management" FontSize="24" FontWeight="SemiBold"/>
         </Grid>
 
+        <!-- Filters -->
+        <StackPanel Grid.Row="1" Spacing="12" Margin="0,0,0,24">
+            <StackPanel>
+                 <TextBlock Text="Search" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                 <TextBox PlaceholderText="Search by Order Code..." 
+                          Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+           
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                     <TextBlock Text="From Date" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                     <CalendarDatePicker HorizontalAlignment="Stretch" Date="{Binding FromDate, Mode=TwoWay}" PlaceholderText="mm/dd/yyyy"/>
+                </StackPanel>
+
+                 <StackPanel Grid.Column="1">
+                     <TextBlock Text="To Date" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                     <CalendarDatePicker HorizontalAlignment="Stretch" Date="{Binding ToDate, Mode=TwoWay}" PlaceholderText="mm/dd/yyyy"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" Content="Clear Filters" Command="{Binding ClearFilterCommand}" VerticalAlignment="Bottom"/>
+            </Grid>
+        </StackPanel>
+
         <!-- Header Row -->
-        <Border Grid.Row="1" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Height="40" Margin="0,0,12,0" CornerRadius="4">
+        <Border Grid.Row="2" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Height="40" Margin="0,0,12,0" CornerRadius="4">
             <Grid Padding="12,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -51,8 +81,9 @@
             </Grid>
         </Border>
 
+
         <!-- Data List -->
-        <ListView Grid.Row="2" 
+        <ListView Grid.Row="3" 
                   ItemsSource="{Binding Orders}" 
                   SelectionMode="None"
                   Padding="0,0,12,0">
@@ -74,7 +105,7 @@
                         <!-- Date -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <FontIcon Glyph="&#xE787;" FontSize="12" Foreground="Gray"/>
-                            <TextBlock Text="{Binding OrderDate}" FontSize="12"/>
+                            <TextBlock Text="{Binding OrderDate, Converter={StaticResource DateConverter}}" FontSize="12"/>
                         </StackPanel>
 
                         <!-- Final Price -->
@@ -108,6 +139,6 @@
             </ListView.ItemContainerStyle>
         </ListView>
         
-        <ProgressBar Grid.Row="2" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" VerticalAlignment="Top"/>
+        <ProgressBar Grid.Row="3" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" VerticalAlignment="Top"/>
     </Grid>
 </Page>
