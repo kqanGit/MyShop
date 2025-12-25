@@ -56,7 +56,7 @@
         </Grid>
 
         <!-- Filters Row -->
-        <Grid Grid.Row="1" Margin="0,0,0,16" ColumnSpacing="16">
+        <Grid Grid.Row="1" Margin="0,0,0,16" ColumnSpacing="16" VerticalAlignment="Bottom">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="1.5*"/>
@@ -66,29 +66,30 @@
 
             <StackPanel Grid.Column="0">
                 <TextBlock Text="Search Products" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <TextBox PlaceholderText="Search by product name..." Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                    <TextBox.Header>
-                         <TextBlock Text=" " Height="0"/> 
-                    </TextBox.Header>
-                </TextBox>
+                <TextBox PlaceholderText="Search by product name..." 
+                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1">
                 <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,4"/>
                 <ComboBox PlaceholderText="All Categories" HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding Categories}"
-                          SelectedItem="{Binding SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                  ItemsSource="{Binding Categories}"
+                  SelectedItem="{Binding SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Grid.Column="2">
                 <TextBlock Text="Sort By" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ComboBox PlaceholderText="Name" HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding SortOptions}"
-                          SelectedItem="{Binding SelectedSortOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <ComboBox PlaceholderText="None" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding SortOptions}"
+                  SelectedItem="{Binding SelectedSortOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
-            
-             <Button Grid.Column="3" Content="Clear Filters" VerticalAlignment="Bottom" Margin="0,0,0,2"/>
 
+            <StackPanel Grid.Column="3">
+                <TextBlock Text=" " Margin="0,0,0,4"/>
+                <Button Content="Clear Filters" 
+                VerticalAlignment="Stretch"
+                Height="32"/>
+            </StackPanel>
         </Grid>
 
         <!-- Price Range (Simplified as slider) -->
