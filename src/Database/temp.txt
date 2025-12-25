@@ -1,0 +1,128 @@
+/// PagedResult.cs
+
+using System.Collections.Generic;
+using System;
+
+namespace MyShop.Application.DTOs.Common
+{
+   
+    public class PagedResult<T>
+    {
+        public List<T> Items { get; set; }
+        public int TotalRecords { get; set; } 
+        public int PageIndex { get; set; }    
+        public int PageSize { get; set; }     
+        public int TotalPages => (int)Math.Ceiling((double)TotalRecords / PageSize);
+
+        public PagedResult(List<T> items, int totalRecords, int pageIndex, int pageSize)
+        {
+            Items = items;
+            TotalRecords = totalRecords;
+            PageIndex = pageIndex;
+            PageSize = pageSize;
+        }
+    }
+}
+
+
+/// OrderSummaryDto.cs
+
+namespace MyShop.Application.DTOs.Order
+{
+    public class OrderSummaryDto
+    {
+        public int OrderId { get; set; }
+        public string OrderCode { get; set; }
+        public DateTime OrderDate { get; set; }
+        public decimal FinalPrice { get; set; }
+        public string StatusName { get; set; }
+        public int TotalItems { get; set; }
+    }
+}
+
+/// OrderRepository.cs
+public async Task<(List<Order>, int)> GetPagedOrdersAsync(int userId, int pageIndex, int pageSize, DateTime? fromDate, DateTime? toDate)
+{
+    // Use repository DbSet as query source
+    var query = Set.AsNoTracking().AsQueryable();
+
+    // 1. Filter by user
+    query = query.Where(o => o.UserId == userId);
+
+    // 2. Filter by date range
+    if (fromDate.HasValue)
+    {
+        query = query.Where(o => o.OrderDate >= fromDate.Value);
+    }
+
+    if (toDate.HasValue)
+    {
+        // Inclusive end-of-day: compare < next day
+        var nextDay = toDate.Value.AddDays(1).Date;
+        query = query.Where(o => o.OrderDate < nextDay);
+    }
+
+    // 3. Sort newest first
+    query = query.OrderByDescending(o => o.OrderDate);
+
+    // 4. Count & paginate
+    int totalCount = await query.CountAsync();
+
+    var items = await query
+        .Skip((pageIndex - 1) * pageSize)
+        .Take(pageSize)
+        .Include(o => o.OrderDetails)
+        .ToListAsync();
+
+    return (items, totalCount);
+}
+
+/// OrderService.cs
+
+public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request, int userId)
+{
+    // Call repository with correct date range
+    var (orders, totalCount) = await _orderRepo.GetPagedOrdersAsync(
+        userId,
+        request.PageIndex,
+        request.PageSize,
+        request.FromDate,
+        request.ToDate
+    );
+
+    // Map to lightweight DTOs
+    var dtos = orders.Select(o => new OrderSummaryDto
+    {
+        OrderId = o.OrderId,
+        OrderCode = o.OrderCode,
+        OrderDate = o.OrderDate,
+        FinalPrice = o.FinalPrice,
+        StatusName = o.Status switch { 1 => "New", 2 => "Delivering", 3 => "Completed", _ => "Other" },
+        TotalItems = o.OrderDetails.Count
+    }).ToList();
+
+    return new PagedResult<OrderSummaryDto>(dtos, totalCount, request.PageIndex, request.PageSize);
+}
+
+
+/// OrderController.cs
+
+[HttpGet] 
+[Authorize]
+public async Task<IActionResult> GetMyHistory([FromQuery] GetOrdersRequest request)
+{
+    try
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        int userId = int.Parse(userIdClaim.Value);
+
+        var result = await _orderService.GetMyOrdersAsync(request, userId);
+
+        return Ok(result);
+    }
+    catch (Exception ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
