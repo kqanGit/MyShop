@@ -23,6 +23,8 @@ public class AuthenticationService : IAuthenticationService
     }
 
     // Trong Services/AuthenticationService.cs
+    public static string? CurrentToken { get; private set; }
+
     public async Task<string?> LoginAsync(string username, string password)
     {
         try
@@ -39,6 +41,7 @@ public class AuthenticationService : IAuthenticationService
             {
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var result = JsonSerializer.Deserialize<AuthResponseDto>(rawJson, options);
+                CurrentToken = result?.Token;
                 return result?.Token;
             }
         }
