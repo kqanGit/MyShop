@@ -40,7 +40,23 @@ namespace MyShop.Presentation.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetMyHistory([FromQuery] GetOrdersRequest request)
+        {
+            try
+            {
 
+
+                var result = await _orderService.GetMyOrdersAsync(request);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         [HttpGet("{id}")] 
         [Authorize]
         public async Task<IActionResult> GetOrderById(int id)

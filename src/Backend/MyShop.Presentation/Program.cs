@@ -5,6 +5,7 @@ using MyShop.Application.Services;
 using MyShop.Domain.Repositories;
 using MyShop.Infrastructure.Data;
 using MyShop.Infrastructure.Repositories;
+using MyShop.Infrastructure.Services;
 using System.Text;
 
 // Ensure Npgsql accepts non-UTC DateTime, or set all times to UTC in code. Prefer UTC; this switch unblocks legacy data.
@@ -52,6 +53,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers();
