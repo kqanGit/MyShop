@@ -43,5 +43,41 @@ namespace MyShop.Infrastructure.Repositories
                     .ThenInclude(od => od.Product)
                 .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
+
+        public async Task<(List<Order>, int)> GetPagedOrdersAsync(int pageIndex, int pageSize, DateTime? fromDate, DateTime? toDate)
+        {
+            // Use repository DbSet as query source
+            var query = Set.AsNoTracking().AsQueryable();
+
+
+ 
+
+            // 1. Filter by date range
+            if (fromDate.HasValue)
+            {
+                query = query.Where(o => o.OrderDate >= fromDate.Value);
+            }
+
+            if (toDate.HasValue)
+            {
+                // Inclusive end-of-day: compare < next day
+                var nextDay = toDate.Value.AddDays(1).Date;
+                query = query.Where(o => o.OrderDate < nextDay);
+            }
+
+            // 2. Sort newest first
+            query = query.OrderByDescending(o => o.OrderDate);
+
+            // 3. Count & paginate
+            int totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Include(o => o.OrderDetails)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

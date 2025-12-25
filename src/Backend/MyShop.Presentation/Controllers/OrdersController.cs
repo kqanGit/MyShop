@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyShop.Application.DTOs;
+using MyShop.Application.DTOs.Order;
 using MyShop.Application.Services;
 using System.Security.Claims;
 
