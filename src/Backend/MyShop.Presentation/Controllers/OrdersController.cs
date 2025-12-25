@@ -46,13 +46,17 @@ namespace MyShop.Presentation.Controllers
         {
             try
             {
-   
+
 
                 var result = await _orderService.GetMyOrdersAsync(request);
 
                 return Ok(result);
             }
-
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         [HttpGet("{id}")] 
         [Authorize]
         public async Task<IActionResult> GetOrderById(int id)

@@ -192,7 +192,7 @@ namespace MyShop.Application.Services
             }
         }
 
-         public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request)
+        public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request)
         {
             // Call repository with correct date range
             var (orders, totalCount) = await _orderRepo.GetPagedOrdersAsync(
@@ -214,6 +214,7 @@ namespace MyShop.Application.Services
             }).ToList();
 
             return new PagedResult<OrderSummaryDto>(dtos, totalCount, request.PageIndex, request.PageSize);
+        }
         public async Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId)
         {
       
