@@ -30,6 +30,7 @@ namespace MyShop_Frontend.Servies
 
             // nếu trước đó đã Hide thì Show lại
             GetAppWindow(AuthWindow).Show();
+            App.Windows.AuthWindow = AuthWindow;
             AuthWindow.Activate();
         }
 
@@ -60,6 +61,21 @@ namespace MyShop_Frontend.Servies
         public void CloseServerConfigIfOpen()
         {
             SvConfigWindow?.Close(); // Closed event sẽ tự Show lại AuthWindow
+        }
+
+        public void ShowMainWindow()
+        {
+            var mainWindow = new MainWindow();
+            mainWindow.Activate();
+
+            // Đóng cửa sổ hiện tại (AuthWindow)
+            if (App.Windows.AuthWindow != null)
+            {
+                App.Windows.AuthWindow.Close();
+
+                // 3. Giải phóng bộ nhớ bằng cách gán null sau khi đóng
+                App.Windows.AuthWindow = null;
+            }
         }
     }
 

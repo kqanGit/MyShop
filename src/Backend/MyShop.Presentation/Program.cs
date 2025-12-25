@@ -49,6 +49,9 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 // Services
 builder.Services.AddScoped<IOrderService, OrderService>(); 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IConfigService, ConfigService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers();
