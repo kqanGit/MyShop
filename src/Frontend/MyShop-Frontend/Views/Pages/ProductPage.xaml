@@ -72,7 +72,7 @@
 
             <StackPanel Grid.Column="0">
                 <TextBlock Text="Search Products" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <TextBox PlaceholderText="Search by product name..." >
+                <TextBox PlaceholderText="Search by product name..." Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <TextBox.Header>
                          <TextBlock Text=" " Height="0"/> 
                     </TextBox.Header>
