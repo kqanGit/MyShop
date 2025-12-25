@@ -72,19 +72,23 @@ namespace MyShop_Frontend.ViewModels.Authentication
             IsBusy = true;
             var token = await _authService.LoginAsync(Username, Password);
             Debug.WriteLine($"Token nhận được: {(token != null ? "Có dữ liệu" : "NULL")}");
-            if (!string.IsNullOrEmpty(token))
-            {
-                Debug.WriteLine("Đăng nhập thành công! Token: " + token);
-                _windowsService.ShowMainWindow();
-                // TODO: Lưu token và điều hướng sang trang chính
-                // App.CurrentServices.GetService<INavigationService>().NavigateTo("MainPage");
-            }
-            else
-            {
-                Debug.WriteLine("Sai tài khoản hoặc mật khẩu");
-              
-            }
 
+            //Waiting for fixing navigation service!
+            //if (!string.IsNullOrEmpty(token))
+            //{
+            //    Debug.WriteLine("Đăng nhập thành công! Token: " + token);
+            //    _windowsService.ShowMainWindow();
+            //    // TODO: Lưu token và điều hướng sang trang chính
+            //    // App.CurrentServices.GetService<INavigationService>().NavigateTo("MainPage");
+            //}
+            //else
+            //{
+            //    Debug.WriteLine("Sai tài khoản hoặc mật khẩu");
+
+            //}
+
+
+            _windowsService.ShowMainWindow();
             IsBusy = false;
         }
     }

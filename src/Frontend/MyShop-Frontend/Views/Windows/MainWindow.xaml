@@ -89,5 +89,8 @@
             </NavigationViewItem>
         </NavigationView.FooterMenuItems>
 
+        <NavigationView.Content>
+            <Frame x:Name="ContentFrame"/>
+        </NavigationView.Content>
     </NavigationView>
 </Window>
