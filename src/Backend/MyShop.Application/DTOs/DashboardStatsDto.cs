@@ -14,6 +14,10 @@ namespace MyShop.Application.DTOs.Stats
 
       
         public List<TopProductDto> TopSellingProducts { get; set; } = new List<TopProductDto>();
+
+        public int NewCustomersCount { get; set; } 
+        public int TotalProducts { get; set; }    
+        public List<ProductLowStockDto> LowStockProducts { get; set; }
     }
 
     public class RevenueChartDto
@@ -29,5 +33,12 @@ namespace MyShop.Application.DTOs.Stats
         public string ProductName { get; set; }
         public int QuantitySold { get; set; }
         public decimal Revenue { get; set; }
+    }
+
+    public class ProductLowStockDto
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int Stock { get; set; } 
     }
 }
