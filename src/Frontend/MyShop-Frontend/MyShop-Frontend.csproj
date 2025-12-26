@@ -19,8 +19,12 @@
   <ItemGroup>
     <None Remove="Assets\LoginImage.jpg" />
     <None Remove="Views\Controls\AuthLayout.xaml" />
+    <None Remove="Views\Pages\DashboardPage.xaml" />
+    <None Remove="Views\Pages\HelpPage.xaml" />
     <None Remove="Views\Pages\LoginPage.xaml" />
     <None Remove="Views\Pages\RegisterPage.xaml" />
+    <None Remove="Views\Pages\ReportPage.xaml" />
+    <None Remove="Views\Pages\SettingPage.xaml" />
     <None Remove="Views\Themes\AppTheme.xaml" />
     <None Remove="Views\Themes\Generic.xaml" />
     <None Remove="Views\Windows\ServerConfigWindow.xaml" />
@@ -66,6 +70,31 @@
     <Folder Include="ViewModels\Dashboard\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Controls\Order\CreateOrderControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\SettingPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\HelpPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\ReportPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\DashboardPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Themes\AppTheme.xaml">

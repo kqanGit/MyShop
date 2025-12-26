@@ -10,7 +10,8 @@
     Title="MyShop-Frontend">
 
     <NavigationView 
-        x:Name="RootNavigationView"
+        x:Name="NavView"
+        SelectionChanged="NavView_SelectionChanged"
         ItemInvoked="RootNavigationView_ItemInvoked"
         PaneDisplayMode="Left" 
         IsSettingsVisible="False"
@@ -90,7 +91,100 @@
         </NavigationView.FooterMenuItems>
 
         <NavigationView.Content>
-            <Frame x:Name="ContentFrame"/>
+            <Grid >
+                <Grid.RowDefinitions>
+                    <!-- Header cố định -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Content cuộn -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- ===== HEADER (top bar) ===== -->
+                <Grid Grid.Row="0"
+                      Padding="20"
+                      Margin="5,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left: Title -->
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding ElementName=NavView , Path=SelectedItem.Content }"
+                               FontSize="25"
+                               FontWeight="SemiBold"
+                               Foreground="#111827"
+                               VerticalAlignment="Center"/>
+
+                    <!-- Center: Search -->
+                    <Grid Grid.Column="1"
+                          Margin="20,0"
+                          MaxWidth="560"
+                          HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border CornerRadius="14"
+                                Background="White"
+                              
+                                BorderThickness="1"
+                                Padding="12,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon Glyph="&#xE721;"
+                                          FontSize="16"
+                                          Foreground="#9CA3AF"
+                                          VerticalAlignment="Center"/>
+
+                                <AutoSuggestBox Grid.Column="1"
+                                                Margin="10,0,0,0"
+                                                PlaceholderText="Search here..."
+                                                Background="Transparent"
+                                                BorderThickness="0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- Right: Language + Bell + User -->
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="10"
+                                VerticalAlignment="Center">
+
+                        <Button >
+                            <FontIcon Glyph="&#xE7ED;" FontSize="16"/>
+                        </Button>
+
+                        <Border Background="White"
+                               
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="10,6">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <PersonPicture Width="34" Height="34" DisplayName="Musfiq"/>
+                                <StackPanel>
+                                    <TextBlock Text="Musfiq" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Admin" FontSize="12" />
+                                </StackPanel>
+                                <TextBlock Text="▾" VerticalAlignment="Center" Opacity="0.7"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+                <!-- ===== CONTENT AREA ===== -->
+                <Frame Grid.Row="1"
+                       Margin="5,0,0,0"
+                       x:Name="ContentFrame"
+                       BorderThickness="0"/>
+            </Grid>
+
         </NavigationView.Content>
     </NavigationView>
 </Window>

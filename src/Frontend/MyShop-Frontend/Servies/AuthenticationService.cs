@@ -18,7 +18,7 @@ public class AuthenticationService : IAuthenticationService
     {
         _httpClient = new HttpClient
         {
-            BaseAddress = new Uri("http://localhost:5126/") // Thay port đúng của Backend Docker
+            BaseAddress = new Uri("https://stunning-goggles-x5rv46v6674p26q4j-5126.app.github.dev/") // Thay port đúng của Backend Docker
         };
     }
 
