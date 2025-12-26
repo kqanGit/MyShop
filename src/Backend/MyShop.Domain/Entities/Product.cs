@@ -12,7 +12,7 @@ public partial class Product
 
     public int CategoryId { get; set; }
 
-    public string Unit { get; set; }
+    public string? Unit { get; set; }
 
     public decimal Cost { get; set; }
 
