@@ -1,7 +1,7 @@
 ﻿using MyShop_Frontend.ViewModels.Base;
 using MyShop_Frontend.Helpers.Command;
 using System.Threading.Tasks;
-using MyShop_Frontend.Servies;
+using MyShop_Frontend.Services;
 
 namespace MyShop_Frontend.ViewModels
 {

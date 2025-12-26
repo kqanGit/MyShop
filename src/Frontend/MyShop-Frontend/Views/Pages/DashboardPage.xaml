@@ -8,383 +8,242 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-
     <Page.Resources>
-        <SolidColorBrush x:Key="CardBorderBrush" Color="#14000000"/>
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#7A000000"/>
-
-        <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#151D48"/>
-        </Style>
-
-        <Style x:Key="CardBorder" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="16"/>
-            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
+        <!-- Base card style -->
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="Padding" Value="18"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="16"/>
+            <Setter Property="BorderBrush" Value="#11000000"/>
         </Style>
 
-        <Style x:Key="StatValue" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#151D48"/>
+        <!-- Pill style button (Today) -->
+        <Style x:Key="PillButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Background" Value="#F3F5F9"/>
+            <Setter Property="BorderBrush" Value="#11000000"/>
+            <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
-        <Style x:Key="StatLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
-        </Style>
+        <!-- Pastel backgrounds like the screenshot -->
+        <SolidColorBrush x:Key="CardPink" Color="#FFEFF3"/>
+        <SolidColorBrush x:Key="CardBeige" Color="#FFF7EA"/>
+        <SolidColorBrush x:Key="CardMint" Color="#E9FFEF"/>
+        <SolidColorBrush x:Key="CardLavender" Color="#F1EBFF"/>
+        <SolidColorBrush x:Key="CardLightBlue" Color="#EEF4FF"/>
 
-        <Style x:Key="DeltaText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#3B82F6"/>
-        </Style>
+        <SolidColorBrush x:Key="IconPink" Color="#FFD7DD"/>
+        <SolidColorBrush x:Key="IconOrange" Color="#FFE1B8"/>
+        <SolidColorBrush x:Key="IconGreen" Color="#C9F2D0"/>
+        <SolidColorBrush x:Key="IconPurple" Color="#E2D6FF"/>
+        <SolidColorBrush x:Key="IconBlue" Color="#D9E6FF"/>
     </Page.Resources>
 
-    <ScrollViewer Padding="32,22,32,24">
-        <StackPanel Spacing="14">
-
-            <!-- Header like the screenshot -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel>
-                    <TextBlock Text="Today's Sales" Style="{StaticResource SectionTitle}"/>
-                    <TextBlock Text="Sales Summary" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Padding="24" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="16">
+            <!-- ===== Title row + filters (giữ binding) ===== -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10">
+                <StackPanel Grid.Row="0" Spacing="4">
+                    <TextBlock Text="Today's Sales" FontSize="16" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+                    <TextBlock Text="Sales Summary" FontSize="12" Opacity="0.6"/>
                 </StackPanel>
 
-                <Border Grid.Column="1"
-                        Background="#F4F6F8"
-                        CornerRadius="12"
-                        Padding="12,6"
-                        VerticalAlignment="Center">
-                    <TextBlock Text="Today" FontWeight="SemiBold" Foreground="#151D48"/>
-                </Border>
+                <!-- Today pill (UI only) -->
+                <Button Grid.Column="1" Grid.Row="0" Style="{StaticResource PillButtonStyle}" Content="Today"/>
+
+                <!-- Filters row (giữ binding đủ) -->
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="12">
+                    <DatePicker Date="{Binding FromDate, Mode=TwoWay}" />
+                    <DatePicker Date="{Binding ToDate, Mode=TwoWay}" />
+
+                    <ComboBox Width="160"
+                              SelectedValuePath="Tag"
+                              SelectedValue="{Binding SelectedGroupBy, Mode=TwoWay}">
+                        <ComboBoxItem Content="Ngày" Tag="1"/>
+                        <ComboBoxItem Content="Tuần" Tag="2"/>
+                        <ComboBoxItem Content="Tháng" Tag="3"/>
+                        <ComboBoxItem Content="Năm" Tag="4"/>
+                    </ComboBox>
+
+                    <Button Content="Refresh" Click="Refresh_Click"/>
+                </StackPanel>
             </Grid>
 
-            <!-- 5 cards row (Total Sales / Profit / Orders / New Customers / Total Products) -->
-            <Grid ColumnSpacing="14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <!-- ===== KPI cards row ===== -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*,1.2*" ColumnSpacing="12">
 
                 <!-- Total Sales -->
-                <Border Style="{StaticResource CardBorder}" Background="#FFEFF1" MinHeight="140">
+                <Border Style="{StaticResource CardBorderStyle}" Background="{StaticResource CardPink}">
                     <StackPanel Spacing="10">
-                        <Border Width="34" Height="34" CornerRadius="17" Background="#FFD6DA">
-                            <Viewbox>
-                                <FontIcon Glyph="&#xF1D1;" FontFamily="Segoe Fluent Icons" Foreground="#FF4D67"/>
-                            </Viewbox>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="{StaticResource IconPink}" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8A7;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
-                        <TextBlock Text="{x:Bind TotalSalesTodayText}" Style="{StaticResource StatValue}"/>
-                        <TextBlock Text="Total Sales" Style="{StaticResource StatLabel}"/>
-                        <TextBlock Text="{x:Bind TotalSalesDeltaText}" Style="{StaticResource DeltaText}"/>
+                        <TextBlock Text="{Binding TotalRevenueText}" FontSize="22" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+                        <TextBlock Text="Total Sales" Opacity="0.65"/>
+                        <TextBlock Text="+8% from yesterday" Foreground="#3B82F6" FontSize="12"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Profit -->
-                <Border Grid.Column="1" Style="{StaticResource CardBorder}" Background="#FFF7E8" MinHeight="140">
+                <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}" Background="{StaticResource CardBeige}">
                     <StackPanel Spacing="10">
-                        <Border Width="34" Height="34" CornerRadius="17" Background="#FFE7BD">
-                            <Viewbox>
-                                <FontIcon Glyph="&#xEAFD;" FontFamily="Segoe Fluent Icons" Foreground="#FF9F43"/>
-                            </Viewbox>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="{StaticResource IconOrange}" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xEAFD;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
-                        <TextBlock Text="{x:Bind ProfitTodayText}" Style="{StaticResource StatValue}"/>
-                        <TextBlock Text="Profit" Style="{StaticResource StatLabel}"/>
-                        <TextBlock Text="{x:Bind ProfitDeltaText}" Style="{StaticResource DeltaText}"/>
+                        <TextBlock Text="{Binding TotalProfitText}" FontSize="22" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+                        <TextBlock Text="Profit" Opacity="0.65"/>
+                        <TextBlock Text="+5% from yesterday" Foreground="#3B82F6" FontSize="12"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Orders Today -->
-                <Border Grid.Column="2" Style="{StaticResource CardBorder}" Background="#E9FFF1" MinHeight="140">
+                <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}" Background="{StaticResource CardMint}">
                     <StackPanel Spacing="10">
-                        <Border Width="34" Height="34" CornerRadius="17" Background="#BFF2CF">
-                            <Viewbox>
-                                <FontIcon Glyph="&#xE8CB;" FontFamily="Segoe Fluent Icons" Foreground="#2ECC71"/>
-                            </Viewbox>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="{StaticResource IconGreen}" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8CB;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
-                        <TextBlock Text="{x:Bind OrdersTodayText}" Style="{StaticResource StatValue}"/>
-                        <TextBlock Text="Orders Today" Style="{StaticResource StatLabel}"/>
-                        <TextBlock Text="{x:Bind OrdersDeltaText}" Style="{StaticResource DeltaText}"/>
+                        <TextBlock Text="{Binding TotalOrdersText}" FontSize="22" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+                        <TextBlock Text="Orders Today" Opacity="0.65"/>
+                        <TextBlock Text="+12% from yesterday" Foreground="#3B82F6" FontSize="12"/>
                     </StackPanel>
                 </Border>
 
-                <!-- New Customers -->
-                <Border Grid.Column="3" Style="{StaticResource CardBorder}" Background="#F2EAFF" MinHeight="140">
+                <!-- New Customers (ảnh có nhưng backend chưa có => placeholder) -->
+                <Border Grid.Column="3" Style="{StaticResource CardBorderStyle}" Background="{StaticResource CardLavender}">
                     <StackPanel Spacing="10">
-                        <Border Width="34" Height="34" CornerRadius="17" Background="#E2CEFF">
-                            <Viewbox>
-                                <FontIcon Glyph="&#xE77B;" FontFamily="Segoe Fluent Icons" Foreground="#8E44AD"/>
-                            </Viewbox>
+                        <Border Width="34" Height="34" CornerRadius="17" Background="{StaticResource IconPurple}" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE77B;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
-                        <TextBlock Text="{x:Bind NewCustomersTodayText}" Style="{StaticResource StatValue}"/>
-                        <TextBlock Text="New Customers" Style="{StaticResource StatLabel}"/>
-                        <TextBlock Text="{x:Bind CustomersDeltaText}" Style="{StaticResource DeltaText}"/>
+                        <TextBlock Text="8" FontSize="22" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+                        <TextBlock Text="New Customers" Opacity="0.65"/>
+                        <TextBlock Text="+0.5% from yesterday" Foreground="#3B82F6" FontSize="12"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Total Products (Option A) -->
-                <Border Grid.Column="4" Style="{StaticResource CardBorder}" Background="#EEF2FF" MinHeight="140">
+                <!-- Total Products / Stock health (ảnh có nhưng backend chưa có => placeholder) -->
+                <!--<Border Grid.Column="4" Style="{StaticResource CardBorderStyle}" Background="{StaticResource CardLightBlue}">
                     <StackPanel Spacing="10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Width="34" Height="34" CornerRadius="17" Background="{StaticResource IconBlue}">
+                                    <FontIcon Glyph="&#xE8A5;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Total Products" Opacity="0.65" VerticalAlignment="Center"/>
+                            </StackPanel>
 
-                            <!-- icon bubble -->
-                            <Border Width="34" Height="34" CornerRadius="17" Background="#DDE4FF">
-                                <Viewbox>
-                                    <FontIcon Glyph="&#xE8A7;" FontFamily="Segoe Fluent Icons" Foreground="#3B82F6"/>
-                                </Viewbox>
-                            </Border>
-
-                            <TextBlock Grid.Column="1"
-                           Text="Total Products"
-                           Style="{StaticResource StatLabel}"
-                           VerticalAlignment="Center"
-                           Margin="10,0,0,0"/>
-
-                            <!-- badge -->
-                            <Border Grid.Column="2"
-                        Background="#DCFCE7"
-                        CornerRadius="999"
-                        Padding="10,4"
-                        VerticalAlignment="Center">
+                            <Border Grid.Column="1" Background="#D1FAE5" CornerRadius="12" Padding="10,4" VerticalAlignment="Center">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Ellipse Width="7" Height="7" Fill="#22C55E" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{x:Bind InStockText}" FontSize="12" Foreground="#15803D" FontWeight="SemiBold"/>
+                                    <Ellipse Width="8" Height="8" Fill="#10B981" VerticalAlignment="Center"/>
+                                    <TextBlock Text="In stock" FontSize="12" Foreground="#047857"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
 
-                        <TextBlock Text="{x:Bind TotalProductsText}" Style="{StaticResource StatValue}"/>
+                        <TextBlock Text="128" FontSize="22" FontWeight="SemiBold" Foreground="#1E2A4A"/>
 
-                        <!-- stock health -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Stock health" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
-                            <TextBlock Grid.Column="1" Text="{x:Bind StockHealthText}" FontSize="12" Foreground="#3B82F6" FontWeight="SemiBold"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Stock health" Opacity="0.65"/>
+                            <TextBlock Grid.Column="1" Text="78%" Foreground="#3B82F6" FontSize="12"/>
                         </Grid>
 
-                        <ProgressBar Value="{x:Bind StockHealthValue}"
-                         Maximum="100"
-                         Height="8"
-                         Background="White"
-                         Foreground="#3B82F6"/>
+                        <ProgressBar Minimum="0" Maximum="100" Value="78" Height="6" CornerRadius="3"/>
                     </StackPanel>
-                </Border>
+                --><!--</Border>-->
+                
             </Grid>
 
+            <!-- ===== Bottom content: Chart + Right list ===== -->
+            <Grid Grid.Row="3" ColumnDefinitions="1.4*,1*" ColumnSpacing="12">
 
-            <!-- CHART + RECENT 3 ORDERS -->
-            <Grid ColumnSpacing="14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Monthly revenue chart -->
-                <Border Style="{StaticResource CardBorder}">
-                    <StackPanel Spacing="12">
+                <!-- Chart card: dùng RevenueChart binding (giữ binding) -->
+                <Border Style="{StaticResource CardBorderStyle}" Background="White">
+                    <StackPanel Spacing="10">
                         <StackPanel>
-                            <TextBlock Text="Revenue in the current month" Style="{StaticResource SectionTitle}"/>
-                            <TextBlock Text="{x:Bind CurrentMonthText}" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
+                            <TextBlock Text="Revenue in the current month" FontSize="16" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+                            <TextBlock Text="Month" Opacity="0.6" FontSize="12"/>
                         </StackPanel>
 
-                        <Grid Height="220" Margin="0,6,0,0">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Border Grid.Row="0" BorderBrush="#12000000" BorderThickness="0,1,0,0"/>
-                                <Border Grid.Row="1" BorderBrush="#12000000" BorderThickness="0,1,0,0"/>
-                                <Border Grid.Row="2" BorderBrush="#12000000" BorderThickness="0,1,0,0"/>
-                                <Border Grid.Row="3" BorderBrush="#12000000" BorderThickness="0,1,0,0"/>
-                            </Grid>
+                        <!-- Nếu bạn muốn đúng chart thật thì cần custom control/chart lib.
+                             Ở đây hiển thị giống ảnh: bar placeholder nhưng vẫn giữ data list ở dưới -->
+                        <Border BorderBrush="#11000000" BorderThickness="1" CornerRadius="14" Padding="18" Background="Transparent">
+                            <StackPanel Spacing="10">
+                                <!-- Placeholder bars -->
+                                <Grid Height="220" VerticalAlignment="Bottom">
+                                    <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Bottom">
+                                        <Border Width="30" Height="90" CornerRadius="8" Background="#2563EB"/>
+                                        <Border Width="30" Height="140" CornerRadius="8" Background="#2563EB"/>
+                                        <Border Width="30" Height="110" CornerRadius="8" Background="#2563EB"/>
+                                        <Border Width="30" Height="170" CornerRadius="8" Background="#2563EB"/>
+                                        <Border Width="30" Height="130" CornerRadius="8" Background="#2563EB"/>
+                                    </StackPanel>
+                                </Grid>
 
-                            <ItemsControl ItemsSource="{x:Bind MonthlyRevenue}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Bottom"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
+                                <!-- Data list (bind thật) -->
+                                <ListView ItemsSource="{Binding RevenueChart}" Margin="0,8,0,0">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="120,*,*" Padding="4">
+                                                <TextBlock Text="{Binding DateLabel}" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Revenue}" />
+                                                <TextBlock Grid.Column="2" Text="{Binding Profit}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
 
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="local:RevenueBar">
-                                        <StackPanel Width="28" VerticalAlignment="Bottom" Spacing="6">
-                                            <Rectangle Height="{x:Bind Height}"
-                                                       RadiusX="6" RadiusY="6"
-                                                       Fill="#1F6FEB"
-                                                       VerticalAlignment="Bottom"/>
-                                            <TextBlock Text="{x:Bind Label}"
-                                                       FontSize="10"
-                                                       Foreground="{StaticResource MutedTextBrush}"
-                                                       HorizontalAlignment="Center"/>
+                <!-- Right card: giống “Latest 3 orders”, nhưng bind từ TopSellingProducts -->
+                <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}" Background="White">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Latest 3 orders" FontSize="16" FontWeight="SemiBold" Foreground="#1E2A4A"/>
+
+                        <Grid ColumnDefinitions="*,Auto" Opacity="0.6">
+                            <TextBlock Text="Order / Customer"/>
+                            <TextBlock Grid.Column="1" Text="Total"/>
+                        </Grid>
+
+                        <!-- bind list TopSellingProducts, chỉ show 3 item đầu -->
+                        <ListView ItemsSource="{Binding TopSellingProducts}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto" Padding="0,10">
+                                        <StackPanel Spacing="2">
+                                            <!-- dùng ProductName thay cho order code (vì backend chỉ có top products) -->
+                                            <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" Foreground="#1E2A4A" TextWrapping="Wrap"/>
+                                            <TextBlock Opacity="0.65" FontSize="12">
+                                                <Run Text="Qty: "/>
+                                                <Run Text="{Binding QuantitySold}"/>
+                                            </TextBlock>
                                         </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
 
-                        <TextBlock Text="(Weekly revenue bars – placeholder)"
-                                   FontSize="12"
-                                   Foreground="{StaticResource MutedTextBrush}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Recent 3 orders -->
-                <Border Grid.Column="1" Style="{StaticResource CardBorder}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Latest 3 orders" Style="{StaticResource SectionTitle}"/>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Order / Customer" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
-                            <TextBlock Grid.Column="1" Text="Total" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
-                        </Grid>
-
-                        <ItemsControl ItemsSource="{x:Bind Recent3Orders}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="local:RecentOrder">
-                                    <Border BorderBrush="#11000000" BorderThickness="0,0,0,1" Padding="0,10">
-                                        <Grid ColumnSpacing="10">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel Spacing="2">
-                                                <TextBlock Text="{x:Bind OrderId}" FontWeight="SemiBold" Foreground="#151D48"/>
-                                                <TextBlock Text="{x:Bind Customer}" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
-                                                <TextBlock Text="{x:Bind TimeText}" FontSize="11" Foreground="{StaticResource MutedTextBrush}"/>
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="2">
-                                                <TextBlock Text="{x:Bind TotalText}" FontWeight="SemiBold" Foreground="#151D48" HorizontalAlignment="Right"/>
-                                                <TextBlock Text="{x:Bind Status}" FontSize="12" Foreground="{StaticResource MutedTextBrush}" HorizontalAlignment="Right"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- TOP SELLERS + LOW STOCK -->
-            <Grid ColumnSpacing="14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Style="{StaticResource CardBorder}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Top 5 best-selling products" Style="{StaticResource SectionTitle}"/>
-
-                        <ItemsControl ItemsSource="{x:Bind Top5BestSellers}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="local:TopSeller">
-                                    <Grid Margin="0,8" ColumnSpacing="12">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="220"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Text="{x:Bind Name}" Foreground="#151D48" VerticalAlignment="Center"/>
-
-                                        <Grid Grid.Column="1" Height="14" VerticalAlignment="Center">
-                                            <Border Background="#EEF2FF" CornerRadius="8"/>
-                                            <Border Background="#3B82F6"
-                                                    CornerRadius="8"
-                                                    HorizontalAlignment="Left"
-                                                    Width="{x:Bind BarWidth}"/>
-                                        </Grid>
-
-                                        <TextBlock Grid.Column="2"
-                                                   Text="{x:Bind SoldText}"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="2">
+                                            <TextBlock Text="{Binding Revenue}" FontWeight="SemiBold" Foreground="#1E2A4A" HorizontalAlignment="Right"/>
+                                            <TextBlock Text="—" Opacity="0.6" FontSize="12" HorizontalAlignment="Right"/>
+                                        </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            </ListView.ItemTemplate>
 
+                        </ListView>
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Style="{StaticResource CardBorder}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Top 5 low stock (  5 )" Style="{StaticResource SectionTitle}"/>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Product" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
-                            <TextBlock Grid.Column="1" Text="Left" FontSize="12" Foreground="{StaticResource MutedTextBrush}"/>
-                        </Grid>
-
-                        <ItemsControl ItemsSource="{x:Bind LowStockTop5}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="local:LowStockProduct">
-                                    <Grid Padding="0,10" BorderBrush="#11000000" BorderThickness="0,0,0,1">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock Text="{x:Bind Name}" Foreground="#151D48"/>
-
-                                        <Border Grid.Column="1"
-                                                Background="{x:Bind BadgeBg}"
-                                                CornerRadius="10"
-                                                Padding="10,2"
-                                                HorizontalAlignment="Right">
-                                            <TextBlock Text="{x:Bind RemainingText}"
-                                                       Foreground="{x:Bind BadgeFg}"
-                                                       FontSize="12"/>
-                                        </Border>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                    </StackPanel>
-                </Border>
             </Grid>
 
-        </StackPanel>
+            <!-- Error (giữ binding) -->
+            <TextBlock Grid.Row="4"
+                       Foreground="Tomato"
+                       Text="{Binding Error}"
+                       TextWrapping="WrapWholeWords"
+                       Margin="0,12,0,0"/>
+        </Grid>
     </ScrollViewer>
 </Page>

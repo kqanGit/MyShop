@@ -55,6 +55,8 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
   </ItemGroup>
@@ -63,11 +65,9 @@
     <Folder Include="Assets\Icons\" />
     <Folder Include="Assets\Fonts\" />
     <Folder Include="Contracts\ViewModels\" />
-    <Folder Include="Contracts\Services\" />
     <Folder Include="Helpers\Converters\" />
     <Folder Include="Helpers\Extensions\" />
     <Folder Include="Models\Auth\" />
-    <Folder Include="ViewModels\Dashboard\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
   </ItemGroup>
