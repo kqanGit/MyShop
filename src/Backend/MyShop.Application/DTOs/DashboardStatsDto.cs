@@ -20,7 +20,8 @@ namespace MyShop.Application.DTOs.Stats
     {
         public string DateLabel { get; set; }
         public decimal Revenue { get; set; }  
-        public decimal Profit { get; set; }   
+        public decimal Profit { get; set; }
+        public int TotalQuantity { get; set; }
     }
 
     public class TopProductDto
