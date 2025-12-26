@@ -39,8 +39,20 @@ namespace MyShop_Frontend
             {
                 string tag = invokedItem.Tag?.ToString();
 
+                if (tag == "Customers")
+                {
+                    ContentFrame.Navigate(typeof(Views.Pages.CustomerPage));
+                }
+                else if (tag == "Product")
+                {
+                    ContentFrame.Navigate(typeof(Views.Pages.ProductPage));
+                }
+                else if (tag == "Order")
+                {
+                    ContentFrame.Navigate(typeof(Views.Pages.OrderPage));
+                }
                 // Chỉ xử lý nếu Tag là "SignOut"
-                if (tag == "SignOut")
+                else if (tag == "SignOut")
                 {
                     ViewModel.SignOutCommand.Execute(null);
                     this.Close(); // Đóng cửa sổ hiện tại sau khi đăng xuất
