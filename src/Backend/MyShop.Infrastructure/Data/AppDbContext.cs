@@ -219,6 +219,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.UserName)
                 .HasColumnType("character varying")
                 .HasColumnName("user_name");
+            entity.Property(e => e.PhoneNumber).HasColumnName("phone_number");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

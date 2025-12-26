@@ -72,6 +72,8 @@ namespace MyShop_Frontend.ViewModels.Authentication
             IsBusy = true;
             var token = await _authService.LoginAsync(Username, Password);
             Debug.WriteLine($"Token nhận được: {(token != null ? "Có dữ liệu" : "NULL")}");
+
+            //Waiting for fixing navigation service!
             if (!string.IsNullOrEmpty(token))
             {
                 Debug.WriteLine("Đăng nhập thành công! Token: " + token);
@@ -82,9 +84,11 @@ namespace MyShop_Frontend.ViewModels.Authentication
             else
             {
                 Debug.WriteLine("Sai tài khoản hoặc mật khẩu");
-              
+
             }
 
+
+            //_windowsService.ShowMainWindow();
             IsBusy = false;
         }
     }
