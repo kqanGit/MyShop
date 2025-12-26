@@ -31,7 +31,7 @@ namespace MyShop.Infrastructure.Services
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product) 
                 .Where(o => o.OrderDate >= fromDate && o.OrderDate <= toDate)
-                .ToListAsync(); 
+                .ToListAsync();
 
             var result = new DashboardStatsDto();
 
@@ -51,7 +51,8 @@ namespace MyShop.Infrastructure.Services
                         {
                             DateLabel = g.Key.ToString("dd/MM/yyyy"),
                             Revenue = g.Sum(o => o.FinalPrice),
-                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity))
+                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity)),
+                            TotalQuantity = g.SelectMany(o => o.OrderDetails).Sum(od => od.Quantity)
                         })
                         .OrderBy(x => DateTime.ParseExact(x.DateLabel, "dd/MM/yyyy", null));
                     break;
@@ -67,7 +68,8 @@ namespace MyShop.Infrastructure.Services
                         {
                             DateLabel = $"W{g.Key.Week:00}/{g.Key.Year}",
                             Revenue = g.Sum(o => o.FinalPrice),
-                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity))
+                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity)),
+                            TotalQuantity = g.SelectMany(o => o.OrderDetails).Sum(od => od.Quantity)
                         })
                         .OrderBy(x => x.DateLabel);
                     break;
@@ -79,7 +81,8 @@ namespace MyShop.Infrastructure.Services
                         {
                             DateLabel = $"{g.Key.Month:00}/{g.Key.Year}",
                             Revenue = g.Sum(o => o.FinalPrice),
-                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity))
+                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity)),
+                            TotalQuantity = g.SelectMany(o => o.OrderDetails).Sum(od => od.Quantity)
                         })
                       
                         .OrderBy(x => x.DateLabel.Substring(3))
@@ -93,7 +96,8 @@ namespace MyShop.Infrastructure.Services
                         {
                             DateLabel = g.Key.ToString(),
                             Revenue = g.Sum(o => o.FinalPrice),
-                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity))
+                            Profit = g.SelectMany(o => o.OrderDetails).Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity)),
+                            TotalQuantity = g.SelectMany(o => o.OrderDetails).Sum(od => od.Quantity)
                         })
                         .OrderBy(x => x.DateLabel);
                     break;
