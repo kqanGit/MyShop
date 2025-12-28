@@ -10,5 +10,12 @@ namespace MyShop_Frontend.Helpers
     {
         public const string BackendBaseUrl = "BackendBaseUrl";
         public const string AccessToken = "AccessToken";
+        public const string Username = "Username";
+        public const string UserRole = "UserRole";
+        
+        // Remember Me
+        public const string RememberMe = "RememberMe";
+        public const string SavedUsername = "SavedUsername";
+        public const string SavedPassword = "SavedPassword";
     }
 }

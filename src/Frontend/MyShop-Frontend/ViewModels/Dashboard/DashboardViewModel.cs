@@ -2,13 +2,9 @@
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.ViewModels.Base;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -73,31 +69,46 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             set => SetProperty(ref _error, value);
         }
 
-        // ===== Summary texts =====
-        private string _totalRevenueText = "0";
-        public string TotalRevenueText
+        // ===== KPI Card Properties (formatted strings for display) =====
+        private string _totalRevenue = "0 ₫";
+        public string TotalRevenue
         {
-            get => _totalRevenueText;
-            set => SetProperty(ref _totalRevenueText, value);
+            get => _totalRevenue;
+            set => SetProperty(ref _totalRevenue, value);
         }
 
-        private string _totalProfitText = "0";
-        public string TotalProfitText
+        private string _totalProfit = "0 ₫";
+        public string TotalProfit
         {
-            get => _totalProfitText;
-            set => SetProperty(ref _totalProfitText, value);
+            get => _totalProfit;
+            set => SetProperty(ref _totalProfit, value);
         }
 
-        private string _totalOrdersText = "0";
-        public string TotalOrdersText
+        private string _totalOrders = "0";
+        public string TotalOrders
         {
-            get => _totalOrdersText;
-            set => SetProperty(ref _totalOrdersText, value);
+            get => _totalOrders;
+            set => SetProperty(ref _totalOrders, value);
         }
 
-        // ===== Collections =====
+        private string _newCustomers = "0";
+        public string NewCustomers
+        {
+            get => _newCustomers;
+            set => SetProperty(ref _newCustomers, value);
+        }
+
+        private int _lowStockCount;
+        public int LowStockCount
+        {
+            get => _lowStockCount;
+            set => SetProperty(ref _lowStockCount, value);
+        }
+
+        // ===== Collections (using DTOs directly) =====
         public ObservableCollection<RevenueChartPointDto> RevenueChart { get; } = new();
-        public ObservableCollection<TopSellingProductDto> TopSellingProducts { get; } = new();
+        public ObservableCollection<TopSellingProductDto> TopProducts { get; } = new();
+        public ObservableCollection<LowStockProductDto> LowStockProducts { get; } = new();
 
         // ===== Actions =====
         public async Task RefreshAsync(CancellationToken ct = default)
@@ -116,17 +127,39 @@ namespace MyShop_Frontend.ViewModels.Dashboard
 
                 var culture = CultureInfo.GetCultureInfo("vi-VN");
 
-                TotalRevenueText = string.Format(culture, "{0:N0} ₫", dto.TotalRevenue);
-                TotalProfitText = string.Format(culture, "{0:N0} ₫", dto.TotalProfit);
-                TotalOrdersText = dto.TotalOrders.ToString(culture);
+                // Format KPI values
+                TotalRevenue = string.Format(culture, "{0:N0} ₫", dto.TotalRevenue);
+                TotalProfit = string.Format(culture, "{0:N0} ₫", dto.TotalProfit);
+                TotalOrders = dto.TotalOrders.ToString("N0", culture);
+                NewCustomers = dto.NewCustomersCount.ToString("N0", culture);
 
+                // Revenue Chart
                 RevenueChart.Clear();
                 foreach (var p in dto.RevenueChart)
                     RevenueChart.Add(p);
 
-                TopSellingProducts.Clear();
+                // Top Products with rank and formatted values
+                TopProducts.Clear();
+                int rank = 1;
                 foreach (var p in dto.TopSellingProducts)
-                    TopSellingProducts.Add(p);
+                {
+                    p.Rank = rank++;
+                    p.RevenueText = string.Format(culture, "{0:N0}đ", p.Revenue);
+                    TopProducts.Add(p);
+                }
+
+                // Low Stock Products
+                LowStockProducts.Clear();
+                if (dto.LowStockProducts != null)
+                {
+                    foreach (var p in dto.LowStockProducts)
+                        LowStockProducts.Add(p);
+                    LowStockCount = dto.LowStockProducts.Count;
+                }
+                else
+                {
+                    LowStockCount = 0;
+                }
             }
             catch (Exception ex)
             {

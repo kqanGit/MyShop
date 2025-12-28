@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MyShop_Frontend.Contracts;
+using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.Command;
+using MyShop_Frontend.Services;
 using MyShop_Frontend.ViewModels.Base;
 using System;
 using System.Diagnostics;
@@ -12,29 +14,39 @@ namespace MyShop_Frontend.ViewModels.Authentication
     public class LoginViewModel : ViewModelBase
     {
         private readonly IAuthenticationService _authService;
-
-        // dùng App.Windows (không new)
-        // Nếu App.Windows của bạn là static new WindowsService() thì vẫn ok.
-        // Nếu App.Windows resolve từ DI thì cũng ok miễn Services đã init.
-        private readonly Services.WindowsService _windowsService;
+        private readonly ITokenStore _tokenStore;
+        private readonly WindowsService _windowsService;
 
         public RelayCommand SignInCommand { get; }
 
         public LoginViewModel()
         {
-            // Resolve từ DI (đúng với AddHttpClient + AuthenticationService mới)
             _authService = App.Services.GetRequiredService<IAuthenticationService>();
+            _tokenStore = App.Services.GetRequiredService<ITokenStore>();
             _windowsService = App.Windows;
 
             SignInCommand = new RelayCommand(
-                execute: _ => _ = _login(),
+                execute: _ => _ = LoginAsync(),
                 canExecute: _ => !IsBusy
                                  && !string.IsNullOrWhiteSpace(Username)
                                  && !string.IsNullOrWhiteSpace(Password)
             );
+
+            // Load saved credentials nếu Remember Me được bật
+            LoadSavedCredentials();
         }
 
-        // ===== helper =====
+        private void LoadSavedCredentials()
+        {
+            if (_tokenStore.GetRememberMe())
+            {
+                RememberMe = true;
+                Username = _tokenStore.GetSavedUsername() ?? "";
+                Password = _tokenStore.GetSavedPassword() ?? "";
+            }
+        }
+
+        // ===== Helper =====
         private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? name = null)
         {
             if (Equals(field, value)) return false;
@@ -43,6 +55,7 @@ namespace MyShop_Frontend.ViewModels.Authentication
             return true;
         }
 
+        // ===== Properties =====
         private bool _isBusy;
         public bool IsBusy
         {
@@ -61,7 +74,11 @@ namespace MyShop_Frontend.ViewModels.Authentication
             set
             {
                 if (SetProperty(ref _username, value))
+                {
                     SignInCommand.RaiseCanExecuteChanged();
+                    if (!string.IsNullOrEmpty(value) && HasError)
+                        ClearError();
+                }
             }
         }
 
@@ -72,21 +89,56 @@ namespace MyShop_Frontend.ViewModels.Authentication
             set
             {
                 if (SetProperty(ref _password, value))
+                {
                     SignInCommand.RaiseCanExecuteChanged();
+                    if (!string.IsNullOrEmpty(value) && HasError)
+                        ClearError();
+                }
             }
+        }
+                
+        private bool _rememberMe;
+        public bool RememberMe
+        {
+            get => _rememberMe;
+            set => SetProperty(ref _rememberMe, value);
         }
 
         private string? _errorMessage;
         public string? ErrorMessage
         {
             get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
+            set
+            {
+                SetProperty(ref _errorMessage, value);  
+                OnPropertyChanged(nameof(HasError));
+            }
         }
 
-        // giữ tên _login() để View hiện tại gọi không cần sửa nhiều
-        public async Task _login()
+        public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+        private void ClearError()
+        {
+            ErrorMessage = null;
+        }
+
+        // ===== Login Method =====
+        public async Task LoginAsync()
         {
             if (IsBusy) return;
+
+            // Validation
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                ErrorMessage = "Vui lòng nhập tên đăng nhập.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                ErrorMessage = "Vui lòng nhập mật khẩu.";
+                return;
+            }
 
             IsBusy = true;
             ErrorMessage = null;
@@ -98,6 +150,9 @@ namespace MyShop_Frontend.ViewModels.Authentication
 
                 if (!string.IsNullOrWhiteSpace(token))
                 {
+                    // Lưu Remember Me
+                    _tokenStore.SetRememberMe(RememberMe, Username, Password);
+
                     Debug.WriteLine("Đăng nhập thành công! Token: " + token);
                     _windowsService.ShowMainWindow();
                 }
@@ -107,9 +162,25 @@ namespace MyShop_Frontend.ViewModels.Authentication
                     Debug.WriteLine(ErrorMessage);
                 }
             }
+            catch (System.Net.Http.HttpRequestException ex)
+            {
+                if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+                {
+                    ErrorMessage = "Sai tài khoản hoặc mật khẩu.";
+                }
+                else if (ex.Message.Contains("502") || ex.Message.Contains("503"))
+                {
+                    ErrorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra cấu hình.";
+                }
+                else
+                {
+                    ErrorMessage = "Lỗi kết nối. Vui lòng thử lại sau.";
+                }
+                Debug.WriteLine($"HTTP Error: {ex}");
+            }
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message;
+                ErrorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
                 Debug.WriteLine($"Lỗi hệ thống: {ex}");
             }
             finally

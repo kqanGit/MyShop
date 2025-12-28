@@ -18,7 +18,6 @@ namespace MyShop_Frontend.Services
         {
             var raw = _settings.Values[AppKeys.BackendBaseUrl] as string;
 
-            // Default nếu bạn chưa set từ màn hình config server
             raw ??= "https://stunning-goggles-x5rv46v6674p26q4j-5126.app.github.dev/";
 
             raw = raw.Trim();

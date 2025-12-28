@@ -56,31 +56,34 @@ namespace MyShop_Frontend
         {
             var services = new ServiceCollection();
 
-            services.AddSingleton<MyShop_Frontend.Services.WindowsService>();
+            // === Singleton Services ===
+            services.AddSingleton<WindowsService>();
+            services.AddSingleton<IBackendConfig, BackendConfig>();
+            services.AddSingleton<ITokenStore, TokenStore>();
 
-            services.AddSingleton<MyShop_Frontend.Contracts.Services.IBackendConfig, MyShop_Frontend.Services.BackendConfig>();
-            services.AddSingleton<MyShop_Frontend.Contracts.Services.ITokenStore, MyShop_Frontend.Services.TokenStore>();
-
-            services.AddHttpClient<MyShop_Frontend.Contracts.Services.IApiClient, MyShop_Frontend.Services.ApiClient>((sp, http) =>
+            // === HttpClient Services ===
+            services.AddHttpClient<IApiClient, ApiClient>((sp, http) =>
             {
-                var cfg = sp.GetRequiredService<MyShop_Frontend.Contracts.Services.IBackendConfig>();
+                var cfg = sp.GetRequiredService<IBackendConfig>();
                 http.BaseAddress = cfg.GetBaseUri();
                 http.Timeout = TimeSpan.FromSeconds(30);
             });
 
-            services.AddHttpClient<MyShop_Frontend.Contracts.IAuthenticationService, MyShop_Frontend.Services.AuthenticationService>((sp, http) =>
+            services.AddHttpClient<IAuthenticationService, AuthenticationService>((sp, http) =>
             {
-                var cfg = sp.GetRequiredService<MyShop_Frontend.Contracts.Services.IBackendConfig>();
+                var cfg = sp.GetRequiredService<IBackendConfig>();
                 http.BaseAddress = cfg.GetBaseUri();
                 http.Timeout = TimeSpan.FromSeconds(30);
             });
 
-            services.AddTransient<MyShop_Frontend.Contracts.Services.IDashboardService, MyShop_Frontend.Services.DashboardService>();
-            services.AddTransient<MyShop_Frontend.ViewModels.Dashboard.DashboardViewModel>();
+            // === Transient Services ===
+            services.AddTransient<IDashboardService, DashboardService>();
+            services.AddTransient<IProductService, ProductService>();
+
+            // === ViewModels ===
+            services.AddTransient<DashboardViewModel>();
 
             return services.BuildServiceProvider();
         }
-
-
     }
 }
