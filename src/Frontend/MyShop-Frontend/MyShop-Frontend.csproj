@@ -19,8 +19,12 @@
   <ItemGroup>
     <None Remove="Assets\LoginImage.jpg" />
     <None Remove="Views\Controls\AuthLayout.xaml" />
+    <None Remove="Views\Pages\DashboardPage.xaml" />
+    <None Remove="Views\Pages\HelpPage.xaml" />
     <None Remove="Views\Pages\LoginPage.xaml" />
     <None Remove="Views\Pages\RegisterPage.xaml" />
+    <None Remove="Views\Pages\ReportPage.xaml" />
+    <None Remove="Views\Pages\SettingPage.xaml" />
     <None Remove="Views\Themes\AppTheme.xaml" />
     <None Remove="Views\Themes\Generic.xaml" />
     <None Remove="Views\Windows\ServerConfigWindow.xaml" />
@@ -51,6 +55,8 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
   </ItemGroup>
@@ -59,13 +65,36 @@
     <Folder Include="Assets\Icons\" />
     <Folder Include="Assets\Fonts\" />
     <Folder Include="Contracts\ViewModels\" />
-    <Folder Include="Contracts\Services\" />
     <Folder Include="Helpers\Converters\" />
     <Folder Include="Helpers\Extensions\" />
     <Folder Include="Models\Auth\" />
-    <Folder Include="ViewModels\Dashboard\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Controls\Order\CreateOrderControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\SettingPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\HelpPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\ReportPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\DashboardPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Themes\AppTheme.xaml">
