@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MyShop.Presentation.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
@@ -18,11 +19,11 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProducts(int pageIndex, int pageSize)
+        public async Task<IActionResult> GetProducts(int pageIndex, int pageSize, int? categoryId)
         {
             try
             {
-                var products = await _productService.GetProductsPaged(pageIndex, pageSize);
+                var products = await _productService.GetProductsPaged(pageIndex, pageSize, categoryId);
                 return Ok(products); 
             }
             catch (UnauthorizedAccessException)
