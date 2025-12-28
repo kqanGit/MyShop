@@ -18,11 +18,11 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllProducts()
+        public async Task<IActionResult> GetProducts(int pageIndex, int pageSize)
         {
             try
             {
-                var products = await _productService.GetAllProducts();
+                var products = await _productService.GetProductsPaged(pageIndex, pageSize);
                 return Ok(products); 
             }
             catch (UnauthorizedAccessException)
@@ -75,7 +75,7 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDto productDto)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] CreateProductDto productDto)
         {
             try
             {
@@ -115,25 +115,5 @@ namespace MyShop.Presentation.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-        /*
-        [HttpGet("category/{categoryId}")]
-        public async Task<IActionResult> GetProductsByCategory(int categoryId)
-        {
-            var products = await _productService.GetProductsByCategory(categoryId);
-            return Ok(products);
-        }
-
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchProducts(
-            [FromQuery] string? keyword,
-            [FromQuery] int? categoryId,
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice)
-        {
-            var products = await _productService.SearchProducts(keyword, categoryId, minPrice, maxPrice);
-            return Ok(products);
-        }
-        */
     }
 }

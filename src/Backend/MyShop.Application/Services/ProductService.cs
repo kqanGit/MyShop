@@ -12,13 +12,13 @@ namespace MyShop.Application.Services
 {
     public interface IProductService
     {
-        Task<IEnumerable<ProductDto>> GetAllProducts();
         Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize);
         Task<ProductDto> GetProductById(int productId);
         Task<ProductDto> CreateProduct(CreateProductDto productDto);
-        Task<ProductDto> UpdateProduct(int id, ProductDto productDto);
+        Task<ProductDto> UpdateProduct(int id, CreateProductDto productDto);
         Task<bool> DeleteProduct(int id);
     }
+    
     public class ProductService : IProductService
     {
         private readonly AppDbContext _context;
@@ -27,45 +27,18 @@ namespace MyShop.Application.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllProducts()
-        {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .ToListAsync();
-
-            return products
-                .Where(p => p.IsRemoved == null || !p.IsRemoved[0])
-                .Select(p => new ProductDto
-                {
-                    ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    CategoryId = p.CategoryId,
-                    CategoryName = p.Category != null ? p.Category.CategoryName : null,
-                    Unit = p.Unit,
-                    Cost = p.Cost,
-                    Price = p.Price,
-                    Stock = p.Stock,
-                    Image = p.Image,
-                    IsRemoved = p.IsRemoved != null && p.IsRemoved[0]
-                })
-                .ToList();
-        }
-
         public async Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize)
         {
             var totalRecords = await _context.Products
-                .Where(p => p.IsRemoved == null || !p.IsRemoved[0])
+                .Where(p => p.IsRemoved == null || p.IsRemoved == false)
                 .CountAsync();
 
             var products = await _context.Products
                 .Include(p => p.Category)
-                .Where(p => p.IsRemoved == null || !p.IsRemoved[0])
+                .Where(p => p.IsRemoved == null || p.IsRemoved == false)
                 .OrderBy(p => p.ProductId)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
-
-            var productDtos = products
                 .Select(p => new ProductDto
                 {
                     ProductId = p.ProductId,
@@ -77,11 +50,11 @@ namespace MyShop.Application.Services
                     Price = p.Price,
                     Stock = p.Stock,
                     Image = p.Image,
-                    IsRemoved = p.IsRemoved != null && p.IsRemoved[0]
+                    IsRemoved = p.IsRemoved == true
                 })
-                .ToList();
+                .ToListAsync();
 
-            return new PagedResult<ProductDto>(productDtos, totalRecords, pageIndex, pageSize);
+            return new PagedResult<ProductDto>(products, totalRecords, pageIndex, pageSize);
         }
 
         public async Task<ProductDto> GetProductById(int productId)
@@ -103,7 +76,7 @@ namespace MyShop.Application.Services
                 Price = product.Price,
                 Stock = product.Stock,
                 Image = product.Image,
-                IsRemoved = product.IsRemoved != null && product.IsRemoved[0]
+                IsRemoved = product.IsRemoved == true
             };
         }
 
@@ -123,7 +96,7 @@ namespace MyShop.Application.Services
                 Price = productDto.Price,
                 Stock = productDto.Stock,
                 Image = productDto.Image,
-                IsRemoved = new System.Collections.BitArray(new[] { false })
+                IsRemoved = false
             };
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
@@ -141,7 +114,7 @@ namespace MyShop.Application.Services
                 IsRemoved = false
             };
         }
-        public async Task<ProductDto> UpdateProduct(int id, ProductDto productDto)
+        public async Task<ProductDto> UpdateProduct(int id, CreateProductDto productDto)
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) throw new KeyNotFoundException("Product not found");
@@ -152,16 +125,26 @@ namespace MyShop.Application.Services
             product.Price = productDto.Price;
             product.Stock = productDto.Stock;
             product.Image = productDto.Image;
-            product.IsRemoved = new System.Collections.BitArray(new[] { productDto.IsRemoved });
             await _context.SaveChangesAsync();
-            return productDto;
+            return new ProductDto
+            {
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
+                CategoryId = product.CategoryId,
+                Unit = product.Unit,
+                Cost = product.Cost,
+                Price = product.Price,
+                Stock = product.Stock,
+                Image = product.Image,
+                IsRemoved = false
+            };
         }
 
         public async Task<bool> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) throw new KeyNotFoundException("Product not found");
-            product.IsRemoved = new System.Collections.BitArray(new[] { true });
+            product.IsRemoved = true;
             await _context.SaveChangesAsync();
             return true;
         }

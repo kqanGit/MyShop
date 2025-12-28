@@ -30,4 +30,5 @@ namespace MyShop.Application.DTOs
         public int Stock { get; set; }
         public string? Image { get; set; }
     }
+
 }
