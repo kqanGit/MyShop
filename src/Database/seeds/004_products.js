@@ -6,6 +6,9 @@
 exports.seed = async function(knex) {
   await knex('Product').del();
   await knex('Product').insert([
+    { product_id: 0, product_name: "Sản phẩm mẫu (không bán)", category_id: 1, unit: "Cái", cost: 0, price: 0, stock: 0, is_removed: 1 },
+    
+    // --- Category 1: Bánh Kẹo & Đồ Ăn Vặt (4 items) ---
     { product_id: 1, product_name: "Snack Oishi Tôm Cay", category_id: 1, unit: "Gói", cost: 4000, price: 6000, stock: 100, is_removed: 0 },
     { product_id: 2, product_name: "Bánh ChocoPie Orion (Hộp 6P)", category_id: 1, unit: "Hộp", cost: 28000, price: 35000, stock: 40, is_removed: 0 },
     { product_id: 3, product_name: "Kẹo Dẻo Chip Chip Hải Hà", category_id: 1, unit: "Gói", cost: 15000, price: 20000, stock: 60, is_removed: 0 },
