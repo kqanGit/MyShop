@@ -12,7 +12,7 @@ namespace MyShop.Application.Services
 {
     public interface IProductService
     {
-        Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize);
+        Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize, int? categoryId);
         Task<ProductDto> GetProductById(int productId);
         Task<ProductDto> CreateProduct(CreateProductDto productDto);
         Task<ProductDto> UpdateProduct(int id, CreateProductDto productDto);
@@ -27,15 +27,17 @@ namespace MyShop.Application.Services
             _context = context;
         }
 
-        public async Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize)
+        public async Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize, int? categoryId)
         {
             var totalRecords = await _context.Products
                 .Where(p => p.IsRemoved == null || p.IsRemoved == false)
+                .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
                 .CountAsync();
 
             var products = await _context.Products
                 .Include(p => p.Category)
                 .Where(p => p.IsRemoved == null || p.IsRemoved == false)
+                .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
                 .OrderBy(p => p.ProductId)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
