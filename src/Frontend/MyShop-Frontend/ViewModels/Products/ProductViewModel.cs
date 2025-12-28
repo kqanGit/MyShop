@@ -1,25 +1,32 @@
+using Microsoft.Extensions.DependencyInjection;
+using MyShop_Frontend.Contracts.Services;
+using MyShop_Frontend.Helpers.Command;
 using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Base;
-using MyShop_Frontend.Helpers.MockData;
-using MyShop_Frontend.Helpers.Command;
-using System.Windows.Input;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace MyShop_Frontend.ViewModels.Products
 {
     public class ProductViewModel : ViewModelBase
     {
-        private ObservableCollection<Product> _products;
-        public ObservableCollection<Product> Products
+        private readonly IProductService _productService;
+        private List<Product> _allProducts = new();
+
+        public ObservableCollection<Product> Products { get; } = new();
+
+        private bool _isLoading;
+        public bool IsLoading
         {
-            get => _products;
-            set { _products = value; OnPropertyChanged(nameof(Products)); }
+            get => _isLoading;
+            set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
-        private string _searchText;
+        private string _searchText = string.Empty;
         public string SearchText
         {
             get => _searchText;
@@ -49,14 +56,9 @@ namespace MyShop_Frontend.ViewModels.Products
             }
         }
 
-        private ObservableCollection<string> _categories;
-        public ObservableCollection<string> Categories
-        {
-            get => _categories;
-            set { _categories = value; OnPropertyChanged(nameof(Categories)); }
-        }
+        public ObservableCollection<string> Categories { get; } = new() { "All Categories" };
 
-        private string _selectedCategory;
+        private string _selectedCategory = "All Categories";
         public string SelectedCategory
         {
             get => _selectedCategory;
@@ -71,14 +73,9 @@ namespace MyShop_Frontend.ViewModels.Products
             }
         }
 
-        private ObservableCollection<string> _sortOptions;
-        public ObservableCollection<string> SortOptions
-        {
-            get => _sortOptions;
-            set { _sortOptions = value; OnPropertyChanged(nameof(SortOptions)); }
-        }
+        public ObservableCollection<string> SortOptions { get; } = new() { "None", "Price", "Name" };
 
-        private string _selectedSortOption;
+        private string _selectedSortOption = "None";
         public string SelectedSortOption
         {
             get => _selectedSortOption;
@@ -112,36 +109,53 @@ namespace MyShop_Frontend.ViewModels.Products
         public string SortOrderText => IsAscending ? "Ascending" : "Descending";
 
         public ICommand ToggleSortOrderCommand { get; }
-
-        private List<Product> _allProducts;
-
+        public ICommand LoadProductsCommand { get; }
+    
         public ProductViewModel()
         {
-            _allProducts = Product_MockData.GetProducts();
-            Products = new ObservableCollection<Product>(_allProducts);
-            
-            // Populate Categories
-            var categories = _allProducts.Select(p => p.CategoryName).Distinct().OrderBy(c => c).ToList();
-            categories.Insert(0, "All Categories");
-            Categories = new ObservableCollection<string>(categories);
-            SelectedCategory = "All Categories";
+            _productService = App.Services.GetRequiredService<IProductService>();
 
-            // Initialize Sort Options
-            SortOptions = new ObservableCollection<string> { "None", "Price", "Name" };
-            SelectedSortOption = "None";
+            ToggleSortOrderCommand = new RelayCommand(_ => IsAscending = !IsAscending);
+            LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
 
-            ToggleSortOrderCommand = new RelayCommand(_ => ToggleSortOrder());
-
-            // Optional: Set initial MaxPriceFilter based on data
-            if (_allProducts.Any())
-            {
-                _maxPriceFilter = (double)_allProducts.Max(p => p.Price);
-            }
+            // Load data on initialization
+            _ = LoadProductsAsync();
         }
 
-        private void ToggleSortOrder()
+        private async Task LoadProductsAsync()
         {
-            IsAscending = !IsAscending;
+            if (IsLoading) return;
+
+            IsLoading = true;
+            try
+            {
+                var products = await _productService.GetProductsAsync();
+                _allProducts = products.ToList();
+
+                // Update categories
+                Categories.Clear();
+                Categories.Add("All Categories");
+                foreach (var cat in _allProducts.Select(p => p.CategoryName).Distinct().OrderBy(c => c))
+                {
+                    Categories.Add(cat ?? "Unknown");
+                }
+
+                // Set max price
+                if (_allProducts.Any())
+                {
+                    MaxPriceFilter = (double)_allProducts.Max(p => p.Price);
+                }
+
+                FilterProducts();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading products: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private void FilterProducts()
@@ -150,7 +164,7 @@ namespace MyShop_Frontend.ViewModels.Products
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                filtered = filtered.Where(p => 
+                filtered = filtered.Where(p =>
                     p.ProductName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
             }
 
@@ -161,16 +175,12 @@ namespace MyShop_Frontend.ViewModels.Products
 
             filtered = filtered.Where(p => (double)p.Price <= MaxPriceFilter);
 
-            // Apply Sorting
-            switch (SelectedSortOption)
+            filtered = SelectedSortOption switch
             {
-                case "Price":
-                    filtered = IsAscending ? filtered.OrderBy(p => p.Price) : filtered.OrderByDescending(p => p.Price);
-                    break;
-                case "Name":
-                    filtered = IsAscending ? filtered.OrderBy(p => p.ProductName) : filtered.OrderByDescending(p => p.ProductName);
-                    break;
-            }
+                "Price" => IsAscending ? filtered.OrderBy(p => p.Price) : filtered.OrderByDescending(p => p.Price),
+                "Name" => IsAscending ? filtered.OrderBy(p => p.ProductName) : filtered.OrderByDescending(p => p.ProductName),
+                _ => filtered
+            };
 
             Products.Clear();
             foreach (var product in filtered)

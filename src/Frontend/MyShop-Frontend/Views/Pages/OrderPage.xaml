@@ -17,6 +17,14 @@
          <converters:DateToFormattedStringConverter x:Key="DateConverter"/>
          <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <!-- Add other converters if needed -->
+        <Style x:Key="PrimaryCtaButton" TargetType="Button">
+            <Setter Property="Background" Value="#111827"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="MinHeight" Value="40"/>
+        </Style>
     </Page.Resources>
 
     <Grid Padding="24">
@@ -29,7 +37,26 @@
 
         <!-- Header Controls -->
         <Grid Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock Text="Order Management" FontSize="24" FontWeight="SemiBold"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Order Management"
+               FontSize="24"
+               FontWeight="SemiBold"
+               VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1"
+            Style="{StaticResource PrimaryCtaButton}"
+            Click="CreateOrder_Click"
+            VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <!-- plus icon -->
+                    <FontIcon Glyph="&#xE710;" FontFamily="Segoe Fluent Icons" FontSize="14"/>
+                    <TextBlock Text="Create Order" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Button>
         </Grid>
 
         <!-- Filters -->
