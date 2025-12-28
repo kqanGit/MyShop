@@ -41,15 +41,38 @@ namespace MyShop.Infrastructure.Services
                 .Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity));
             result.NewCustomersCount = await _context.Customers.CountAsync(c => c.CreateDate >= fromDate && c.CreateDate <= toDate);
             // Evaluate BitArray indexing client-side to avoid EF Core translation issues
+            // result.TotalProducts = _context.Products
+            //     .Select(p => p.IsRemoved)
+            //     .AsEnumerable()
+            //     .Count(bits => !bits[0]);
+
+            
+            // Also evaluate BitArray-based filter client-side
+            // result.LowStockProducts = _context.Products
+            //     .Select(p => new { p.ProductId, p.ProductName, p.Stock, p.IsRemoved })
+            //     .AsEnumerable()
+            //     .Where(p => !p.IsRemoved[0] && p.Stock < 5)
+            //     .OrderBy(p => p.Stock)
+            //     .Take(5)
+            //     .Select(p => new ProductLowStockDto
+            //     {
+            //         ProductId = p.ProductId,
+            //         ProductName = p.ProductName,
+            //         Stock = p.Stock
+            //     })
+            //     .ToList();
+
+            
             result.TotalProducts = _context.Products
                 .Select(p => p.IsRemoved)
                 .AsEnumerable()
-                .Count(bits => !bits[0]);
-            // Also evaluate BitArray-based filter client-side
+                // If IsRemoved is bool?, use '?? false' to treat null as not removed
+                .Count(isRemoved => !(isRemoved ?? false));
             result.LowStockProducts = _context.Products
                 .Select(p => new { p.ProductId, p.ProductName, p.Stock, p.IsRemoved })
                 .AsEnumerable()
-                .Where(p => !p.IsRemoved[0] && p.Stock < 5)
+                // Use '!(p.IsRemoved ?? false)' instead of indexing
+                .Where(p => !(p.IsRemoved ?? false) && p.Stock < 5)
                 .OrderBy(p => p.Stock)
                 .Take(5)
                 .Select(p => new ProductLowStockDto
@@ -59,6 +82,7 @@ namespace MyShop.Infrastructure.Services
                     Stock = p.Stock
                 })
                 .ToList();
+
             IEnumerable<RevenueChartDto> chartData = null;
 
             switch (groupBy)
