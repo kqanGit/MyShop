@@ -85,8 +85,8 @@ exports.up = async function (knex) {
         );
 
         CREATE TABLE "OrderDetail" (
-        "order_id" int,
-        "product_id" int,
+        "order_id" INTEGER,
+        "product_id" INTEGER,
         "quantity" int,
         "current_price" decimal,
         "current_cost" decimal,

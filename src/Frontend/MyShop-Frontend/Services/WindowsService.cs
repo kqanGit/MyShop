@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Windowing;
 using WinRT.Interop;
 
-namespace MyShop_Frontend.Servies
+namespace MyShop_Frontend.Services
 {
     public sealed class WindowsService
     {
