@@ -2,7 +2,6 @@
 using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using System;
-using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -30,15 +29,12 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<string?> LoginAsync(string username, string password)
     {
-        // nếu interface của bạn có CancellationToken thì thêm vào signature,
-        // còn không thì cứ dùng CancellationToken.None
         return await LoginAsync(username, password, CancellationToken.None);
     }
 
-    // Overload nội bộ để có CancellationToken (tuỳ bạn có muốn expose ra interface không)
     private async Task<string?> LoginAsync(string username, string password, CancellationToken ct)
     {
-        var request = new AuthDto.LoginRequest
+        var request = new LoginRequest
         {
             Username = username,
             Password = password
@@ -49,18 +45,18 @@ public class AuthenticationService : IAuthenticationService
 
         if (!response.IsSuccessStatusCode)
         {
-            // Bạn có thể parse error body nếu backend trả kiểu khác
-            throw new HttpRequestException($"Login failed: {(int)response.StatusCode} {response.ReasonPhrase}\n{rawJson}");
+            throw new HttpRequestException($"Login failed: {(int)response.StatusCode} {response.ReasonPhrase}");
         }
 
         var result = JsonSerializer.Deserialize<AuthResponseDto>(rawJson, _jsonOptions);
 
-        var token = result?.Token; // đúng theo file bạn đang dùng result?.Token
+        var token = result?.Token;
         if (string.IsNullOrWhiteSpace(token))
             return null;
 
-        // Lưu token vào TokenStore để ApiClient tự gắn Authorization: Bearer <token>
+        // Lưu token và thông tin user
         _tokenStore.SetAccessToken(token);
+        _tokenStore.SetUserInfo(result!.Username, result.Role);
 
         return token;
     }
