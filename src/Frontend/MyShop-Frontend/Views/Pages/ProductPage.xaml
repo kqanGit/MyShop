@@ -56,42 +56,7 @@
             </StackPanel>
         </Grid>
 
-        <!-- Filters Row -->
-        <Grid Grid.Row="1" Margin="0,0,0,16" ColumnSpacing="16" VerticalAlignment="Bottom">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1.5*"/>
-                <ColumnDefinition Width="1.5*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column="0">
-                <TextBlock Text="Search Products" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <TextBox PlaceholderText="Search by product name..." 
-                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>
-
-            <StackPanel Grid.Column="1">
-                <TextBlock Text="Category" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ComboBox PlaceholderText="All Categories" HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding Categories}"
-                  SelectedItem="{Binding SelectedCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>
-
-            <StackPanel Grid.Column="2">
-                <TextBlock Text="Sort By" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                <ComboBox PlaceholderText="None" HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding SortOptions}"
-                  SelectedItem="{Binding SelectedSortOption, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>
-
-            <StackPanel Grid.Column="3">
-                <TextBlock Text=" " Margin="0,0,0,4"/>
-                <Button Content="Clear Filters" 
-                VerticalAlignment="Stretch"
-                Height="32"/>
-            </StackPanel>
-        </Grid>
+        <!-- Filters Row Removed -->
 
         <!-- Price Range (Simplified as slider) -->
         <StackPanel Grid.Row="2" Margin="0,0,0,24">
@@ -102,8 +67,6 @@
             <Slider Minimum="0" Maximum="1000000" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
                 <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
-                <TextBlock Text="Order:" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                <HyperlinkButton Content="{Binding SortOrderText}" Command="{Binding ToggleSortOrderCommand}"/>
                 <AppBarSeparator/>
                 <Button Content="&lt;" Command="{Binding PreviousPageCommand}" ToolTipService.ToolTip="Previous Page"/>
                 <Button Content="&gt;" Command="{Binding NextPageCommand}" ToolTipService.ToolTip="Next Page"/>

@@ -26,21 +26,6 @@ namespace MyShop_Frontend.ViewModels.Products
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
-        private string _searchText = string.Empty;
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                if (_searchText != value)
-                {
-                    _searchText = value;
-                    OnPropertyChanged(nameof(SearchText));
-                    FilterProducts();
-                }
-            }
-        }
-
         private double _maxPriceFilter = 1000000000;
         public double MaxPriceFilter
         {
@@ -55,60 +40,7 @@ namespace MyShop_Frontend.ViewModels.Products
                 }
             }
         }
-
-        public ObservableCollection<string> Categories { get; } = new() { "All Categories" };
-
-        private string _selectedCategory = "All Categories";
-        public string SelectedCategory
-        {
-            get => _selectedCategory;
-            set
-            {
-                if (_selectedCategory != value)
-                {
-                    _selectedCategory = value;
-                    OnPropertyChanged(nameof(SelectedCategory));
-                    FilterProducts();
-                }
-            }
-        }
-
-        public ObservableCollection<string> SortOptions { get; } = new() { "None", "Price", "Name" };
-
-        private string _selectedSortOption = "None";
-        public string SelectedSortOption
-        {
-            get => _selectedSortOption;
-            set
-            {
-                if (_selectedSortOption != value)
-                {
-                    _selectedSortOption = value;
-                    OnPropertyChanged(nameof(SelectedSortOption));
-                    FilterProducts();
-                }
-            }
-        }
-
-        private bool _isAscending = true;
-        public bool IsAscending
-        {
-            get => _isAscending;
-            set
-            {
-                if (_isAscending != value)
-                {
-                    _isAscending = value;
-                    OnPropertyChanged(nameof(IsAscending));
-                    OnPropertyChanged(nameof(SortOrderText));
-                    FilterProducts();
-                }
-            }
-        }
-
-        public string SortOrderText => IsAscending ? "Ascending" : "Descending";
-
-        public ICommand ToggleSortOrderCommand { get; }
+    
         public ICommand LoadProductsCommand { get; }
         public ICommand AddProductCommand { get; }
         public ICommand UpdateProductCommand { get; }
@@ -139,7 +71,8 @@ namespace MyShop_Frontend.ViewModels.Products
         {
             _productService = App.Services.GetRequiredService<IProductService>();
 
-            ToggleSortOrderCommand = new RelayCommand(_ => IsAscending = !IsAscending);
+
+
             LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
             AddProductCommand = new RelayCommand(async _ => await AddProductAsync());
             UpdateProductCommand = new RelayCommand<Product>(async p => await UpdateProductAsync(p));
@@ -169,13 +102,7 @@ namespace MyShop_Frontend.ViewModels.Products
                 (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
                 (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
 
-                // Update categories
-                Categories.Clear();
-                Categories.Add("All Categories");
-                foreach (var cat in _allProducts.Select(p => p.CategoryName).Distinct().OrderBy(c => c))
-                {
-                    Categories.Add(cat ?? "Unknown");
-                }
+
 
                 // Set max price
                 // Set max price only once or if current max is less (to avoid resetting user filter on paging)
@@ -230,25 +157,11 @@ namespace MyShop_Frontend.ViewModels.Products
         {
             var filtered = _allProducts.AsEnumerable();
 
-            if (!string.IsNullOrWhiteSpace(SearchText))
-            {
-                filtered = filtered.Where(p =>
-                    p.ProductName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
-            }
 
-            if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All Categories")
-            {
-                filtered = filtered.Where(p => p.CategoryName == SelectedCategory);
-            }
 
             filtered = filtered.Where(p => (double)p.Price <= MaxPriceFilter);
 
-            filtered = SelectedSortOption switch
-            {
-                "Price" => IsAscending ? filtered.OrderBy(p => p.Price) : filtered.OrderByDescending(p => p.Price),
-                "Name" => IsAscending ? filtered.OrderBy(p => p.ProductName) : filtered.OrderByDescending(p => p.ProductName),
-                _ => filtered
-            };
+            // Client-side sorting removed in favor of Server-side
 
             Products.Clear();
             foreach (var product in filtered)

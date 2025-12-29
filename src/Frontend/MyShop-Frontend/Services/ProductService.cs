@@ -20,6 +20,8 @@ namespace MyShop_Frontend.Services
             // Backend returns PagedResult<Product>
             // Append Query String
             var url = $"api/Product?pageIndex={pageIndex}&pageSize={pageSize}";
+
+            System.Diagnostics.Debug.WriteLine($"Calling API: {url}");
             return await _api.GetAsync<PagedResult<Product>>(url, ct);
         }
 
