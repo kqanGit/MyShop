@@ -36,9 +36,7 @@ namespace MyShop_Frontend.ViewModels.Products
                 {
                     _searchText = value;
                     OnPropertyChanged(nameof(SearchText));
-                    // Reset to first page and reload
-                    PageIndex = 1; 
-                    _ = LoadProductsAsync();
+                    FilterProducts();
                 }
             }
         }
@@ -49,13 +47,11 @@ namespace MyShop_Frontend.ViewModels.Products
             get => _maxPriceFilter;
             set
             {
-                // Debounce or only load on drag end usually better, but for now simple check
-                if (Math.Abs(_maxPriceFilter - value) > 1000) 
+                if (Math.Abs(_maxPriceFilter - value) > 0.01)
                 {
                     _maxPriceFilter = value;
                     OnPropertyChanged(nameof(MaxPriceFilter));
-                    PageIndex = 1;
-                    _ = LoadProductsAsync();
+                    FilterProducts();
                 }
             }
         }
@@ -72,8 +68,7 @@ namespace MyShop_Frontend.ViewModels.Products
                 {
                     _selectedCategory = value;
                     OnPropertyChanged(nameof(SelectedCategory));
-                    PageIndex = 1;
-                    _ = LoadProductsAsync();
+                    FilterProducts();
                 }
             }
         }
@@ -90,8 +85,7 @@ namespace MyShop_Frontend.ViewModels.Products
                 {
                     _selectedSortOption = value;
                     OnPropertyChanged(nameof(SelectedSortOption));
-                    PageIndex = 1;
-                    _ = LoadProductsAsync();
+                    FilterProducts();
                 }
             }
         }
@@ -107,8 +101,7 @@ namespace MyShop_Frontend.ViewModels.Products
                     _isAscending = value;
                     OnPropertyChanged(nameof(IsAscending));
                     OnPropertyChanged(nameof(SortOrderText));
-                    PageIndex = 1;
-                    _ = LoadProductsAsync();
+                    FilterProducts();
                 }
             }
         }
@@ -165,23 +158,9 @@ namespace MyShop_Frontend.ViewModels.Products
             IsLoading = true;
             try
             {
-                var sortOrder = IsAscending ? "asc" : "desc";
-                var category = SelectedCategory == "All Categories" ? null : SelectedCategory;
-                var sort = SelectedSortOption == "None" ? null : SelectedSortOption;
-
-                // Pass filters to Service
-                var result = await _productService.GetProductsAsync(
-                    PageIndex, PageSize, 
-                    SearchText, 
-                    category, 
-                    MaxPriceFilter, 
-                    sort, 
-                    sortOrder
-                );
-
+                var result = await _productService.GetProductsAsync(PageIndex, PageSize);
                 _allProducts = result.Items.ToList();
-                
-                System.Diagnostics.Debug.WriteLine($"Loaded {_allProducts.Count} products. Total: {result.TotalRecords}");
+                System.Diagnostics.Debug.WriteLine($"Loaded {_allProducts.Count} products.");
                 TotalRecords = result.TotalRecords;
                 OnPropertyChanged(nameof(TotalRecords));
                 OnPropertyChanged(nameof(TotalPages));
@@ -190,27 +169,27 @@ namespace MyShop_Frontend.ViewModels.Products
                 (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
                 (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
 
-                // Note: Categories should ideally come from a separate API. 
-                // Dynamically updating them from current page might lose "other" categories not on this page.
-                // For now, we accumulate or just keep "All Categories" + current page ones.
-                // Better approach: Don't clear if we already have them, OR use a separate LoadCategories().
-                // To be safe and show at least what we have:
+                // Update categories
+                Categories.Clear();
+                Categories.Add("All Categories");
                 foreach (var cat in _allProducts.Select(p => p.CategoryName).Distinct().OrderBy(c => c))
                 {
-                     if (!Categories.Contains(cat)) {
-                         Categories.Add(cat ?? "Unknown");
-                     }
+                    Categories.Add(cat ?? "Unknown");
                 }
-                
-                // Do NOT re-calculate MaxPriceFilter here as it overrides user input.
-                
-                // Populate ObservableCollection directly (No more client-side FilterProducts)
-                Products.Clear();
-                foreach (var product in _allProducts)
+
+                // Set max price
+                // Set max price only once or if current max is less (to avoid resetting user filter on paging)
+                // Actually, if we paginate, we might not know global max price. 
+                // For now, let's just keep it simple but handle empty list.
+                if (_allProducts.Any())
                 {
-                    Products.Add(product);
+                    // Only update max price if it wasn't set or new products have higher price?
+                    // Better to just leave it or set a fixed high value if backend doesn't provide it.
+                    // Or set it based on current page max (which is temporary).
+                    // Example: MaxPriceFilter = (double)_allProducts.Max(p => p.Price);
                 }
-                OnPropertyChanged(nameof(ShowingStatus));
+
+                FilterProducts();
             }
             catch (Exception ex)
             {
@@ -247,6 +226,36 @@ namespace MyShop_Frontend.ViewModels.Products
              }
         }
 
+        private void FilterProducts()
+        {
+            var filtered = _allProducts.AsEnumerable();
 
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                filtered = filtered.Where(p =>
+                    p.ProductName?.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ?? false);
+            }
+
+            if (!string.IsNullOrEmpty(SelectedCategory) && SelectedCategory != "All Categories")
+            {
+                filtered = filtered.Where(p => p.CategoryName == SelectedCategory);
+            }
+
+            filtered = filtered.Where(p => (double)p.Price <= MaxPriceFilter);
+
+            filtered = SelectedSortOption switch
+            {
+                "Price" => IsAscending ? filtered.OrderBy(p => p.Price) : filtered.OrderByDescending(p => p.Price),
+                "Name" => IsAscending ? filtered.OrderBy(p => p.ProductName) : filtered.OrderByDescending(p => p.ProductName),
+                _ => filtered
+            };
+
+            Products.Clear();
+            foreach (var product in filtered)
+            {
+                Products.Add(product);
+            }
+            OnPropertyChanged(nameof(ShowingStatus));
+        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Models;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,28 +15,11 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
-        public async Task<PagedResult<Product>> GetProductsAsync(int pageIndex = 1, int pageSize = 5,
-            string? search = null, string? category = null, double? maxPrice = null,
-            string? sortBy = null, string? sortOrder = null, CancellationToken ct = default)
+        public async Task<PagedResult<Product>> GetProductsAsync(int pageIndex = 1, int pageSize = 5, CancellationToken ct = default)
         {
             // Backend returns PagedResult<Product>
+            // Append Query String
             var url = $"api/Product?pageIndex={pageIndex}&pageSize={pageSize}";
-
-            if (!string.IsNullOrWhiteSpace(search))
-                url += $"&search={Uri.EscapeDataString(search)}";
-
-            if (!string.IsNullOrWhiteSpace(category) && category != "All Categories")
-                url += $"&category={Uri.EscapeDataString(category)}";
-
-            if (maxPrice.HasValue)
-                url += $"&maxPrice={maxPrice}";
-
-            if (!string.IsNullOrWhiteSpace(sortBy))
-                url += $"&sortBy={sortBy}";
-
-            if (!string.IsNullOrWhiteSpace(sortOrder))
-                url += $"&sortOrder={sortOrder}";
-
             return await _api.GetAsync<PagedResult<Product>>(url, ct);
         }
 
