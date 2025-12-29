@@ -29,9 +29,35 @@ namespace MyShop_Frontend.Services
 
         public async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct = default)
         {
+            return await SendAsync<T>(HttpMethod.Get, relativeUrl, null, ct);
+        }
+
+        public async Task<T> PostAsync<T>(string relativeUrl, object data, CancellationToken ct = default)
+        {
+            return await SendAsync<T>(HttpMethod.Post, relativeUrl, data, ct);
+        }
+
+        public async Task<T> PutAsync<T>(string relativeUrl, object data, CancellationToken ct = default)
+        {
+            return await SendAsync<T>(HttpMethod.Put, relativeUrl, data, ct);
+        }
+
+        public async Task DeleteAsync(string relativeUrl, CancellationToken ct = default)
+        {
+            await SendAsync<object>(HttpMethod.Delete, relativeUrl, null, ct);
+        }
+
+        private async Task<T?> SendAsync<T>(HttpMethod method, string relativeUrl, object? data, CancellationToken ct)
+        {
             var url = relativeUrl.TrimStart('/');
 
-            using var req = new HttpRequestMessage(HttpMethod.Get, relativeUrl);
+            using var req = new HttpRequestMessage(method, relativeUrl);
+
+            if (data != null)
+            {
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                req.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            }
 
             var token = _tokenStore.GetAccessToken();
             if (!string.IsNullOrWhiteSpace(token))
@@ -44,11 +70,17 @@ namespace MyShop_Frontend.Services
             if (!res.IsSuccessStatusCode)
                 throw new HttpRequestException($"HTTP {(int)res.StatusCode} - {res.ReasonPhrase}\n{body}");
 
-            var data = JsonSerializer.Deserialize<T>(body, _jsonOptions);
-            if (data is null)
-                throw new InvalidOperationException("Empty/invalid JSON response.");
+            if (typeof(T) == typeof(object) && string.IsNullOrWhiteSpace(body))
+                return default;
 
-            return data;
+            var resultData = JsonSerializer.Deserialize<T>(body, _jsonOptions);
+            if (resultData is null && typeof(T) != typeof(object)) // Allow null for void/object returns if body checks out? Or strict? 
+                 // If T is expected but body is null, it might be an error or empty list. 
+                 // But JsonSerializer usually returns null only for "null" string.
+                 // Let's stick to previous logic but updated.
+                 throw new InvalidOperationException("Empty/invalid JSON response.");
+
+            return resultData!;
         }
     }
 }
