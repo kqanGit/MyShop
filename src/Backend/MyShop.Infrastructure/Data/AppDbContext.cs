@@ -41,7 +41,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("Category");
 
             entity.Property(e => e.CategoryId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("category_id");
             entity.Property(e => e.CategoryName)
                 .HasColumnType("character varying")
@@ -57,7 +57,7 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.Phone, "Customer_phone_key").IsUnique();
 
             entity.Property(e => e.CustomerId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("customer_id");
             entity.Property(e => e.Address)
                 .HasColumnType("character varying")
@@ -85,7 +85,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("Membership");
 
             entity.Property(e => e.TierId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("tier_id");
             entity.Property(e => e.Discount).HasColumnName("discount");
             entity.Property(e => e.Threshold).HasColumnName("threshold");
