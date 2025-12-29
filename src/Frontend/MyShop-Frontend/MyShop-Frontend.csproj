@@ -23,7 +23,6 @@
     <None Remove="Views\Pages\HelpPage.xaml" />
     <None Remove="Views\Pages\LoginPage.xaml" />
     <None Remove="Views\Pages\RegisterPage.xaml" />
-    <None Remove="Views\Pages\ReportPage.xaml" />
     <None Remove="Views\Pages\SettingPage.xaml" />
     <None Remove="Views\Themes\AppTheme.xaml" />
     <None Remove="Views\Themes\Generic.xaml" />
@@ -65,7 +64,6 @@
     <Folder Include="Assets\Icons\" />
     <Folder Include="Assets\Fonts\" />
     <Folder Include="Contracts\ViewModels\" />
-    <Folder Include="Helpers\Converters\" />
     <Folder Include="Helpers\Extensions\" />
     <Folder Include="Models\Auth\" />
     <Folder Include="ViewModels\Orders\" />
@@ -83,11 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Pages\HelpPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\Pages\ReportPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

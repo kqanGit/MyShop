@@ -16,7 +16,6 @@ namespace MyShop_Frontend.Services
         public AuthenticationWindow? AuthWindow { get; private set; }
         public ServerConfigWindow? SvConfigWindow { get; private set; }
 
-        // Lấy AppWindow từ XAML Window (cách ổn định cho WinUI 3 / Windows App SDK)
         private static AppWindow GetAppWindow(Window window)
         {
             var hwnd = WindowNative.GetWindowHandle(window);
@@ -36,7 +35,6 @@ namespace MyShop_Frontend.Services
 
         public void ShowServerConfigWindow()
         {
-            // đảm bảo AuthWindow đã có để còn Hide
             AuthWindow ??= new AuthenticationWindow();
 
             if (SvConfigWindow is null)
@@ -46,7 +44,6 @@ namespace MyShop_Frontend.Services
                 {
                     SvConfigWindow = null;
 
-                    // khi config đóng -> hiện lại auth
                     GetAppWindow(AuthWindow).Show();
                     AuthWindow.Activate();
                 };
@@ -54,13 +51,12 @@ namespace MyShop_Frontend.Services
 
             SvConfigWindow.Activate();
 
-            // mở config xong -> ẩn auth
             GetAppWindow(AuthWindow).Hide();
         }
 
         public void CloseServerConfigIfOpen()
         {
-            SvConfigWindow?.Close(); // Closed event sẽ tự Show lại AuthWindow
+            SvConfigWindow?.Close();
         }
 
         public void ShowMainWindow()
@@ -68,12 +64,10 @@ namespace MyShop_Frontend.Services
             var mainWindow = new MainWindow();
             mainWindow.Activate();
 
-            // Đóng cửa sổ hiện tại (AuthWindow)
             if (App.Windows.AuthWindow != null)
             {
                 App.Windows.AuthWindow.Close();
 
-                // 3. Giải phóng bộ nhớ bằng cách gán null sau khi đóng
                 App.Windows.AuthWindow = null;
             }
         }

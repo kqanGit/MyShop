@@ -79,7 +79,6 @@ namespace MyShop_Frontend
                     "Order" => typeof(OrderPage),
                     "Products" => typeof(ProductPage),
                     "Customers" => typeof(CustomerPage),
-                    "Report" => typeof(ReportPage),
                     "Help" => typeof(HelpPage),
                     "Settings" => typeof(SettingPage),
                     _ => null

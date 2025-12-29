@@ -98,7 +98,7 @@ namespace MyShop_Frontend.ViewModels.Orders
 
         private void ClearFilters()
         {
-            SearchText = string.Empty; // sẽ auto trigger LoadOrdersAsync
+            SearchText = string.Empty; 
             FromDate = new DateTimeOffset(new DateTime(2025, 1, 1));
             ToDate = DateTimeOffset.Now;
         }
@@ -138,7 +138,6 @@ namespace MyShop_Frontend.ViewModels.Orders
                 if (response?.Items == null)
                     return;
 
-                // Fallback filter client-side (giữ giống logic cũ của bạn)
                 var items = response.Items.AsEnumerable();
 
                 if (!string.IsNullOrWhiteSpace(SearchText))
@@ -159,7 +158,6 @@ namespace MyShop_Frontend.ViewModels.Orders
             }
             catch (Exception ex)
             {
-                // Nếu token thiếu/expired => backend thường trả 401 => ApiClient throw HttpRequestException
                 ErrorMessage = ex.Message;
                 Debug.WriteLine($"Error loading orders: {ex}");
             }
