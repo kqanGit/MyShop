@@ -1,4 +1,5 @@
 <Page
+    x:Name="PageRoot"
     x:Class="MyShop_Frontend.Views.Pages.ProductPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -46,7 +47,7 @@
                         <TextBlock Text="Import"/>
                     </StackPanel>
                 </Button>
-                <Button Background="Black" Foreground="White" CornerRadius="4">
+                <Button Background="Black" Foreground="White" CornerRadius="4" Command="{Binding AddProductCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE710;"/>
                         <TextBlock Text="New Product"/>
@@ -95,14 +96,17 @@
         <!-- Price Range (Simplified as slider) -->
         <StackPanel Grid.Row="2" Margin="0,0,0,24">
             <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
-                <TextBlock Text="Price Range: $0.00 -" FontWeight="SemiBold"/>
+                <TextBlock Text="Max Price:" FontWeight="SemiBold"/>
                 <TextBlock Text="{Binding MaxPriceFilter, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
             </StackPanel>
-            <Slider Minimum="0" Maximum="100" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <Slider Minimum="0" Maximum="1000000" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
-                <TextBlock Text="Showing 10 of 88 products" VerticalAlignment="Center" Foreground="Gray"/>
+                <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
                 <TextBlock Text="Order:" VerticalAlignment="Center" Margin="16,0,0,0"/>
                 <HyperlinkButton Content="{Binding SortOrderText}" Command="{Binding ToggleSortOrderCommand}"/>
+                <AppBarSeparator/>
+                <Button Content="&lt;" Command="{Binding PreviousPageCommand}" ToolTipService.ToolTip="Previous Page"/>
+                <Button Content="&gt;" Command="{Binding NextPageCommand}" ToolTipService.ToolTip="Next Page"/>
             </StackPanel>
         </StackPanel>
 
@@ -169,10 +173,10 @@
                              <Button Background="Transparent" Padding="4">
                                 <FontIcon Glyph="&#xE7B3;" FontSize="14"/>
                             </Button>
-                            <Button Background="Transparent" Padding="4">
+                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}">
                                 <FontIcon Glyph="&#xE70F;" FontSize="14"/>
                             </Button>
-                             <Button Background="Transparent" Padding="4">
+                             <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}">
                                 <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="Red"/>
                             </Button>
                         </StackPanel>

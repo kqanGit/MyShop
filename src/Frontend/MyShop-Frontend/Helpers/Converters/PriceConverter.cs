@@ -10,8 +10,12 @@ namespace MyShop_Frontend.Helpers.Converters
         {
             if (value is decimal price)
             {
-                return price.ToString("C", new CultureInfo("en-US"));
+                return price.ToString("C0", new CultureInfo("vi-VN"));
             }
+            if (value is double dPrice)
+            {
+                return dPrice.ToString("C0", new CultureInfo("vi-VN"));
+            } 
             return value;
         }
 
