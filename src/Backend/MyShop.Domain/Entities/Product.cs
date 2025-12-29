@@ -12,7 +12,7 @@ public partial class Product
 
     public int CategoryId { get; set; }
 
-    public string Unit { get; set; }
+    public string? Unit { get; set; }
 
     public decimal Cost { get; set; }
 
@@ -22,7 +22,7 @@ public partial class Product
 
     public string? Image { get; set; }
 
-    public BitArray? IsRemoved { get; set; }
+    public bool? IsRemoved { get; set; }
 
     public virtual Category? Category { get; set; }
 
