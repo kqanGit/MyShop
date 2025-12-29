@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MyShop.Presentation.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class VoucherController : ControllerBase
