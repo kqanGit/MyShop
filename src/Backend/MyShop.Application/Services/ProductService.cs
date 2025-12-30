@@ -12,7 +12,7 @@ namespace MyShop.Application.Services
 {
     public interface IProductService
     {
-        Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize, int? categoryId);
+        Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize, int? categoryId, decimal? maxPrice, bool? DESC);
         Task<ProductDto> GetProductById(int productId);
         Task<ProductDto> CreateProduct(CreateProductDto productDto);
         Task<ProductDto> UpdateProduct(int id, CreateProductDto productDto);
@@ -27,18 +27,32 @@ namespace MyShop.Application.Services
             _context = context;
         }
 
-        public async Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize, int? categoryId)
+        public async Task<PagedResult<ProductDto>> GetProductsPaged(int pageIndex, int pageSize, int? categoryId, decimal? maxPrice, bool? DESC)
         {
+
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.IsRemoved == null || p.IsRemoved == false)
+                .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
+                .Where(p => !maxPrice.HasValue || p.Price <= maxPrice.Value);
+
             var totalRecords = await _context.Products
                 .Where(p => p.IsRemoved == null || p.IsRemoved == false)
                 .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
                 .CountAsync();
 
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .Where(p => p.IsRemoved == null || p.IsRemoved == false)
-                .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
-                .OrderBy(p => p.ProductId)
+            if (!DESC.HasValue)
+            {
+                query = query.OrderBy(p => p.ProductId);
+            }
+            else
+            {
+                query = DESC == true
+                    ? query.OrderByDescending(p => p.Price).ThenBy(p => p.ProductId)
+                    : query.OrderBy(p => p.Price).ThenBy(p => p.ProductId);
+            }
+
+            var products = await query
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .Select(p => new ProductDto

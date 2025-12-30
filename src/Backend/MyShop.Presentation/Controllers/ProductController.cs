@@ -19,11 +19,11 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProducts(int pageIndex, int pageSize, int? categoryId)
+        public async Task<IActionResult> GetProducts(int pageIndex, int pageSize, int? categoryId, decimal? maxPrice, bool? DESC)
         {
             try
             {
-                var products = await _productService.GetProductsPaged(pageIndex, pageSize, categoryId);
+                var products = await _productService.GetProductsPaged(pageIndex, pageSize, categoryId, maxPrice, DESC);
                 return Ok(products); 
             }
             catch (UnauthorizedAccessException)
