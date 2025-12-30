@@ -56,7 +56,7 @@ exports.up = async function (knex) {
         "price" decimal,
         "stock" int,
         "image" varchar,
-        "is_removed" boolean
+        "is_removed" bit
         );
 
         CREATE TABLE "Voucher" (
