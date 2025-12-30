@@ -40,18 +40,13 @@ namespace MyShop.Infrastructure.Services
             result.TotalProfit = orders.SelectMany(o => o.OrderDetails)
                 .Sum(od => od.TotalLine - (od.CurrentCost * od.Quantity));
             result.NewCustomersCount = await _context.Customers.CountAsync(c => c.CreateDate >= fromDate && c.CreateDate <= toDate);
-            // Evaluate BitArray indexing client-side to avoid EF Core translation issues
-            result.TotalProducts = _context.Products
-                .Select(p => p.IsRemoved)
-                .AsEnumerable()
-                //.Count(bits => !bits[0]);
-                .Count(isRemoved => !(isRemoved ?? false));
-            // Also evaluate BitArray-based filter client-side
-            result.LowStockProducts = _context.Products
-                .Select(p => new { p.ProductId, p.ProductName, p.Stock, p.IsRemoved })
-                .AsEnumerable()
-                //.Where(p => !p.IsRemoved[0] && p.Stock < 5)
-                .Where(p => !(p.IsRemoved ?? false) && p.Stock < 5)
+
+            // With boolean IsRemoved, filter directly server-side
+            result.TotalProducts = await _context.Products
+                .CountAsync(p => p.IsRemoved == false || p.IsRemoved == null);
+
+            result.LowStockProducts = await _context.Products
+                .Where(p => (p.IsRemoved == false || p.IsRemoved == null) && p.Stock < 5)
                 .OrderBy(p => p.Stock)
                 .Take(5)
                 .Select(p => new ProductLowStockDto
@@ -60,7 +55,7 @@ namespace MyShop.Infrastructure.Services
                     ProductName = p.ProductName,
                     Stock = p.Stock
                 })
-                .ToList();
+                .ToListAsync();
             IEnumerable<RevenueChartDto> chartData = null;
 
             switch (groupBy)
