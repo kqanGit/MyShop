@@ -18,6 +18,7 @@
             <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <converters:PriceConverter x:Key="PriceConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

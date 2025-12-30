@@ -12,6 +12,7 @@ using MyShop_Frontend.Contracts;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Services;
 using MyShop_Frontend.ViewModels.Dashboard;
+using MyShop_Frontend.ViewModels.Reports;
 using MyShop_Frontend.Views.Pages;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,8 @@ namespace MyShop_Frontend
         public static IServiceProvider Services => _services.Value;
 
         public static WindowsService Windows => Services.GetRequiredService<WindowsService>();
+
+        public static Window? MainWindow { get; set; }
 
         public App()
         {
@@ -79,9 +82,11 @@ namespace MyShop_Frontend
             // === Transient Services ===
             services.AddTransient<IDashboardService, DashboardService>();
             services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<IReportService, ReportService>();
 
             // === ViewModels ===
             services.AddTransient<DashboardViewModel>();
+            services.AddTransient<ReportViewModel>();
 
             return services.BuildServiceProvider();
         }

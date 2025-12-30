@@ -18,8 +18,8 @@ namespace MyShop_Frontend.Services
         {
             var raw = _settings.Values[AppKeys.BackendBaseUrl] as string;
 
-            // raw ??= "https://stunning-goggles-x5rv46v6674p26q4j-5126.app.github.dev/";
-            raw ??= "http://localhost:5126";
+            raw ??= "https://solid-palm-tree-4jqwr4w44prr2jr5w-5126.app.github.dev/";
+            // raw ??= "http://localhost:5126";
 
             raw = raw.Trim();
 

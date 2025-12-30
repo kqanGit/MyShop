@@ -64,6 +64,9 @@ namespace MyShop_Frontend.Services
             var mainWindow = new MainWindow();
             mainWindow.Activate();
 
+            // Set MainWindow reference for file picker
+            App.MainWindow = mainWindow;
+
             if (App.Windows.AuthWindow != null)
             {
                 App.Windows.AuthWindow.Close();

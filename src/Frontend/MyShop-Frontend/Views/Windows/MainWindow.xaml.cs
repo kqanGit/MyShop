@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Text;
+﻿using Microsoft.UI;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -31,9 +32,9 @@ namespace MyShop_Frontend
         {
             this.InitializeComponent();
             ContentFrame.Navigate(typeof(Views.Pages.DashboardPage)); // mặc định
-            
+
             SelectNavigationItemByTag("Dashboard");
-            
+
             (this.Content as FrameworkElement).DataContext = ViewModel;
         }
 
@@ -48,7 +49,7 @@ namespace MyShop_Frontend
                 if (tag == "SignOut")
                 {
                     ViewModel.SignOutCommand.Execute(null);
-                    this.Close(); // Đóng cửa sổ hiện tại sau khi đăng xuất
+                    this.Close();
                 }
             }
         }
@@ -63,7 +64,6 @@ namespace MyShop_Frontend
 
             if (tag.Equals("SignOut", StringComparison.OrdinalIgnoreCase))
             {
-                // TODO: implement sign-out logic
                 return;
             }
 
@@ -79,6 +79,7 @@ namespace MyShop_Frontend
                     "Order" => typeof(OrderPage),
                     "Products" => typeof(ProductPage),
                     "Customers" => typeof(CustomerPage),
+                    "Report" => typeof(ReportPage),
                     "Help" => typeof(HelpPage),
                     "Settings" => typeof(SettingPage),
                     _ => null
@@ -90,13 +91,12 @@ namespace MyShop_Frontend
                 ContentFrame.Navigate(pageType);
             }
 
-            // ✅ tô đậm item đang chọn
+            // Tô đậm item đang chọn
             UpdateNavFontWeights(sender);
         }
 
         private void SelectNavigationItemByTag(string tag)
         {
-            // Tìm NavigationViewItem có Tag khớp
             var item = FlattenNavItems(NavView)
                 .FirstOrDefault(nvi => nvi.Tag?.ToString() == tag);
 
@@ -109,14 +109,24 @@ namespace MyShop_Frontend
 
         private static void UpdateNavFontWeights(NavigationView nav)
         {
-            // Lưu ý: SelectedItem của NavigationView thường chính là NavigationViewItem
             var selected = nav.SelectedItem as NavigationViewItem;
 
             foreach (var nvi in FlattenNavItems(nav))
             {
-                nvi.FontWeight = ReferenceEquals(nvi, selected)
-                    ? FontWeights.Bold
-                    : FontWeights.Normal;
+                bool isSelected = ReferenceEquals(nvi, selected);
+
+                // Cập nhật FontWeight cho text
+                nvi.FontWeight = isSelected ? FontWeights.Bold : FontWeights.Normal;
+
+                // Cập nhật icon
+                if (nvi.Icon is FontIcon fontIcon)
+                {
+                    fontIcon.FontWeight = isSelected ? FontWeights.Bold : FontWeights.Normal;
+
+                    var scale = isSelected ? 1.25 : 1.0;
+                    fontIcon.RenderTransform = new ScaleTransform { ScaleX = scale, ScaleY = scale };
+                    fontIcon.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+                }
             }
         }
 

@@ -1,9 +1,18 @@
-﻿using MyShop_Frontend.Contracts.Dtos.Stats;
+﻿using LiveChartsCore;
+using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using Microsoft.UI;
+using Microsoft.UI.Xaml.Media;
+using MyShop_Frontend.Contracts.Dtos.Stats;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.ViewModels.Base;
+using SkiaSharp;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +22,7 @@ namespace MyShop_Frontend.ViewModels.Dashboard
     public sealed class DashboardViewModel : ViewModelBase
     {
         private readonly IDashboardService _dashboardService;
+        private readonly CultureInfo _culture = CultureInfo.GetCultureInfo("vi-VN");
 
         public DashboardViewModel(IDashboardService dashboardService)
         {
@@ -20,7 +30,10 @@ namespace MyShop_Frontend.ViewModels.Dashboard
 
             FromDate = new DateTimeOffset(new DateTime(2020, 1, 1));
             ToDate = new DateTimeOffset(DateTime.Today);
-            SelectedGroupBy = 4; // 1=ngày,2=tuần,3=tháng,4=năm
+            SelectedGroupBy = 3; // ComboBox index: 0=Day, 1=Week, 2=Month, 3=Year
+
+            // Initialize empty chart
+            InitializeCharts();
         }
 
         // ===== Helpers =====
@@ -98,6 +111,49 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             set => SetProperty(ref _newCustomers, value);
         }
 
+        // ===== Change Indicators =====
+        private string _revenueChangePercent = "0%";
+        public string RevenueChangePercent
+        {
+            get => _revenueChangePercent;
+            set => SetProperty(ref _revenueChangePercent, value);
+        }
+
+        private SolidColorBrush _revenueChangeColor = new(Colors.Green);
+        public SolidColorBrush RevenueChangeColor
+        {
+            get => _revenueChangeColor;
+            set => SetProperty(ref _revenueChangeColor, value);
+        }
+
+        private string _profitChangePercent = "0%";
+        public string ProfitChangePercent
+        {
+            get => _profitChangePercent;
+            set => SetProperty(ref _profitChangePercent, value);
+        }
+
+        private SolidColorBrush _profitChangeColor = new(Colors.Green);
+        public SolidColorBrush ProfitChangeColor
+        {
+            get => _profitChangeColor;
+            set => SetProperty(ref _profitChangeColor, value);
+        }
+
+        private string _totalProductsSold = "0";
+        public string TotalProductsSold
+        {
+            get => _totalProductsSold;
+            set => SetProperty(ref _totalProductsSold, value);
+        }
+
+        private string _averageOrderValue = "0 ₫";
+        public string AverageOrderValue
+        {
+            get => _averageOrderValue;
+            set => SetProperty(ref _averageOrderValue, value);
+        }
+
         private int _lowStockCount;
         public int LowStockCount
         {
@@ -106,9 +162,88 @@ namespace MyShop_Frontend.ViewModels.Dashboard
         }
 
         // ===== Collections (using DTOs directly) =====
-        public ObservableCollection<RevenueChartPointDto> RevenueChart { get; } = new();
+        public ObservableCollection<RevenueChartPointDto> RevenueChartData { get; } = new();
         public ObservableCollection<TopSellingProductDto> TopProducts { get; } = new();
         public ObservableCollection<LowStockProductDto> LowStockProducts { get; } = new();
+
+        // ===== LiveCharts Properties =====
+        private ISeries[] _revenueProfitSeries = [];
+        public ISeries[] RevenueProfitSeries
+        {
+            get => _revenueProfitSeries;
+            set => SetProperty(ref _revenueProfitSeries, value);
+        }
+
+        private IEnumerable<ICartesianAxis> _xAxes = [];
+        public IEnumerable<ICartesianAxis> XAxes
+        {
+            get => _xAxes;
+            set => SetProperty(ref _xAxes, value);
+        }
+
+        private IEnumerable<ICartesianAxis> _yAxes = [];
+        public IEnumerable<ICartesianAxis> YAxes
+        {
+            get => _yAxes;
+            set => SetProperty(ref _yAxes, value);
+        }
+
+        private void InitializeCharts()
+        {
+            RevenueProfitSeries =
+            [
+                new ColumnSeries<decimal>
+                {
+                    Name = "Revenue",
+                    Values = Array.Empty<decimal>(),
+                    Fill = new SolidColorPaint(SKColor.Parse("#5D5FEF")),
+                    MaxBarWidth = 20,
+                    Rx = 4,
+                    Ry = 4
+                },
+                new ColumnSeries<decimal>
+                {
+                    Name = "Profit",
+                    Values = Array.Empty<decimal>(),
+                    Fill = new SolidColorPaint(SKColor.Parse("#22C55E")),
+                    MaxBarWidth = 20,
+                    Rx = 4,
+                    Ry = 4
+                }
+            ];
+
+            XAxes = new List<ICartesianAxis>
+            {
+                new Axis
+                {
+                    Labels = Array.Empty<string>(),
+                    LabelsRotation = 0,
+                    TextSize = 12,
+                    LabelsPaint = new SolidColorPaint(SKColor.Parse("#64748B"))
+                }
+            };
+
+            YAxes = new List<ICartesianAxis>
+            {
+                new Axis
+                {
+                    Labeler = value => FormatCurrency(value),
+                    TextSize = 12,
+                    LabelsPaint = new SolidColorPaint(SKColor.Parse("#64748B"))
+                }
+            };
+        }
+
+        private static string FormatCurrency(double value)
+        {
+            if (value >= 1_000_000_000)
+                return $"{value / 1_000_000_000:N1}B";
+            if (value >= 1_000_000)
+                return $"{value / 1_000_000:N1}M";
+            if (value >= 1_000)
+                return $"{value / 1_000:N0}K";
+            return $"{value:N0}";
+        }
 
         // ===== Actions =====
         public async Task RefreshAsync(CancellationToken ct = default)
@@ -125,18 +260,29 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                     ct
                 );
 
-                var culture = CultureInfo.GetCultureInfo("vi-VN");
-
                 // Format KPI values
-                TotalRevenue = string.Format(culture, "{0:N0} ₫", dto.TotalRevenue);
-                TotalProfit = string.Format(culture, "{0:N0} ₫", dto.TotalProfit);
-                TotalOrders = dto.TotalOrders.ToString("N0", culture);
-                NewCustomers = dto.NewCustomersCount.ToString("N0", culture);
+                TotalRevenue = string.Format(_culture, "{0:N0} ₫", dto.TotalRevenue);
+                TotalProfit = string.Format(_culture, "{0:N0} ₫", dto.TotalProfit);
+                TotalOrders = dto.TotalOrders.ToString("N0", _culture);
+                NewCustomers = dto.NewCustomersCount.ToString("N0", _culture);
 
-                // Revenue Chart
-                RevenueChart.Clear();
+                // Calculate total products sold and average order value
+                int totalProductsSold = dto.RevenueChart?.Sum(c => c.TotalQuantity) ?? 0;
+                TotalProductsSold = totalProductsSold.ToString("N0", _culture);
+
+                decimal avgOrderValue = dto.TotalOrders > 0 ? dto.TotalRevenue / dto.TotalOrders : 0;
+                AverageOrderValue = string.Format(_culture, "{0:N0} ₫", avgOrderValue);
+
+                // Calculate change percentages from chart data
+                CalculateChangePercents(dto.RevenueChart);
+
+                // Revenue Chart Data
+                RevenueChartData.Clear();
                 foreach (var p in dto.RevenueChart)
-                    RevenueChart.Add(p);
+                    RevenueChartData.Add(p);
+
+                // Update LiveCharts
+                UpdateCharts(dto);
 
                 // Top Products with rank and formatted values
                 TopProducts.Clear();
@@ -144,7 +290,7 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                 foreach (var p in dto.TopSellingProducts)
                 {
                     p.Rank = rank++;
-                    p.RevenueText = string.Format(culture, "{0:N0}đ", p.Revenue);
+                    p.RevenueText = string.Format(_culture, "{0:N0}đ", p.Revenue);
                     TopProducts.Add(p);
                 }
 
@@ -164,6 +310,109 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             catch (Exception ex)
             {
                 Error = ex.Message;
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        private void CalculateChangePercents(List<RevenueChartPointDto>? chartData)
+        {
+            decimal revenueChange = 0;
+            decimal profitChange = 0;
+
+            if (chartData != null && chartData.Count >= 2)
+            {
+                var first = chartData.First();
+                var last = chartData.Last();
+
+                if (first.Revenue > 0)
+                    revenueChange = (last.Revenue - first.Revenue) / first.Revenue * 100;
+                if (first.Profit > 0)
+                    profitChange = (last.Profit - first.Profit) / first.Profit * 100;
+            }
+
+            // Update Revenue change
+            RevenueChangePercent = revenueChange >= 0 ? $"+{revenueChange:F1}%" : $"{revenueChange:F1}%";
+            RevenueChangeColor = new SolidColorBrush(revenueChange >= 0 ? Colors.Green : Colors.Red);
+
+            // Update Profit change
+            ProfitChangePercent = profitChange >= 0 ? $"+{profitChange:F1}%" : $"{profitChange:F1}%";
+            ProfitChangeColor = new SolidColorBrush(profitChange >= 0 ? Colors.Green : Colors.Red);
+        }
+
+        private void UpdateCharts(DashboardResponseDto dto)
+        {
+            // Update Revenue/Profit Chart
+            var revenueValues = dto.RevenueChart.Select(x => x.Revenue).ToArray();
+            var profitValues = dto.RevenueChart.Select(x => x.Profit).ToArray();
+            var labels = dto.RevenueChart.Select(x => x.DateLabel).ToArray();
+
+            RevenueProfitSeries =
+            [
+                new ColumnSeries<decimal>
+                {
+                    Name = "Revenue",
+                    Values = revenueValues,
+                    Fill = new SolidColorPaint(SKColor.Parse("#5D5FEF")),
+                    MaxBarWidth = 20,
+                    Rx = 4,
+                    Ry = 4
+                },
+                new ColumnSeries<decimal>
+                {
+                    Name = "Profit",
+                    Values = profitValues,
+                    Fill = new SolidColorPaint(SKColor.Parse("#22C55E")),
+                    MaxBarWidth = 20,
+                    Rx = 4,
+                    Ry = 4
+                }
+            ];
+
+            XAxes = new List<ICartesianAxis>
+            {
+                new Axis
+                {
+                    Labels = labels,
+                    LabelsRotation = labels.Length > 10 ? 45 : 0,
+                    TextSize = 11,
+                    LabelsPaint = new SolidColorPaint(SKColor.Parse("#64748B"))
+                }
+            };
+        }
+
+        public async Task ExportExcelAsync()
+        {
+            try
+            {
+                IsLoading = true;
+                Error = null;
+
+                var picker = new Windows.Storage.Pickers.FileSavePicker();
+                picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+                picker.FileTypeChoices.Add("Excel File", new System.Collections.Generic.List<string> { ".xlsx" });
+                picker.SuggestedFileName = $"Dashboard_Report_{FromDate.DateTime:yyyyMMdd}_{ToDate.DateTime:yyyyMMdd}";
+
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+                var file = await picker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    var bytes = await _dashboardService.ExportExcelAsync(
+                        FromDate.DateTime.Date,
+                        ToDate.DateTime.Date,
+                        SelectedGroupBy
+                    );
+
+                    await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                Error = $"Export failed: {ex.Message}";
             }
             finally
             {

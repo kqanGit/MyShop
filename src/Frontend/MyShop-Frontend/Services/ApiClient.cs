@@ -1,9 +1,8 @@
 ﻿using MyShop_Frontend.Contracts.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -27,37 +26,12 @@ namespace MyShop_Frontend.Services
             _tokenStore = tokenStore;
         }
 
+        // GET request
         public async Task<T> GetAsync<T>(string relativeUrl, CancellationToken ct = default)
-        {
-            return await SendAsync<T>(HttpMethod.Get, relativeUrl, null, ct);
-        }
-
-        public async Task<T> PostAsync<T>(string relativeUrl, object data, CancellationToken ct = default)
-        {
-            return await SendAsync<T>(HttpMethod.Post, relativeUrl, data, ct);
-        }
-
-        public async Task<T> PutAsync<T>(string relativeUrl, object data, CancellationToken ct = default)
-        {
-            return await SendAsync<T>(HttpMethod.Put, relativeUrl, data, ct);
-        }
-
-        public async Task DeleteAsync(string relativeUrl, CancellationToken ct = default)
-        {
-            await SendAsync<object>(HttpMethod.Delete, relativeUrl, null, ct);
-        }
-
-        private async Task<T?> SendAsync<T>(HttpMethod method, string relativeUrl, object? data, CancellationToken ct)
         {
             var url = relativeUrl.TrimStart('/');
 
-            using var req = new HttpRequestMessage(method, relativeUrl);
-
-            if (data != null)
-            {
-                var json = JsonSerializer.Serialize(data, _jsonOptions);
-                req.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            }
+            using var req = new HttpRequestMessage(HttpMethod.Get, relativeUrl);
 
             var token = _tokenStore.GetAccessToken();
             if (!string.IsNullOrWhiteSpace(token))
@@ -70,17 +44,114 @@ namespace MyShop_Frontend.Services
             if (!res.IsSuccessStatusCode)
                 throw new HttpRequestException($"HTTP {(int)res.StatusCode} - {res.ReasonPhrase}\n{body}");
 
-            if (typeof(T) == typeof(object) && string.IsNullOrWhiteSpace(body))
-                return default;
+            var data = JsonSerializer.Deserialize<T>(body, _jsonOptions);
+            if (data is null)
+                throw new InvalidOperationException("Empty/invalid JSON response.");
 
-            var resultData = JsonSerializer.Deserialize<T>(body, _jsonOptions);
-            if (resultData is null && typeof(T) != typeof(object)) // Allow null for void/object returns if body checks out? Or strict? 
-                 // If T is expected but body is null, it might be an error or empty list. 
-                 // But JsonSerializer usually returns null only for "null" string.
-                 // Let's stick to previous logic but updated.
-                 throw new InvalidOperationException("Empty/invalid JSON response.");
+            return data;
+        }
 
-            return resultData!;
+        // GET request for file download (returns byte array)
+        public async Task<byte[]> GetBytesAsync(string relativeUrl, CancellationToken ct = default)
+        {
+            var url = relativeUrl.TrimStart('/');
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+
+            var token = _tokenStore.GetAccessToken();
+            if (!string.IsNullOrWhiteSpace(token))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var res = await _http.SendAsync(req, ct);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                var errorBody = await res.Content.ReadAsStringAsync(ct);
+                throw new HttpRequestException($"HTTP {(int)res.StatusCode} - {res.ReasonPhrase}\n{errorBody}");
+            }
+
+            return await res.Content.ReadAsByteArrayAsync(ct);
+        }
+
+        // POST request (tạo mới)
+        public async Task<T> PostAsync<T>(string relativeUrl, object body, CancellationToken ct = default)
+        {
+            var url = relativeUrl.TrimStart('/');
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+
+            // Add JWT token
+            var token = _tokenStore.GetAccessToken();
+            if (!string.IsNullOrWhiteSpace(token))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Serialize body to JSON
+            var json = JsonSerializer.Serialize(body, _jsonOptions);
+            req.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var res = await _http.SendAsync(req, ct);
+            var responseBody = await res.Content.ReadAsStringAsync(ct);
+
+            if (!res.IsSuccessStatusCode)
+                throw new HttpRequestException($"HTTP {(int)res.StatusCode} - {res.ReasonPhrase}\n{responseBody}");
+
+            var data = JsonSerializer.Deserialize<T>(responseBody, _jsonOptions);
+            if (data is null)
+                throw new InvalidOperationException("Empty/invalid JSON response.");
+
+            return data;
+        }
+
+        // PUT request (cập nhật)
+        public async Task<T> PutAsync<T>(string relativeUrl, object body, CancellationToken ct = default)
+        {
+            var url = relativeUrl.TrimStart('/');
+
+            using var req = new HttpRequestMessage(HttpMethod.Put, url);
+
+            // Add JWT token
+            var token = _tokenStore.GetAccessToken();
+            if (!string.IsNullOrWhiteSpace(token))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Serialize body to JSON
+            var json = JsonSerializer.Serialize(body, _jsonOptions);
+            req.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var res = await _http.SendAsync(req, ct);
+            var responseBody = await res.Content.ReadAsStringAsync(ct);
+
+            if (!res.IsSuccessStatusCode)
+                throw new HttpRequestException($"HTTP {(int)res.StatusCode} - {res.ReasonPhrase}\n{responseBody}");
+
+            var data = JsonSerializer.Deserialize<T>(responseBody, _jsonOptions);
+            if (data is null)
+                throw new InvalidOperationException("Empty/invalid JSON response.");
+
+            return data;
+        }
+
+        // DELETE request
+        public async Task<bool> DeleteAsync(string relativeUrl, CancellationToken ct = default)
+        {
+            var url = relativeUrl.TrimStart('/');
+
+            using var req = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            // Add JWT token
+            var token = _tokenStore.GetAccessToken();
+            if (!string.IsNullOrWhiteSpace(token))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var res = await _http.SendAsync(req, ct);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadAsStringAsync(ct);
+                throw new HttpRequestException($"HTTP {(int)res.StatusCode} - {res.ReasonPhrase}\n{body}");
+            }
+
+            return res.IsSuccessStatusCode;
         }
     }
 }
