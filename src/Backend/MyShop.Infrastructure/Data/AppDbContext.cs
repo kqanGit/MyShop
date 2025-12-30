@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyShop.Domain.Entities;
 
 namespace MyShop.Infrastructure.Data;
@@ -36,10 +34,6 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var bitArrayToBoolConverter = new ValueConverter<bool?, BitArray>(
-            v => v.HasValue ? new BitArray(new[] { v.Value }) : null,
-            v => v != null && v.Length > 0 && v[0]);
-
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.CategoryId).HasName("Category_pkey");
@@ -47,7 +41,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("Category");
 
             entity.Property(e => e.CategoryId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("category_id");
             entity.Property(e => e.CategoryName)
                 .HasColumnType("character varying")
@@ -63,7 +57,7 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.Phone, "Customer_phone_key").IsUnique();
 
             entity.Property(e => e.CustomerId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("customer_id");
             entity.Property(e => e.Address)
                 .HasColumnType("character varying")
@@ -91,7 +85,7 @@ public partial class AppDbContext : DbContext
             entity.ToTable("Membership");
 
             entity.Property(e => e.TierId)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("tier_id");
             entity.Property(e => e.Discount).HasColumnName("discount");
             entity.Property(e => e.Threshold).HasColumnName("threshold");
@@ -173,9 +167,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("image");
             entity.Property(e => e.IsRemoved)
-                .HasColumnType("bit(1)")
-                .HasColumnName("is_removed")
-                .HasConversion(bitArrayToBoolConverter);
+                .HasColumnType("boolean")
+                .HasColumnName("is_removed");
             entity.Property(e => e.Price).HasColumnName("price");
             entity.Property(e => e.ProductName)
                 .HasColumnType("character varying")
