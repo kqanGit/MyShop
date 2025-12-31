@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MyShop.Application.DTOs;
+using MyShop.Application.DTOs.Common;
 using MyShop.Domain.Entities;
 using MyShop.Infrastructure.Data;
 
@@ -11,7 +12,8 @@ namespace MyShop.Application.Services
 {
     public interface ICustomerService
     {
-        Task<IEnumerable<CustomerDto>> SearchCustomers(string phone, string name);
+        Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize);
+        Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name);
         Task<CustomerDetailDto> GetCustomerDetail(int id);
         Task<CustomerDto> CreateCustomer(CreateCustomerDto request);
         Task<CustomerDto> UpdateCustomer(int id, UpdateCustomerDto request);
@@ -26,7 +28,29 @@ namespace MyShop.Application.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<CustomerDto>> SearchCustomers(string phone, string name)
+        public async Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize)
+        {
+            var query = _context.Customers.Include(c => c.Tier)
+                .AsQueryable()
+                .OrderBy(c => c.CustomerId);
+            var totalRecords = await query.CountAsync();
+            var customers = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new CustomerDto
+                {
+                    CustomerId = c.CustomerId,
+                    FullName = c.FullName,
+                    Phone = c.Phone,
+                    Address = c.Address,
+                    Point = c.Point,
+                    TierName = c.Tier != null ? c.Tier.TierName : "N/A"
+                })
+                .ToListAsync();
+            return new PagedResult<CustomerDto>(customers, totalRecords, pageIndex, pageSize);
+        }
+
+        public async Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name)
         {
             var query = _context.Customers.Include(c => c.Tier).AsQueryable();
 

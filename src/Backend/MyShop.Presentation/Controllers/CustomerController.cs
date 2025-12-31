@@ -18,8 +18,19 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Search([FromQuery] string phone, [FromQuery] string name)
+        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
         {
+            var response = await _customerService.GetCustomers(pageIndex, pageSize);
+            return Ok(response);
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string? phone, [FromQuery] string? name)
+        {
+            if (string.IsNullOrEmpty(phone) && string.IsNullOrEmpty(name))
+            {
+                return BadRequest(new { message = "At least one search parameter (phone or name) must be provided." });
+            }
             var response = await _customerService.SearchCustomers(phone, name);
             return Ok(response);
         }
