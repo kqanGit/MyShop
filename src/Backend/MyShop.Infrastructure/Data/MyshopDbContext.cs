@@ -185,7 +185,7 @@ public partial class MyshopDbContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("image");
             entity.Property(e => e.IsRemoved)
-                .HasColumnType("bit(1)")
+                .HasColumnType("boolean")
                 .HasColumnName("is_removed");
             entity.Property(e => e.Price).HasColumnName("price");
             entity.Property(e => e.ProductName)

@@ -173,7 +173,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("character varying")
                 .HasColumnName("image");
             entity.Property(e => e.IsRemoved)
-                .HasColumnType("bit")
+                .HasColumnType("boolean")
                 .HasColumnName("is_removed")
                 .HasConversion(bitArrayToBoolConverter);
             entity.Property(e => e.Price).HasColumnName("price");
