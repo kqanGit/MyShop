@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyShop.Domain.Entities;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace MyShop.Infrastructure.Data;
@@ -36,9 +34,7 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var bitArrayToBoolConverter = new ValueConverter<bool?, BitArray>(
-            v => v.HasValue ? new BitArray(new[] { v.Value }) : null,
-            v => v != null && v.Length > 0 && v[0]);
+
 
         modelBuilder.Entity<Category>(entity =>
         {
@@ -174,8 +170,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("image");
             entity.Property(e => e.IsRemoved)
                 .HasColumnType("boolean")
-                .HasColumnName("is_removed")
-                .HasConversion(bitArrayToBoolConverter);
+                .HasColumnName("is_removed");
             entity.Property(e => e.Price).HasColumnName("price");
             entity.Property(e => e.ProductName)
                 .HasColumnType("character varying")
