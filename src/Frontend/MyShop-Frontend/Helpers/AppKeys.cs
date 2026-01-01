@@ -9,6 +9,7 @@ namespace MyShop_Frontend.Helpers
     public static class AppKeys
     {
         public const string BackendBaseUrl = "BackendBaseUrl";
+        public const string DefaultBackendConfig = "DefaultBackendConfig";
         public const string AccessToken = "AccessToken";
         public const string Username = "Username";
         public const string UserRole = "UserRole";

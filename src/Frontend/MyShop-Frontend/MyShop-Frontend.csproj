@@ -23,6 +23,7 @@
     <None Remove="Views\Pages\HelpPage.xaml" />
     <None Remove="Views\Pages\LoginPage.xaml" />
     <None Remove="Views\Pages\RegisterPage.xaml" />
+    <None Remove="Views\Pages\ReportPage.xaml" />
     <None Remove="Views\Pages\SettingPage.xaml" />
     <None Remove="Views\Themes\AppTheme.xaml" />
     <None Remove="Views\Themes\Generic.xaml" />
@@ -54,6 +55,8 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CSharpMarkup.WinUI.LiveChartsCore.SkiaSharpView" Version="3.1.2" />
+    <PackageReference Include="LiveCharts" Version="0.9.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
@@ -68,6 +71,11 @@
     <Folder Include="Models\Auth\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Pages\ReportPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Controls\Order\CreateOrderControl.xaml">

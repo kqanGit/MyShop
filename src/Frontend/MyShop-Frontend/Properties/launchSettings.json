@@ -1,7 +1,8 @@
 {
   "profiles": {
     "MyShop-Frontend (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "nativeDebugging": true
     },
     "MyShop-Frontend (Unpackaged)": {
       "commandName": "Project"

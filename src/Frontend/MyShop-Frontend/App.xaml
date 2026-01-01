@@ -10,14 +10,14 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <ResourceDictionary Source="/Views/Themes/Generic.xaml"/>
+                <ResourceDictionary Source="ms-appx:///Views/Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
-
             <!-- Converters -->
             <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <converters:PriceConverter x:Key="PriceConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -6,6 +6,7 @@ using MyShop_Frontend.Services;
 using MyShop_Frontend.ViewModels.Base;
 using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -96,7 +97,7 @@ namespace MyShop_Frontend.ViewModels.Authentication
                 }
             }
         }
-                
+
         private bool _rememberMe;
         public bool RememberMe
         {
@@ -110,7 +111,7 @@ namespace MyShop_Frontend.ViewModels.Authentication
             get => _errorMessage;
             set
             {
-                SetProperty(ref _errorMessage, value);  
+                SetProperty(ref _errorMessage, value);
                 OnPropertyChanged(nameof(HasError));
             }
         }
@@ -158,25 +159,59 @@ namespace MyShop_Frontend.ViewModels.Authentication
                 }
                 else
                 {
-                    ErrorMessage = "Sai tài khoản hoặc mật khẩu.";
-                    Debug.WriteLine(ErrorMessage);
+                    // Với AuthenticationService hiện tại, trường hợp này gần như không xảy ra (nó sẽ throw nếu token rỗng)
+                    ErrorMessage = "Đăng nhập thất bại: server không trả về token.";
                 }
             }
-            catch (System.Net.Http.HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
-                if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+                // AuthenticationService đã include: "Login failed: <code> <reason>\n<body>"
+                var msg = ex.Message ?? "";
+
+                if (msg.Contains("401") || msg.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase))
                 {
                     ErrorMessage = "Sai tài khoản hoặc mật khẩu.";
                 }
-                else if (ex.Message.Contains("502") || ex.Message.Contains("503"))
+                else if (msg.Contains("404") || msg.Contains("Not Found", StringComparison.OrdinalIgnoreCase))
                 {
-                    ErrorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra cấu hình.";
+                    ErrorMessage = "Không tìm thấy API đăng nhập. Hãy kiểm tra lại Server Config (base URL) và route /api/auth/login.";
+                }
+                else if (msg.Contains("SSL", StringComparison.OrdinalIgnoreCase) || msg.Contains("certificate", StringComparison.OrdinalIgnoreCase))
+                {
+                    ErrorMessage = "Lỗi chứng chỉ SSL/HTTPS. Nếu dùng localhost hãy thử http://localhost:<port>/ trong Server Config.";
+                }
+                else if (msg.Contains("No such host", StringComparison.OrdinalIgnoreCase) ||
+                         msg.Contains("Name or service not known", StringComparison.OrdinalIgnoreCase) ||
+                         msg.Contains("host is unknown", StringComparison.OrdinalIgnoreCase))
+                {
+                    ErrorMessage = "Không phân giải được địa chỉ server. Hãy kiểm tra lại host/IP trong Server Config.";
+                }
+                else if (msg.Contains("refused", StringComparison.OrdinalIgnoreCase) ||
+                         msg.Contains("actively refused", StringComparison.OrdinalIgnoreCase))
+                {
+                    ErrorMessage = "Không kết nối được server (connection refused). Kiểm tra backend đang chạy và đúng port.";
+                }
+                else if (msg.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+                {
+                    ErrorMessage = "Kết nối bị timeout. Kiểm tra mạng hoặc server đang chậm.";
+                }
+                else if (msg.Contains("502") || msg.Contains("503"))
+                {
+                    ErrorMessage = "Server đang lỗi (502/503). Vui lòng thử lại sau hoặc kiểm tra backend.";
                 }
                 else
                 {
-                    ErrorMessage = "Lỗi kết nối. Vui lòng thử lại sau.";
+                    // Hiển thị message gốc để debug chính xác (vì đã có response body)
+                    ErrorMessage = msg;
                 }
+
                 Debug.WriteLine($"HTTP Error: {ex}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Các lỗi parse JSON, thiếu token ...
+                ErrorMessage = ex.Message;
+                Debug.WriteLine($"Invalid Operation: {ex}");
             }
             catch (Exception ex)
             {
