@@ -44,8 +44,6 @@
         <Grid Padding="24" RowSpacing="24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <!-- Filter Bar -->
-                <RowDefinition Height="Auto"/>
                 <!-- KPI Cards -->
                 <RowDefinition Height="Auto"/>
                 <!-- Charts -->
@@ -53,81 +51,9 @@
                 <!-- Tables -->
             </Grid.RowDefinitions>
 
-            <!-- ===== ROW 0: FILTER BAR ===== -->
-            <Border Grid.Row="0"
-                Background="White"
-                CornerRadius="16"
-                Padding="20,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Title -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
-                        <FontIcon Glyph="&#xE9F9;" FontSize="20" Foreground="#5D5FEF"/>
-                        <TextBlock Text="Analytics Overview" 
-                               FontSize="18" 
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <!-- Filters -->
-                    <StackPanel Grid.Column="2" 
-                            Orientation="Horizontal" 
-                            Spacing="12">
-
-                        <!-- Date Range Picker -->
-                        <CalendarDatePicker PlaceholderText="From"
-                                        Date="{x:Bind ViewModel.FromDate, Mode=TwoWay}"
-                                        DateFormat="{}{day.integer}/{month.integer}/{year.full}"
-                                        MinWidth="140"/>
-                        <TextBlock Text="→" 
-                               VerticalAlignment="Center" 
-                               Foreground="#94A3B8"/>
-                        <CalendarDatePicker PlaceholderText="To"
-                                        Date="{x:Bind ViewModel.ToDate, Mode=TwoWay}"
-                                        DateFormat="{}{day.integer}/{month.integer}/{year.full}"
-                                        MinWidth="140"/>
-
-                        <!-- Group By -->
-                        <ComboBox MinWidth="120" SelectedIndex="{x:Bind ViewModel.SelectedGroupBy, Mode=TwoWay}">
-                            <ComboBoxItem Content="By Day"/>
-                            <ComboBoxItem Content="By Week"/>
-                            <ComboBoxItem Content="By Month"/>
-                            <ComboBoxItem Content="By Year"/>
-                        </ComboBox>
-
-                        <!-- Apply Button -->
-                        <Button Background="#5D5FEF"
-                            Foreground="White"
-                            CornerRadius="8"
-                            Padding="16,8"
-                            Click="Refresh_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE72C;" FontSize="14"/>
-                                <TextBlock Text="Apply"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- Export Button -->
-                        <Button Background="#F1F5F9"
-                            CornerRadius="8"
-                            Padding="16,8"
-                            Click="Export_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE78C;" FontSize="14" Foreground="#475569"/>
-                                <TextBlock Text="Export" Foreground="#475569"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
 
             <!-- ===== ROW 1: KPI CARDS ===== -->
-            <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid Grid.Row="0" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -273,7 +199,7 @@
             </Grid>
 
             <!-- ===== ROW 2: CHARTS ===== -->
-            <Grid Grid.Row="2" ColumnSpacing="16">
+            <Grid Grid.Row="1" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="*"/>
@@ -377,7 +303,7 @@
             </Grid>
 
             <!-- ===== ROW 3: TABLES ===== -->
-            <Grid Grid.Row="3" ColumnSpacing="16">
+            <Grid Grid.Row="2" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>

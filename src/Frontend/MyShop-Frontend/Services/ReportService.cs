@@ -1,6 +1,6 @@
-﻿using MyShop_Frontend.Contracts.Dtos.Reports;
-using MyShop_Frontend.Contracts.Dtos.Stats;
+﻿using MyShop_Frontend.Contracts.Dtos.Stats;
 using MyShop_Frontend.Contracts.Services;
+using MyShop_Frontend.ViewModels.Reports;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,43 +24,27 @@ namespace MyShop_Frontend.Services
             int groupBy,
             CancellationToken ct = default)
         {
-            ValidateDateRange(fromDate, toDate);
+            try
+            {
+                // Use same API as Dashboard: api/Stats/dashboard
+                var from = fromDate.ToString("yyyy-MM-dd");
+                var to = toDate.ToString("yyyy-MM-dd");
+                var url = $"api/Stats/dashboard?fromDate={from}&toDate={to}&groupBy={groupBy}";
 
-            var from = fromDate.ToString("yyyy-MM-dd");
-            var to = toDate.ToString("yyyy-MM-dd");
+                var dashboardDto = await _apiClient.GetAsync<DashboardResponseDto>(url, ct);
 
-            var url = $"api/Stats/dashboard?fromDate={Uri.EscapeDataString(from)}&toDate={Uri.EscapeDataString(to)}&groupBy={groupBy}";
-
-            var dashboardDto = await _apiClient.GetAsync<DashboardResponseDto>(url, ct);
-
-            return ConvertToReportResponse(dashboardDto);
-        }
-
-        public Task<byte[]> ExportExcelAsync(
-            DateTime fromDate,
-            DateTime toDate,
-            int groupBy,
-            CancellationToken ct = default)
-        {
-            ValidateDateRange(fromDate, toDate);
-
-            var from = fromDate.ToString("yyyy-MM-dd");
-            var to = toDate.ToString("yyyy-MM-dd");
-            var url = $"api/Stats/export-excel?fromDate={Uri.EscapeDataString(from)}&toDate={Uri.EscapeDataString(to)}&groupBy={groupBy}";
-
-            return _apiClient.GetBytesAsync(url, ct);
-        }
-
-        private static void ValidateDateRange(DateTime fromDate, DateTime toDate)
-        {
-            if (fromDate.Date > toDate.Date)
-                throw new ArgumentException("`fromDate` must be less than or equal to `toDate`.");
+                // Convert DashboardResponseDto to ReportResponseDto
+                return ConvertToReportResponse(dashboardDto);
+            }
+            catch
+            {
+                // Return empty data if API fails
+                return new ReportResponseDto();
+            }
         }
 
         private static ReportResponseDto ConvertToReportResponse(DashboardResponseDto dto)
         {
-            dto ??= new DashboardResponseDto();
-
             var chartData = dto.RevenueChart?.Select(c => new ChartDataPoint
             {
                 DateLabel = c.DateLabel,
@@ -75,16 +59,18 @@ namespace MyShop_Frontend.Services
                 Revenue = p.Revenue
             }).ToList() ?? new List<TopProductDto>();
 
+            // Calculate totals from chart data
             int totalProductsSold = dto.RevenueChart?.Sum(c => c.TotalQuantity) ?? 0;
             decimal avgOrderValue = dto.TotalOrders > 0 ? dto.TotalRevenue / dto.TotalOrders : 0;
 
+            // Calculate period comparisons from chart data
             var periodComparisons = new List<PeriodComparisonDto>();
             decimal? previousRevenue = null;
 
             foreach (var point in chartData)
             {
                 decimal growth = 0;
-                if (previousRevenue.HasValue && previousRevenue.Value > 0)
+                if (previousRevenue.HasValue && previousRevenue > 0)
                 {
                     growth = (point.Revenue - previousRevenue.Value) / previousRevenue.Value * 100;
                 }
@@ -94,13 +80,14 @@ namespace MyShop_Frontend.Services
                     PeriodLabel = point.DateLabel,
                     Revenue = point.Revenue,
                     Profit = point.Profit,
-                    OrderCount = 0,
+                    OrderCount = 0, // Not available in chart data
                     GrowthPercent = growth
                 });
 
                 previousRevenue = point.Revenue;
             }
 
+            // Calculate revenue/profit change percent (compare first and last period)
             decimal revenueChangePercent = 0;
             decimal profitChangePercent = 0;
 
@@ -127,9 +114,23 @@ namespace MyShop_Frontend.Services
                 ProfitChangePercent = profitChangePercent,
                 ChartData = chartData,
                 TopProducts = topProducts,
-                CategorySales = new List<CategorySalesDto>(),
+                CategorySales = new List<CategorySalesDto>(), // Not used - Pie chart uses TopProducts instead
                 PeriodComparisons = periodComparisons.TakeLast(6).ToList()
             };
+        }
+
+        public Task<byte[]> ExportExcelAsync(
+            DateTime fromDate,
+            DateTime toDate,
+            int groupBy,
+            CancellationToken ct = default)
+        {
+            // Use same API as Dashboard: api/Stats/export-excel
+            var from = fromDate.ToString("yyyy-MM-dd");
+            var to = toDate.ToString("yyyy-MM-dd");
+            var url = $"api/Stats/export-excel?fromDate={from}&toDate={to}&groupBy={groupBy}";
+
+            return _apiClient.GetBytesAsync(url, ct);
         }
     }
 }

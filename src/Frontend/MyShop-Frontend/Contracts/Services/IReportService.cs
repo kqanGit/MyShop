@@ -1,4 +1,4 @@
-﻿using MyShop_Frontend.Contracts.Dtos.Reports;
+﻿using MyShop_Frontend.ViewModels.Reports;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

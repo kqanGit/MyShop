@@ -4,7 +4,6 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
-using MyShop_Frontend.Contracts.Dtos.Reports;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.ViewModels.Base;
 using SkiaSharp;
@@ -30,26 +29,24 @@ namespace MyShop_Frontend.ViewModels.Reports
         {
             _reportService = reportService;
 
+            // Default date range: last 12 months
             FromDate = new DateTimeOffset(DateTime.Today.AddMonths(-12));
             ToDate = new DateTimeOffset(DateTime.Today);
-
-            SelectedGroupBy = 2;
+            SelectedGroupBy = 2; // By Month
 
             InitializeCharts();
         }
 
+        // ===== Helpers =====
         private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
         {
-            if (Equals(field, value))
-            {
-                return false;
-            }
-
+            if (Equals(field, value)) return false;
             field = value;
             OnPropertyChanged(propertyName ?? string.Empty);
             return true;
         }
 
+        // ===== Filter Properties =====
         private DateTimeOffset _fromDate;
         public DateTimeOffset FromDate
         {
@@ -71,6 +68,7 @@ namespace MyShop_Frontend.ViewModels.Reports
             set => SetProperty(ref _selectedGroupBy, value);
         }
 
+        // ===== UI States =====
         private bool _isLoading;
         public bool IsLoading
         {
@@ -85,6 +83,7 @@ namespace MyShop_Frontend.ViewModels.Reports
             set => SetProperty(ref _error, value);
         }
 
+        // ===== Summary Card Properties =====
         private string _totalRevenue = "0 ₫";
         public string TotalRevenue
         {
@@ -127,6 +126,7 @@ namespace MyShop_Frontend.ViewModels.Reports
             set => SetProperty(ref _uniqueProductsCount, value);
         }
 
+        // Change indicators
         private string _revenueChangePercent = "+0%";
         public string RevenueChangePercent
         {
@@ -169,9 +169,11 @@ namespace MyShop_Frontend.ViewModels.Reports
             set => SetProperty(ref _profitChangeColor, value);
         }
 
+        // ===== Collections =====
         public ObservableCollection<TopProductItem> TopProducts { get; } = new();
         public ObservableCollection<PeriodComparisonItem> PeriodComparisons { get; } = new();
 
+        // ===== Chart Properties =====
         private ISeries[] _revenueProfitSeries = [];
         public ISeries[] RevenueProfitSeries
         {
@@ -251,23 +253,15 @@ namespace MyShop_Frontend.ViewModels.Reports
         private static string FormatCurrency(double value)
         {
             if (value >= 1_000_000_000)
-            {
                 return $"{value / 1_000_000_000:N1}B";
-            }
-
             if (value >= 1_000_000)
-            {
                 return $"{value / 1_000_000:N1}M";
-            }
-
             if (value >= 1_000)
-            {
                 return $"{value / 1_000:N0}K";
-            }
-
             return $"{value:N0}";
         }
 
+        // ===== Actions =====
         public async Task LoadReportAsync(CancellationToken ct = default)
         {
             try
@@ -278,10 +272,11 @@ namespace MyShop_Frontend.ViewModels.Reports
                 var report = await _reportService.GetReportAsync(
                     FromDate.DateTime.Date,
                     ToDate.DateTime.Date,
-                    SelectedGroupBy + 1,
+                    SelectedGroupBy + 1, // 0-based index to 1-based
                     ct
                 );
 
+                // Update summary cards
                 TotalRevenue = string.Format(_culture, "{0:N0} ₫", report.TotalRevenue);
                 TotalProfit = string.Format(_culture, "{0:N0} ₫", report.TotalProfit);
                 TotalOrders = report.TotalOrders.ToString("N0", _culture);
@@ -289,15 +284,17 @@ namespace MyShop_Frontend.ViewModels.Reports
                 AverageOrderValue = string.Format(_culture, "{0:N0} ₫", report.AverageOrderValue);
                 UniqueProductsCount = report.UniqueProductsCount.ToString();
 
+                // Update change indicators
                 UpdateChangeIndicators(report.RevenueChangePercent, report.ProfitChangePercent);
 
+                // Update charts
                 UpdateRevenueChart(report);
                 UpdateCategoryChart(report);
 
+                // Update top products
                 TopProducts.Clear();
-                var rank = 1;
-
-                var maxRevenue = report.TopProducts.FirstOrDefault()?.Revenue ?? 1;
+                int rank = 1;
+                decimal maxRevenue = report.TopProducts.FirstOrDefault()?.Revenue ?? 1;
                 foreach (var p in report.TopProducts)
                 {
                     TopProducts.Add(new TopProductItem
@@ -310,6 +307,7 @@ namespace MyShop_Frontend.ViewModels.Reports
                     });
                 }
 
+                // Update period comparisons
                 PeriodComparisons.Clear();
                 foreach (var period in report.PeriodComparisons)
                 {
@@ -324,9 +322,6 @@ namespace MyShop_Frontend.ViewModels.Reports
                         GrowthColor = new SolidColorBrush(growth >= 0 ? Colors.Green : Colors.Red)
                     });
                 }
-            }
-            catch (OperationCanceledException)
-            {
             }
             catch (Exception ex)
             {
@@ -404,18 +399,18 @@ namespace MyShop_Frontend.ViewModels.Reports
             };
 
             var series = new List<ISeries>();
-            var colorIndex = 0;
+            int colorIndex = 0;
 
+            // Use TopProducts for Pie Chart instead of CategorySales
             foreach (var product in report.TopProducts)
             {
-                series.Add(new PieSeries<double>
+                series.Add(new PieSeries<decimal>
                 {
                     Name = product.ProductName,
-                    Values = new[] { (double)product.Revenue },
+                    Values = new[] { product.Revenue },
                     Fill = new SolidColorPaint(colors[colorIndex % colors.Length]),
                     Pushout = colorIndex == 0 ? 5 : 0
                 });
-
                 colorIndex++;
             }
 
@@ -445,7 +440,6 @@ namespace MyShop_Frontend.ViewModels.Reports
                         ToDate.DateTime.Date,
                         SelectedGroupBy + 1
                     );
-
                     await FileIO.WriteBytesAsync(file, bytes);
                 }
             }
@@ -460,6 +454,7 @@ namespace MyShop_Frontend.ViewModels.Reports
         }
     }
 
+    // ===== DTOs for binding =====
     public class TopProductItem
     {
         public int Rank { get; set; }
@@ -477,5 +472,51 @@ namespace MyShop_Frontend.ViewModels.Reports
         public string OrderCount { get; set; } = string.Empty;
         public string GrowthText { get; set; } = string.Empty;
         public SolidColorBrush GrowthColor { get; set; } = new(Colors.Green);
+    }
+
+    // ===== Response DTOs =====
+    public class ReportResponseDto
+    {
+        public decimal TotalRevenue { get; set; }
+        public decimal TotalProfit { get; set; }
+        public int TotalOrders { get; set; }
+        public int TotalProductsSold { get; set; }
+        public decimal AverageOrderValue { get; set; }
+        public int UniqueProductsCount { get; set; }
+        public decimal RevenueChangePercent { get; set; }
+        public decimal ProfitChangePercent { get; set; }
+        public List<ChartDataPoint> ChartData { get; set; } = new();
+        public List<TopProductDto> TopProducts { get; set; } = new();
+        public List<CategorySalesDto> CategorySales { get; set; } = new();
+        public List<PeriodComparisonDto> PeriodComparisons { get; set; } = new();
+    }
+
+    public class ChartDataPoint
+    {
+        public string DateLabel { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+        public decimal Profit { get; set; }
+    }
+
+    public class TopProductDto
+    {
+        public string ProductName { get; set; } = string.Empty;
+        public int QuantitySold { get; set; }
+        public decimal Revenue { get; set; }
+    }
+
+    public class CategorySalesDto
+    {
+        public string CategoryName { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+    }
+
+    public class PeriodComparisonDto
+    {
+        public string PeriodLabel { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+        public decimal Profit { get; set; }
+        public int OrderCount { get; set; }
+        public decimal GrowthPercent { get; set; }
     }
 }

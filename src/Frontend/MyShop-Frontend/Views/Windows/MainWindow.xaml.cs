@@ -1,4 +1,6 @@
-﻿using Microsoft.UI;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MyShop_Frontend.Contracts.Services;
+using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,13 +29,24 @@ namespace MyShop_Frontend
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+        private readonly IUserSettingsStore _userSettings;
+
         public ViewModels.MainViewModel ViewModel { get; } = new();
         public MainWindow()
         {
             this.InitializeComponent();
-            ContentFrame.Navigate(typeof(Views.Pages.DashboardPage)); // mặc định
 
-            SelectNavigationItemByTag("Dashboard");
+            _userSettings = App.Services.GetRequiredService<IUserSettingsStore>();
+
+            var startTag = "Dashboard";
+            if (_userSettings.GetRememberLastModule(defaultValue: true))
+            {
+                var last = _userSettings.GetLastModule();
+                if (!string.IsNullOrWhiteSpace(last))
+                    startTag = last;
+            }
+
+            NavigateByTag(startTag);
 
             (this.Content as FrameworkElement).DataContext = ViewModel;
         }
@@ -89,6 +102,10 @@ namespace MyShop_Frontend
             if (pageType != null)
             {
                 ContentFrame.Navigate(pageType);
+                if (!tag.Equals("SignOut", StringComparison.OrdinalIgnoreCase))
+                {
+                    _userSettings.SetLastModule(tag);
+                }
             }
 
             // Tô đậm item đang chọn
@@ -105,6 +122,26 @@ namespace MyShop_Frontend
                 NavView.SelectedItem = item;
                 UpdateNavFontWeights(NavView);
             }
+        }
+
+        private void NavigateByTag(string tag)
+        {
+            SelectNavigationItemByTag(tag);
+
+            Type? pageType = Type.GetType($"MyShop_Frontend.Views.Pages.{tag}Page") ?? tag switch
+            {
+                "Dashboard" => typeof(DashboardPage),
+                "Login" => typeof(LoginPage),
+                "Order" => typeof(OrderPage),
+                "Products" => typeof(ProductPage),
+                "Customers" => typeof(CustomerPage),
+                "Report" => typeof(ReportPage),
+                "Help" => typeof(HelpPage),
+                "Settings" => typeof(SettingPage),
+                _ => typeof(DashboardPage)
+            };
+
+            ContentFrame.Navigate(pageType);
         }
 
         private static void UpdateNavFontWeights(NavigationView nav)

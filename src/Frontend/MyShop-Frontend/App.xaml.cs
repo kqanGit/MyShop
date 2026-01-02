@@ -37,6 +37,7 @@ namespace MyShop_Frontend
             services.AddSingleton<WindowsService>();
             services.AddSingleton<IBackendConfig, BackendConfig>();
             services.AddSingleton<ITokenStore, TokenStore>();
+            services.AddSingleton<Contracts.Services.IUserSettingsStore, Services.UserSettingsStore>();
 
             services.AddTransient<BackendBaseUrlHandler>();
 
