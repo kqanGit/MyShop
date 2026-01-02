@@ -62,7 +62,8 @@ namespace MyShop_Frontend.Services
         public void ShowMainWindow()
         {
             var mainWindow = new MainWindow();
-            mainWindow.Activate();
+            mainWindow.Activate();            App.MainWindow = mainWindow;
+            App.MainWindow = mainWindow;
 
             if (App.Windows.AuthWindow != null)
             {

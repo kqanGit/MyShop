@@ -9,6 +9,7 @@ namespace MyShop_Frontend.Contracts.Services
     public interface IBackendConfig
     {
         Uri GetBaseUri();
+        string? GetBaseUrl();
         void SetBaseUrl(string baseUrl);
     }
 }

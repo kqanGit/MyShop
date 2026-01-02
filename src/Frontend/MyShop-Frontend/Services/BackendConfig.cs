@@ -1,38 +1,86 @@
 ﻿using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace MyShop_Frontend.Services
 {
     public sealed class BackendConfig : IBackendConfig
     {
-
         private readonly ApplicationDataContainer _settings = ApplicationData.Current.LocalSettings;
+
+        public string? GetBaseUrl()
+        {
+            var raw = _settings.Values[AppKeys.BackendBaseUrl] as string;
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+
+            // luôn trả về dạng chuẩn (có scheme + có / cuối)
+            return NormalizeBaseUrl(raw);
+        }
 
         public Uri GetBaseUri()
         {
-            var raw = _settings.Values[AppKeys.BackendBaseUrl] as string;
+            var baseUrl = GetBaseUrl();
 
-            raw ??= "http://localhost:5126";
+#if DEBUG
+            // optional: chỉ default khi debug (tuỳ bạn)
+            baseUrl ??= "http://localhost:5126/";
+#endif
 
-            raw = raw.Trim();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new InvalidOperationException("BackendBaseUrl is not configured.");
 
-            if (!raw.EndsWith("/")) raw += "/";
-
-            if (!Uri.TryCreate(raw, UriKind.Absolute, out var uri))
-                throw new InvalidOperationException($"Invalid BackendBaseUrl: {raw}");
+            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                throw new InvalidOperationException($"Invalid BackendBaseUrl: {baseUrl}");
 
             return uri;
         }
 
         public void SetBaseUrl(string baseUrl)
         {
-            _settings.Values[AppKeys.BackendBaseUrl] = baseUrl?.Trim();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                _settings.Values.Remove(AppKeys.BackendBaseUrl);
+                return;
+            }
+
+            var normalized = NormalizeBaseUrl(baseUrl);
+
+            // Validate ngay lúc lưu (đỡ lưu rác)
+            if (!Uri.TryCreate(normalized, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new ArgumentException($"Invalid http/https base url: {baseUrl}", nameof(baseUrl));
+            }
+
+            _settings.Values[AppKeys.BackendBaseUrl] = normalized;
+        }
+
+        private static string NormalizeBaseUrl(string input)
+        {
+            var raw = input.Trim().TrimEnd('/');
+
+            // Chưa có scheme -> đoán hợp lý
+            if (!raw.Contains("://", StringComparison.Ordinal))
+            {
+                var lower = raw.ToLowerInvariant();
+
+                var isLocal =
+                    lower.StartsWith("localhost") ||
+                    lower.StartsWith("127.") ||
+                    lower.StartsWith("192.168.") ||
+                    lower.StartsWith("10.");
+
+                var isCodespaces =
+                    lower.Contains(".app.github.dev") || lower.EndsWith(".github.dev");
+
+                var scheme = isCodespaces ? "https://" : (isLocal ? "http://" : "https://");
+                raw = scheme + raw;
+            }
+
+            // luôn có đúng 1 dấu /
+            return raw.TrimEnd('/') + "/";
         }
     }
 }

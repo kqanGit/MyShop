@@ -15,6 +15,7 @@ namespace MyShop_Frontend.ViewModels.Products
     public class ProductViewModel : ViewModelBase
     {
         private readonly IProductService _productService;
+        private readonly MyShop_Frontend.Contracts.Services.IUserSettingsStore _userSettings;
         private List<Product> _allProducts = new();
 
         public ObservableCollection<Product> Products { get; } = new();
@@ -64,14 +65,25 @@ namespace MyShop_Frontend.ViewModels.Products
         public int PageSize
         {
             get => _pageSize;
-            set { if (_pageSize != value) { _pageSize = value; OnPropertyChanged(nameof(PageSize)); OnPropertyChanged(nameof(ShowingStatus)); } }
+            set
+            {
+                if (_pageSize == value) return;
+                _pageSize = value;
+                _userSettings.SetProductsPageSize(value);
+                PageIndex = 1;
+                OnPropertyChanged(nameof(PageSize));
+                OnPropertyChanged(nameof(TotalPages));
+                OnPropertyChanged(nameof(ShowingStatus));
+                _ = LoadProductsAsync();
+            }
         }
 
         public ProductViewModel()
         {
             _productService = App.Services.GetRequiredService<IProductService>();
+            _userSettings = App.Services.GetRequiredService<MyShop_Frontend.Contracts.Services.IUserSettingsStore>();
 
-
+            PageSize = _userSettings.GetProductsPageSize(defaultValue: 10);
 
             LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
             AddProductCommand = new RelayCommand(async _ => await AddProductAsync());

@@ -9,6 +9,7 @@ namespace MyShop_Frontend.Helpers
     public static class AppKeys
     {
         public const string BackendBaseUrl = "BackendBaseUrl";
+        public const string DefaultBackendConfig = "DefaultBackendConfig";
         public const string AccessToken = "AccessToken";
         public const string Username = "Username";
         public const string UserRole = "UserRole";
@@ -17,5 +18,10 @@ namespace MyShop_Frontend.Helpers
         public const string RememberMe = "RememberMe";
         public const string SavedUsername = "SavedUsername";
         public const string SavedPassword = "SavedPassword";
+
+        // User settings
+        public const string ProductsPageSize = "ProductsPageSize";
+        public const string RememberLastModule = "RememberLastModule";
+        public const string LastModule = "LastModule";
     }
 }

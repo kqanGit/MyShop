@@ -3,7 +3,7 @@ using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using System;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,21 +40,41 @@ public class AuthenticationService : IAuthenticationService
             Password = password
         };
 
-        using var response = await _httpClient.PostAsJsonAsync("api/Auth/login", request, ct);
+        const string relativeUrl = "api/auth/login";
+
+        var json = JsonSerializer.Serialize(request, _jsonOptions);
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, relativeUrl)
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        };
+
+        using var response = await _httpClient.SendAsync(httpRequest, ct);
         var rawJson = await response.Content.ReadAsStringAsync(ct);
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException($"Login failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+            throw new HttpRequestException(
+                $"Login failed: {(int)response.StatusCode} {response.ReasonPhrase}\n{rawJson}");
         }
 
-        var result = JsonSerializer.Deserialize<AuthResponseDto>(rawJson, _jsonOptions);
+        AuthResponseDto? result;
+        try
+        {
+            result = JsonSerializer.Deserialize<AuthResponseDto>(rawJson, _jsonOptions);
+        }
+        catch (JsonException jex)
+        {
+            throw new InvalidOperationException(
+                $"Login response is not valid JSON for {nameof(AuthResponseDto)}.\n{rawJson}", jex);
+        }
 
         var token = result?.Token;
         if (string.IsNullOrWhiteSpace(token))
-            return null;
+        {
+            throw new InvalidOperationException(
+                $"Login succeeded but token was missing/empty. Raw response:\n{rawJson}");
+        }
 
-        // Lưu token và thông tin user
         _tokenStore.SetAccessToken(token);
         _tokenStore.SetUserInfo(result!.Username, result.Role);
 

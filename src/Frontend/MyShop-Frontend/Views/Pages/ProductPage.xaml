@@ -66,6 +66,15 @@
             </StackPanel>
             <Slider Minimum="0" Maximum="1000000" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+                <TextBlock Text="Page size:" VerticalAlignment="Center" Foreground="Gray"/>
+                <ComboBox Width="90" SelectedValuePath="Content" SelectedValue="{Binding PageSize, Mode=TwoWay}">
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="25"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
                 <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
                 <AppBarSeparator/>
                 <Button Content="&lt;" Command="{Binding PreviousPageCommand}" ToolTipService.ToolTip="Previous Page"/>

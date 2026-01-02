@@ -73,20 +73,17 @@
                        FontWeight="SemiBold"
                        Margin="0,0,0,14"/>
 
-            <TextBlock Text="Server address" Opacity="0.55" FontSize="12"/>
+            <TextBlock Text="Server address (host or full URL)" Opacity="0.55" FontSize="12"/>
             <TextBox x:Name="ServerAddressBox"
-                     Text="192.168.1.15"
-                      />
+                     PlaceholderText="Examples: localhost | 192.168.1.15 | https://xxxx.app.github.dev/"/>
 
-            <TextBlock Text="Port" Opacity="0.55" FontSize="12" Margin="0,6,0,0"/>
+            <TextBlock Text="Port (ignored when using full URL / Codespaces)" Opacity="0.55" FontSize="12" Margin="0,6,0,0"/>
             <TextBox x:Name="PortBox"
-                     Text="8"
-                      />
+                     PlaceholderText="5126"/>
 
-            <TextBlock Text="D.N.S" Opacity="0.55" FontSize="12" Margin="0,6,0,0"/>
+            <TextBlock Text="D.N.S (optional)" Opacity="0.55" FontSize="12" Margin="0,6,0,0"/>
             <TextBox x:Name="DnsBox"
-                     Text="8.8.8.8"
-                      />
+                     PlaceholderText="8.8.8.8"/>
 
             <CheckBox x:Name="SaveAsDefaultCheckBox"
                       Content="Save this configuration as default"
@@ -115,10 +112,8 @@
                         Margin="0,8,0,0">
                 <TextBlock Text="Status:" Opacity="0.6" FontSize="12"/>
                 <TextBlock x:Name="StatusText"
-                           Text="Connection successful"
-                           Opacity="1.5"
-                           FontSize="12"
-                           />
+                           Text=""
+                           FontSize="12"/>
 
                 <Border Width="16" Height="16"
                         CornerRadius="2"
