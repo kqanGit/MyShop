@@ -15,14 +15,31 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
-        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? search = null, CancellationToken ct = default)
+        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? phone = null, string? name = null, CancellationToken ct = default)
         {
-            var url = $"api/customers?pageIndex={pageIndex}&pageSize={pageSize}";
-            if (!string.IsNullOrEmpty(search))
+            string url;
+            if (!string.IsNullOrEmpty(phone) || !string.IsNullOrEmpty(name))
             {
-                url += $"&search={System.Uri.EscapeDataString(search)}";
+                url = $"api/customers/search?pageIndex={pageIndex}&pageSize={pageSize}";
+                if (!string.IsNullOrEmpty(phone)) url += $"&phone={System.Uri.EscapeDataString(phone)}";
+                if (!string.IsNullOrEmpty(name)) url += $"&name={System.Uri.EscapeDataString(name)}";
             }
+            else
+            {
+                url = $"api/customers?pageIndex={pageIndex}&pageSize={pageSize}";
+            }
+            
             return await _api.GetAsync<PagedResult<Customer>>(url, ct);
+        }
+
+        public async Task<Customer> AddCustomerAsync(Customer customer, CancellationToken ct = default)
+        {
+            return await _api.PostAsync<Customer>("api/customers", customer, ct);
+        }
+
+        public async Task<Customer> UpdateCustomerAsync(Customer customer, CancellationToken ct = default)
+        {
+            return await _api.PutAsync<Customer>($"api/customers/{customer.CustomerId}", customer, ct);
         }
 
         public async Task<IEnumerable<Customer>> SearchCustomersAsync(string? phone, string? name, CancellationToken ct = default)

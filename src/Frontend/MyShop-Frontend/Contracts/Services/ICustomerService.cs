@@ -7,8 +7,9 @@ namespace MyShop_Frontend.Contracts.Services
 {
     public interface ICustomerService
     {
-        Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? search = null, CancellationToken ct = default);
-        Task<IEnumerable<Customer>> SearchCustomersAsync(string? phone, string? name, CancellationToken ct = default);
+        Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? phone = null, string? name = null, CancellationToken ct = default);
+        Task<Customer> AddCustomerAsync(Customer customer, CancellationToken ct = default);
+        Task<Customer> UpdateCustomerAsync(Customer customer, CancellationToken ct = default);
         Task<Customer?> GetCustomerDetailAsync(int customerId, CancellationToken ct = default);
     }
 }

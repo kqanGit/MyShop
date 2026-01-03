@@ -12,8 +12,8 @@ namespace MyShop.Application.Services
 {
     public interface ICustomerService
     {
-        Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize, string? search = null);
-        Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name);
+        Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize);
+        Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name);
         Task<CustomerDetailDto> GetCustomerDetail(int id);
         Task<CustomerDto> CreateCustomer(CreateCustomerDto request);
         Task<CustomerDto> UpdateCustomer(int id, UpdateCustomerDto request);
@@ -28,18 +28,11 @@ namespace MyShop.Application.Services
             _context = context;
         }
 
-        public async Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize, string? search = null)
+        public async Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize)
         {
             var query = _context.Customers.Include(c => c.Tier)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(c => c.FullName.Contains(search) || c.Phone.Contains(search));
-            }
-
-            query = query.OrderBy(c => c.CustomerId);
-
+                .AsQueryable()
+                .OrderBy(c => c.CustomerId);
             var totalRecords = await query.CountAsync();
             var customers = await query
                 .Skip((pageIndex - 1) * pageSize)
@@ -57,7 +50,7 @@ namespace MyShop.Application.Services
             return new PagedResult<CustomerDto>(customers, totalRecords, pageIndex, pageSize);
         }
 
-        public async Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name)
+        public async Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name)
         {
             var query = _context.Customers.Include(c => c.Tier).AsQueryable();
 
@@ -67,15 +60,23 @@ namespace MyShop.Application.Services
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(c => c.FullName.Contains(name));
 
-            return await query.Select(c => new CustomerDto
-            {
-                CustomerId = c.CustomerId,
-                FullName = c.FullName,
-                Phone = c.Phone,
-                Address = c.Address,
-                Point = c.Point,
-                TierName = c.Tier != null ? c.Tier.TierName : "N/A"
-            }).ToListAsync();
+            query = query.OrderBy(c => c.CustomerId);
+
+            var totalRecords = await query.CountAsync();
+            var customers = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new CustomerDto
+                {
+                    CustomerId = c.CustomerId,
+                    FullName = c.FullName,
+                    Phone = c.Phone,
+                    Address = c.Address,
+                    Point = c.Point,
+                    TierName = c.Tier != null ? c.Tier.TierName : "N/A"
+                }).ToListAsync();
+
+            return new PagedResult<CustomerDto>(customers, totalRecords, pageIndex, pageSize);
         }
 
         public async Task<CustomerDetailDto> GetCustomerDetail(int id)

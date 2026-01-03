@@ -19,6 +19,17 @@ namespace MyShop_Frontend
 
         public static Window? MainWindow { get; set; }
 
+        public static T GetService<T>()
+            where T : class
+        {
+            if (App.Services is IServiceProvider serviceProvider)
+            {
+                var service = serviceProvider.GetService<T>();
+                return service ?? throw new ArgumentException($"{typeof(T)} needs to be registered in ConfigureServices within App.xaml.cs.");
+            }
+            throw new InvalidOperationException("The ServiceProvider is not initialized.");
+        }
+
         public App()
         {
             InitializeComponent();
@@ -53,6 +64,7 @@ namespace MyShop_Frontend
             services.AddTransient<IReportService, ReportService>();
 
             services.AddTransient<DashboardViewModel>();
+            services.AddTransient<ViewModels.Customers.CustomerViewModel>();
             services.AddTransient<ReportViewModel>();
 
             return services.BuildServiceProvider();

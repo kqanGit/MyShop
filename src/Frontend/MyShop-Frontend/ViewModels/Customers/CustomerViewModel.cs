@@ -24,82 +24,169 @@ namespace MyShop_Frontend.ViewModels.Customers
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
-        private string _searchText = "";
-        public string SearchText
+        private string _searchPhone = "";
+        public string SearchPhone
         {
-            get => _searchText;
+            get => _searchPhone;
             set
             {
-                if (_searchText != value)
+                if (_searchPhone != value)
                 {
-                    _searchText = value;
-                    OnPropertyChanged(nameof(SearchText));
-                    PageIndex = 1; // Reset to first page on search
+                    _searchPhone = value;
+                    OnPropertyChanged(nameof(SearchPhone));
+                    PageIndex = 1;
                     _ = LoadCustomersAsync();
                 }
             }
         }
 
+        private string _searchName = "";
+        public string SearchName
+        {
+            get => _searchName;
+            set
+            {
+                if (_searchName != value)
+                {
+                    _searchName = value;
+                    OnPropertyChanged(nameof(SearchName));
+                    PageIndex = 1;
+                    _ = LoadCustomersAsync();
+                }
+            }
+        }
+
+        // Form Properties
+        private string _formFullName = "";
+        public string FormFullName { get => _formFullName; set { _formFullName = value; OnPropertyChanged(nameof(FormFullName)); } }
+
+        private string _formPhone = "";
+        public string FormPhone { get => _formPhone; set { _formPhone = value; OnPropertyChanged(nameof(FormPhone)); } }
+
+        private string _formAddress = "";
+        public string FormAddress { get => _formAddress; set { _formAddress = value; OnPropertyChanged(nameof(FormAddress)); } }
+
+        private bool _isEditing;
+        private int _editingCustomerId;
+
         private int _pageIndex = 1;
         public int PageIndex
         {
             get => _pageIndex;
-            set 
-            { 
-                if (_pageIndex != value) 
-                { 
-                    _pageIndex = value; 
-                    OnPropertyChanged(nameof(PageIndex)); 
-                    OnPropertyChanged(nameof(ShowingStatus)); 
-                } 
-            }
+            set { _pageIndex = value; OnPropertyChanged(nameof(PageIndex)); }
         }
 
         private int _pageSize = 10;
         public int PageSize
         {
             get => _pageSize;
-            set
+            set { _pageSize = value; OnPropertyChanged(nameof(PageSize)); }
+        }
+
+        public int TotalRecords { get; set; }
+        public int TotalPages { get; set; }
+        
+        public string ShowingStatus => $"Showing {Customers.Count} of {TotalRecords} customers (Page {PageIndex} of {TotalPages})";
+
+        public ICommand NextPageCommand { get; }
+        public ICommand PreviousPageCommand { get; }
+        public ICommand OpenAddDialogCommand { get; }
+        public ICommand OpenEditDialogCommand { get; }
+        public ICommand SaveCustomerCommand { get; }
+
+        public event EventHandler? RequestOpenDialog;
+
+        public CustomerViewModel(ICustomerService customerService)
+        {
+            _customerService = customerService;
+            NextPageCommand = new RelayCommand(_ => NextPage(), _ => CanNextPage());
+            PreviousPageCommand = new RelayCommand(_ => PreviousPage(), _ => CanPreviousPage());
+
+            OpenAddDialogCommand = new RelayCommand(_ => OpenAddDialog());
+            OpenEditDialogCommand = new RelayCommand<Customer>(OpenEditDialog);
+            SaveCustomerCommand = new RelayCommand(async _ => await SaveCustomerAsync());
+            
+            _ = LoadCustomersAsync();
+        }
+
+        private void OpenAddDialog()
+        {
+            _isEditing = false;
+            FormFullName = "";
+            FormPhone = "";
+            FormAddress = "";
+            RequestOpenDialog?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OpenEditDialog(Customer customer)
+        {
+            if (customer == null) return;
+            _isEditing = true;
+            _editingCustomerId = customer.CustomerId;
+            FormFullName = customer.FullName;
+            FormPhone = customer.Phone;
+            FormAddress = customer.Address;
+            RequestOpenDialog?.Invoke(this, EventArgs.Empty);
+        }
+
+        private async Task SaveCustomerAsync()
+        {
+            try
             {
-                if (_pageSize == value) return;
-                _pageSize = value;
-                PageIndex = 1;
-                OnPropertyChanged(nameof(PageSize));
-                OnPropertyChanged(nameof(TotalPages));
-                OnPropertyChanged(nameof(ShowingStatus));
+                if (_isEditing)
+                {
+                    var customerToUpdate = new Customer
+                    {
+                        CustomerId = _editingCustomerId,
+                        FullName = FormFullName,
+                        Phone = FormPhone,
+                        Address = FormAddress,
+                        // Maintain existing values if needed, or API handles partial updates? 
+                        // DTO from API will map these. Ideally we should perhaps preserve other fields if PUT replaces all.
+                        // But for now, simple object creation.
+                    };
+                    await _customerService.UpdateCustomerAsync(customerToUpdate);
+                }
+                else
+                {
+                    var newCustomer = new Customer
+                    {
+                        FullName = FormFullName,
+                        Phone = FormPhone,
+                        Address = FormAddress
+                    };
+                    await _customerService.AddCustomerAsync(newCustomer);
+                }
+                await LoadCustomersAsync();
+                // Close dialog logic? 
+                // The ContentDialog in view handles closing on Primary Button Click by default unless Cancel is set.
+                // We might want to close it manually if validation fails, but here we assume success.
+            }
+            catch (Exception ex)
+            {
+                 System.Diagnostics.Debug.WriteLine($"Error saving customer: {ex.Message}");
+            }
+        }
+
+        private bool CanPreviousPage() => PageIndex > 1;
+        private bool CanNextPage() => PageIndex < TotalPages;
+
+        private void PreviousPage()
+        {
+            if (CanPreviousPage())
+            {
+                PageIndex--;
                 _ = LoadCustomersAsync();
             }
         }
 
-        public int TotalRecords { get; set; }
-        public int TotalPages => TotalRecords == 0 ? 0 : (int)Math.Ceiling((double)TotalRecords / PageSize);
-        
-        public string ShowingStatus => $"Showing {Customers.Count} of {TotalRecords} customers (Page {PageIndex} of {TotalPages})";
-
-        public ICommand LoadCustomersCommand { get; }
-        public ICommand NextPageCommand { get; }
-        public ICommand PreviousPageCommand { get; }
-
-        public CustomerViewModel()
+        private void NextPage()
         {
-            _customerService = App.Services.GetRequiredService<ICustomerService>();
-
-            LoadCustomersCommand = new RelayCommand(async _ => await LoadCustomersAsync());
-            
-            NextPageCommand = new RelayCommand(async _ => 
-            { 
-                PageIndex++; 
-                await LoadCustomersAsync(); 
-            }, _ => PageIndex < TotalPages && !IsLoading);
-
-            PreviousPageCommand = new RelayCommand(async _ => 
-            { 
-                PageIndex--; 
-                await LoadCustomersAsync(); 
-            }, _ => PageIndex > 1 && !IsLoading);
-
-            // Load data on initialization
-            _ = LoadCustomersAsync();
+            if (CanNextPage())
+            {
+                PageIndex++;
+                _ = LoadCustomersAsync();
+            }
         }
 
         private async Task LoadCustomersAsync()
@@ -107,12 +194,9 @@ namespace MyShop_Frontend.ViewModels.Customers
             if (IsLoading) return;
 
             IsLoading = true;
-            (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
-            (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
-
             try
             {
-                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize, SearchText);
+                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize, SearchPhone, SearchName);
                 
                 Customers.Clear();
                 foreach (var customer in result.Items)
@@ -121,19 +205,23 @@ namespace MyShop_Frontend.ViewModels.Customers
                 }
 
                 TotalRecords = result.TotalRecords;
+                TotalPages = result.TotalPages;
+
                 OnPropertyChanged(nameof(TotalRecords));
                 OnPropertyChanged(nameof(TotalPages));
                 OnPropertyChanged(nameof(ShowingStatus));
+
+                (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading customers: {ex.Message}");
+                Customers.Clear();
             }
             finally
             {
                 IsLoading = false;
-                (NextPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                (PreviousPageCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
     }
