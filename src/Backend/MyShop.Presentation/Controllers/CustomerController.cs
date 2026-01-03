@@ -77,5 +77,13 @@ namespace MyShop.Presentation.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success = await _customerService.DeleteCustomer(id);
+            if (!success) return NotFound(new { message = "Customer not found" });
+            return NoContent();
+        }
     }
 }

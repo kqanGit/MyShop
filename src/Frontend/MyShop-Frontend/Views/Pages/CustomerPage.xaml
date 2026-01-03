@@ -134,7 +134,7 @@
                             <Button.Flyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Edit" Command="{Binding DataContext.OpenEditDialogCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
-                                    <MenuFlyoutItem Text="Delete" Foreground="Red"/>
+                                    <MenuFlyoutItem Text="Delete" Foreground="Red" Command="{Binding DataContext.DeleteCustomerCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
                                 </MenuFlyout>
                             </Button.Flyout>
                         </Button>

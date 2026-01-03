@@ -42,6 +42,11 @@ namespace MyShop_Frontend.Services
             return await _api.PutAsync<Customer>($"api/customers/{customer.CustomerId}", customer, ct);
         }
 
+        public async Task DeleteCustomerAsync(int customerId, CancellationToken ct = default)
+        {
+            await _api.DeleteAsync($"api/customers/{customerId}", ct);
+        }
+
         public async Task<IEnumerable<Customer>> SearchCustomersAsync(string? phone, string? name, CancellationToken ct = default)
         {
              // For now, adhere to the interface. 

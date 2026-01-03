@@ -17,6 +17,7 @@ namespace MyShop.Application.Services
         Task<CustomerDetailDto> GetCustomerDetail(int id);
         Task<CustomerDto> CreateCustomer(CreateCustomerDto request);
         Task<CustomerDto> UpdateCustomer(int id, UpdateCustomerDto request);
+        Task<bool> DeleteCustomer(int id);
     }
 
     public class CustomerService : ICustomerService
@@ -32,6 +33,7 @@ namespace MyShop.Application.Services
         {
             var query = _context.Customers.Include(c => c.Tier)
                 .AsQueryable()
+                .Where(c => c.IsRemoved != true)
                 .OrderBy(c => c.CustomerId);
             var totalRecords = await query.CountAsync();
             var customers = await query
@@ -52,7 +54,9 @@ namespace MyShop.Application.Services
 
         public async Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name)
         {
-            var query = _context.Customers.Include(c => c.Tier).AsQueryable();
+            var query = _context.Customers.Include(c => c.Tier)
+                .AsQueryable()
+                .Where(c => c.IsRemoved != true);
 
             if (!string.IsNullOrEmpty(phone))
                 query = query.Where(c => c.Phone.Contains(phone));
@@ -83,6 +87,7 @@ namespace MyShop.Application.Services
         {
             var customer = await _context.Customers
                 .Include(c => c.Tier)
+                .Where(c => c.IsRemoved != true)
                 .FirstOrDefaultAsync(c => c.CustomerId == id);
 
             if (customer == null) throw new KeyNotFoundException("Customer not found");
@@ -156,6 +161,16 @@ namespace MyShop.Application.Services
                 Point = customer.Point,
                 TierName = customer.Tier?.TierName ?? "N/A"
             };
+        }
+
+        public async Task<bool> DeleteCustomer(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null || customer.IsRemoved == true) return false;
+
+            customer.IsRemoved = true;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

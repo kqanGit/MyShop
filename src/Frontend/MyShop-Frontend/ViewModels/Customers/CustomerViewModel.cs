@@ -93,6 +93,7 @@ namespace MyShop_Frontend.ViewModels.Customers
         public ICommand OpenAddDialogCommand { get; }
         public ICommand OpenEditDialogCommand { get; }
         public ICommand SaveCustomerCommand { get; }
+        public ICommand DeleteCustomerCommand { get; }
 
         public event EventHandler? RequestOpenDialog;
 
@@ -104,9 +105,38 @@ namespace MyShop_Frontend.ViewModels.Customers
 
             OpenAddDialogCommand = new RelayCommand(_ => OpenAddDialog());
             OpenEditDialogCommand = new RelayCommand<Customer>(OpenEditDialog);
+            DeleteCustomerCommand = new RelayCommand<Customer>(async c => await DeleteCustomerAsync(c));
             SaveCustomerCommand = new RelayCommand(async _ => await SaveCustomerAsync());
             
             _ = LoadCustomersAsync();
+        }
+
+        private async Task DeleteCustomerAsync(Customer customer)
+        {
+            if (customer == null) return;
+            var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
+            {
+                Title = "Delete Customer",
+                Content = $"Are you sure you want to delete {customer.FullName}?",
+                PrimaryButtonText = "Delete",
+                CloseButtonText = "Cancel",
+                DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
+                XamlRoot = App.MainWindow.Content.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
+            {
+                try
+                {
+                    await _customerService.DeleteCustomerAsync(customer.CustomerId);
+                    await LoadCustomersAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error deleting customer: {ex.Message}");
+                }
+            }
         }
 
         private void OpenAddDialog()
