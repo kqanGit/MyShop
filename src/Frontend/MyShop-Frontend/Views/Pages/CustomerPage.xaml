@@ -32,7 +32,9 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Search removed as it is not supported in current API iteration -->
+            <!-- Search -->
+            <TextBox PlaceholderText="Search customers..." Width="300" VerticalAlignment="Center" Margin="0,0,16,0"
+                     Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             
             <Button Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
                 <StackPanel Orientation="Horizontal" Spacing="8">

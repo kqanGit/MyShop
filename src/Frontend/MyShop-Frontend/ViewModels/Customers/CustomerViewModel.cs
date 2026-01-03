@@ -24,6 +24,22 @@ namespace MyShop_Frontend.ViewModels.Customers
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
+        private string _searchText = "";
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (_searchText != value)
+                {
+                    _searchText = value;
+                    OnPropertyChanged(nameof(SearchText));
+                    PageIndex = 1; // Reset to first page on search
+                    _ = LoadCustomersAsync();
+                }
+            }
+        }
+
         private int _pageIndex = 1;
         public int PageIndex
         {
@@ -96,7 +112,7 @@ namespace MyShop_Frontend.ViewModels.Customers
 
             try
             {
-                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize);
+                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize, SearchText);
                 
                 Customers.Clear();
                 foreach (var customer in result.Items)

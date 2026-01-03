@@ -12,7 +12,7 @@ namespace MyShop.Application.Services
 {
     public interface ICustomerService
     {
-        Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize);
+        Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize, string? search = null);
         Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name);
         Task<CustomerDetailDto> GetCustomerDetail(int id);
         Task<CustomerDto> CreateCustomer(CreateCustomerDto request);
@@ -28,11 +28,18 @@ namespace MyShop.Application.Services
             _context = context;
         }
 
-        public async Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize)
+        public async Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize, string? search = null)
         {
             var query = _context.Customers.Include(c => c.Tier)
-                .AsQueryable()
-                .OrderBy(c => c.CustomerId);
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(c => c.FullName.Contains(search) || c.Phone.Contains(search));
+            }
+
+            query = query.OrderBy(c => c.CustomerId);
+
             var totalRecords = await query.CountAsync();
             var customers = await query
                 .Skip((pageIndex - 1) * pageSize)

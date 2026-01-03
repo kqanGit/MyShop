@@ -15,9 +15,13 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
-        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? search = null, CancellationToken ct = default)
         {
             var url = $"api/customers?pageIndex={pageIndex}&pageSize={pageSize}";
+            if (!string.IsNullOrEmpty(search))
+            {
+                url += $"&search={System.Uri.EscapeDataString(search)}";
+            }
             return await _api.GetAsync<PagedResult<Customer>>(url, ct);
         }
 

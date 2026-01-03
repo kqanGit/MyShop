@@ -18,9 +18,9 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
-            var response = await _customerService.GetCustomers(pageIndex, pageSize);
+            var response = await _customerService.GetCustomers(pageIndex, pageSize, search);
             return Ok(response);
         }
 
