@@ -13,7 +13,7 @@ namespace MyShop.Application.Services
     public interface ICustomerService
     {
         Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize);
-        Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name);
+        Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name, int? tierId = null);
         Task<CustomerDetailDto> GetCustomerDetail(int id);
         Task<CustomerDto> CreateCustomer(CreateCustomerDto request);
         Task<CustomerDto> UpdateCustomer(int id, UpdateCustomerDto request);
@@ -52,7 +52,7 @@ namespace MyShop.Application.Services
             return new PagedResult<CustomerDto>(customers, totalRecords, pageIndex, pageSize);
         }
 
-        public async Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name)
+        public async Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name, int? tierId = null)
         {
             var query = _context.Customers.Include(c => c.Tier)
                 .AsQueryable()
@@ -63,6 +63,9 @@ namespace MyShop.Application.Services
 
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(c => c.FullName.Contains(name));
+            
+            if (tierId.HasValue)
+                query = query.Where(c => c.TierId == tierId.Value);
 
             query = query.OrderBy(c => c.CustomerId);
 

@@ -15,18 +15,19 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
-        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? phone = null, string? name = null, CancellationToken ct = default)
+        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? phone = null, string? name = null, int? tierId = null, CancellationToken ct = default)
         {
             string url;
-            if (!string.IsNullOrEmpty(phone) || !string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(phone) || !string.IsNullOrEmpty(name) || tierId.HasValue)
             {
                 url = $"api/customers/search?pageIndex={pageIndex}&pageSize={pageSize}";
                 if (!string.IsNullOrEmpty(phone)) url += $"&phone={System.Uri.EscapeDataString(phone)}";
                 if (!string.IsNullOrEmpty(name)) url += $"&name={System.Uri.EscapeDataString(name)}";
+                if (tierId.HasValue) url += $"&tierId={tierId}";
             }
             else
             {
-                url = $"api/customers?pageIndex={pageIndex}&pageSize={pageSize}";
+                url = $"api/customers?pageIndex={pageIndex}&pageSize={pageSize}"; // Or maybe use search endpoint always if simplified?
             }
             
             return await _api.GetAsync<PagedResult<Customer>>(url, ct);

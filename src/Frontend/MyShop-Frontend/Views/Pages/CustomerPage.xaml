@@ -50,6 +50,10 @@
                          Text="{Binding SearchPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBox PlaceholderText="Search Name..." Width="180" 
                          Text="{Binding SearchName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <ComboBox PlaceholderText="Tier" Width="120"
+                          ItemsSource="{Binding Tiers}"
+                          SelectedItem="{Binding SelectedTier, Mode=TwoWay}"
+                          DisplayMemberPath="TierName"/>
             </StackPanel>
             
             <!-- <Button Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0" Command="{Binding OpenAddDialogCommand}">

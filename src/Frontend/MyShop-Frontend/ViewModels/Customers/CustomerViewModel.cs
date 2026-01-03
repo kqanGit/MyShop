@@ -14,8 +14,26 @@ namespace MyShop_Frontend.ViewModels.Customers
     public class CustomerViewModel : ViewModelBase
     {
         private readonly ICustomerService _customerService;
-        
+        private readonly IMembershipService _membershipService;
+
         public ObservableCollection<Customer> Customers { get; } = new();
+        public ObservableCollection<Membership> Tiers { get; } = new();
+
+        private Membership _selectedTier;
+        public Membership SelectedTier
+        {
+            get => _selectedTier;
+            set
+            {
+                if (_selectedTier != value)
+                {
+                    _selectedTier = value;
+                    OnPropertyChanged(nameof(SelectedTier));
+                    PageIndex = 1;
+                    _ = LoadCustomersAsync();
+                }
+            }
+        }
 
         private bool _isLoading;
         public bool IsLoading
@@ -85,7 +103,7 @@ namespace MyShop_Frontend.ViewModels.Customers
 
         public int TotalRecords { get; set; }
         public int TotalPages { get; set; }
-        
+
         public string ShowingStatus => $"Showing {Customers.Count} of {TotalRecords} customers (Page {PageIndex} of {TotalPages})";
 
         public ICommand NextPageCommand { get; }
@@ -97,9 +115,10 @@ namespace MyShop_Frontend.ViewModels.Customers
 
         public event EventHandler? RequestOpenDialog;
 
-        public CustomerViewModel(ICustomerService customerService)
+        public CustomerViewModel(ICustomerService customerService, IMembershipService membershipService)
         {
             _customerService = customerService;
+            _membershipService = membershipService;
             NextPageCommand = new RelayCommand(_ => NextPage(), _ => CanNextPage());
             PreviousPageCommand = new RelayCommand(_ => PreviousPage(), _ => CanPreviousPage());
 
@@ -107,8 +126,25 @@ namespace MyShop_Frontend.ViewModels.Customers
             OpenEditDialogCommand = new RelayCommand<Customer>(OpenEditDialog);
             DeleteCustomerCommand = new RelayCommand<Customer>(async c => await DeleteCustomerAsync(c));
             SaveCustomerCommand = new RelayCommand(async _ => await SaveCustomerAsync());
-            
+
+            _ = LoadTiersAsync();
             _ = LoadCustomersAsync();
+        }
+
+        private async Task LoadTiersAsync()
+        {
+            try
+            {
+                var tiers = await _membershipService.GetMembershipsAsync();
+                Tiers.Clear();
+                Tiers.Add(new Membership { TierId = 0, TierName = "All" });
+                foreach (var tier in tiers) Tiers.Add(tier);
+                SelectedTier = Tiers.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading tiers: {ex.Message}");
+            }
         }
 
         private async Task DeleteCustomerAsync(Customer customer)
@@ -170,10 +206,7 @@ namespace MyShop_Frontend.ViewModels.Customers
                         CustomerId = _editingCustomerId,
                         FullName = FormFullName,
                         Phone = FormPhone,
-                        Address = FormAddress,
-                        // Maintain existing values if needed, or API handles partial updates? 
-                        // DTO from API will map these. Ideally we should perhaps preserve other fields if PUT replaces all.
-                        // But for now, simple object creation.
+                        Address = FormAddress
                     };
                     await _customerService.UpdateCustomerAsync(customerToUpdate);
                 }
@@ -188,13 +221,10 @@ namespace MyShop_Frontend.ViewModels.Customers
                     await _customerService.AddCustomerAsync(newCustomer);
                 }
                 await LoadCustomersAsync();
-                // Close dialog logic? 
-                // The ContentDialog in view handles closing on Primary Button Click by default unless Cancel is set.
-                // We might want to close it manually if validation fails, but here we assume success.
             }
             catch (Exception ex)
             {
-                 System.Diagnostics.Debug.WriteLine($"Error saving customer: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error saving customer: {ex.Message}");
             }
         }
 
@@ -226,8 +256,9 @@ namespace MyShop_Frontend.ViewModels.Customers
             IsLoading = true;
             try
             {
-                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize, SearchPhone, SearchName);
-                
+                var tierId = SelectedTier != null && SelectedTier.TierId > 0 ? (int?)SelectedTier.TierId : null;
+                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize, SearchPhone, SearchName, tierId);
+
                 Customers.Clear();
                 foreach (var customer in result.Items)
                 {
