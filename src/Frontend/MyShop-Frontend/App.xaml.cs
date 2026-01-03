@@ -49,6 +49,7 @@ namespace MyShop_Frontend
 
             services.AddTransient<IDashboardService, DashboardService>();
             services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<ICustomerService, CustomerService>();
             services.AddTransient<IReportService, ReportService>();
 
             services.AddTransient<DashboardViewModel>();
