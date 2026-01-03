@@ -13,10 +13,11 @@ namespace MyShop.Application.Services
     public interface ICustomerService
     {
         Task<PagedResult<CustomerDto>> GetCustomers(int pageIndex, int pageSize);
-        Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name);
+        Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name);
         Task<CustomerDetailDto> GetCustomerDetail(int id);
         Task<CustomerDto> CreateCustomer(CreateCustomerDto request);
         Task<CustomerDto> UpdateCustomer(int id, UpdateCustomerDto request);
+        Task<bool> DeleteCustomer(int id);
     }
 
     public class CustomerService : ICustomerService
@@ -32,6 +33,7 @@ namespace MyShop.Application.Services
         {
             var query = _context.Customers.Include(c => c.Tier)
                 .AsQueryable()
+                .Where(c => c.IsRemoved != true)
                 .OrderBy(c => c.CustomerId);
             var totalRecords = await query.CountAsync();
             var customers = await query
@@ -50,9 +52,11 @@ namespace MyShop.Application.Services
             return new PagedResult<CustomerDto>(customers, totalRecords, pageIndex, pageSize);
         }
 
-        public async Task<IEnumerable<CustomerDto>> SearchCustomers(string? phone, string? name)
+        public async Task<PagedResult<CustomerDto>> SearchCustomers(int pageIndex, int pageSize, string? phone, string? name)
         {
-            var query = _context.Customers.Include(c => c.Tier).AsQueryable();
+            var query = _context.Customers.Include(c => c.Tier)
+                .AsQueryable()
+                .Where(c => c.IsRemoved != true);
 
             if (!string.IsNullOrEmpty(phone))
                 query = query.Where(c => c.Phone.Contains(phone));
@@ -60,21 +64,30 @@ namespace MyShop.Application.Services
             if (!string.IsNullOrEmpty(name))
                 query = query.Where(c => c.FullName.Contains(name));
 
-            return await query.Select(c => new CustomerDto
-            {
-                CustomerId = c.CustomerId,
-                FullName = c.FullName,
-                Phone = c.Phone,
-                Address = c.Address,
-                Point = c.Point,
-                TierName = c.Tier != null ? c.Tier.TierName : "N/A"
-            }).ToListAsync();
+            query = query.OrderBy(c => c.CustomerId);
+
+            var totalRecords = await query.CountAsync();
+            var customers = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new CustomerDto
+                {
+                    CustomerId = c.CustomerId,
+                    FullName = c.FullName,
+                    Phone = c.Phone,
+                    Address = c.Address,
+                    Point = c.Point,
+                    TierName = c.Tier != null ? c.Tier.TierName : "N/A"
+                }).ToListAsync();
+
+            return new PagedResult<CustomerDto>(customers, totalRecords, pageIndex, pageSize);
         }
 
         public async Task<CustomerDetailDto> GetCustomerDetail(int id)
         {
             var customer = await _context.Customers
                 .Include(c => c.Tier)
+                .Where(c => c.IsRemoved != true)
                 .FirstOrDefaultAsync(c => c.CustomerId == id);
 
             if (customer == null) throw new KeyNotFoundException("Customer not found");
@@ -148,6 +161,16 @@ namespace MyShop.Application.Services
                 Point = customer.Point,
                 TierName = customer.Tier?.TierName ?? "N/A"
             };
+        }
+
+        public async Task<bool> DeleteCustomer(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null || customer.IsRemoved == true) return false;
+
+            customer.IsRemoved = true;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

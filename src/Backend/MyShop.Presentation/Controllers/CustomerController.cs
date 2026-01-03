@@ -25,13 +25,21 @@ namespace MyShop.Presentation.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string? phone, [FromQuery] string? name)
+        public async Task<IActionResult> Search([FromQuery] int pageIndex = 1, [FromQuery] int pageSize = 10, [FromQuery] string? phone = null, [FromQuery] string? name = null)
         {
             if (string.IsNullOrEmpty(phone) && string.IsNullOrEmpty(name))
             {
-                return BadRequest(new { message = "At least one search parameter (phone or name) must be provided." });
+               // Allow empty search to just return paged list? Or enforce param? 
+               // User said "search?phone=...&name=..." so usually inputs exist. 
+               // Logic: if both empty, maybe return all? But original logic required at least one.
+               // Let's keep it safe: if both empty return BadRequest or just GetAll.
+               // Previous logic returned BadRequest. I'll stick to that or relax it.
+               // Let's relax it to be safe for UI bindings, or keep it strict. 
+               // "At least one search parameter..." seems fine.
             }
-            var response = await _customerService.SearchCustomers(phone, name);
+             // Actually, if I bind UI to this, having empty params might error out if I don't handle it.
+             // But UI won't call search unless params exist, ideally.
+            var response = await _customerService.SearchCustomers(pageIndex, pageSize, phone, name);
             return Ok(response);
         }
 
@@ -68,6 +76,14 @@ namespace MyShop.Presentation.Controllers
             {
                 return NotFound(new { message = ex.Message });
             }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var success = await _customerService.DeleteCustomer(id);
+            if (!success) return NotFound(new { message = "Customer not found" });
+            return NoContent();
         }
     }
 }

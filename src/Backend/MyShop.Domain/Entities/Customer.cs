@@ -22,4 +22,6 @@ public partial class Customer
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual Membership? Tier { get; set; }
+
+    public bool? IsRemoved { get; set; }
 }

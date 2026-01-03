@@ -74,6 +74,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("phone");
             entity.Property(e => e.Point).HasColumnName("point");
             entity.Property(e => e.TierId).HasColumnName("tier_id");
+            entity.Property(e => e.IsRemoved)
+                .HasColumnType("boolean")
+                .HasColumnName("is_removed");
 
             entity.HasOne(d => d.Tier).WithMany(p => p.Customers)
                 .HasForeignKey(d => d.TierId)

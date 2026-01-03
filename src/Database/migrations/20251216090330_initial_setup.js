@@ -32,7 +32,8 @@ exports.up = async function (knex) {
         "address" varchar,
         "point" int,
         "tier_id" int,
-        "create_date" timestamp
+        "create_date" timestamp,
+        "is_removed" boolean
         );
 
         CREATE TABLE "Membership" (
