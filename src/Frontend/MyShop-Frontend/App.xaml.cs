@@ -65,7 +65,6 @@ namespace MyShop_Frontend
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IReportService, ReportService>();
-
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<ViewModels.Customers.CustomerViewModel>();
             services.AddTransient<ReportViewModel>();
