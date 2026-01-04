@@ -3,6 +3,7 @@ using MyShop_Frontend.Models;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace MyShop_Frontend.Services
 {
@@ -15,14 +16,46 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
+        public async Task<PagedResult<Product>> GetProductsAsync(
+            string? keyword,
+            int? categoryId,
+            decimal? minPrice,
+            decimal? maxPrice,
+            string? sort,
+            int pageIndex = 1,
+            int pageSize = 10,
+            CancellationToken ct = default)
+        {
+            var query = $"api/Product?pageIndex={pageIndex}&pageSize={pageSize}";
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                query += $"&keyword={Uri.EscapeDataString(keyword)}";
+
+            if (categoryId.HasValue)
+                query += $"&categoryId={categoryId.Value}";
+
+            if (minPrice.HasValue)
+                query += $"&minPrice={minPrice.Value}";
+
+            if (maxPrice.HasValue)
+                query += $"&maxPrice={maxPrice.Value}";
+
+            if (!string.IsNullOrWhiteSpace(sort))
+                query += $"&sort={Uri.EscapeDataString(sort)}";
+
+            return await _api.GetAsync<PagedResult<Product>>(query, ct);
+        }
+
         public async Task<PagedResult<Product>> GetProductsAsync(int pageIndex = 1, int pageSize = 5, CancellationToken ct = default)
         {
-            // Backend returns PagedResult<Product>
-            // Append Query String
             var url = $"api/Product?pageIndex={pageIndex}&pageSize={pageSize}";
-
-            System.Diagnostics.Debug.WriteLine($"Calling API: {url}");
             return await _api.GetAsync<PagedResult<Product>>(url, ct);
+        }
+
+        public async Task<List<Product>> GetAllProductsAsync(CancellationToken ct = default)
+        {
+            // Based on provided API list: GET /api/Product/ returns all
+            return await _api.GetAsync<List<Product>>("api/Product", ct);
         }
 
         public async Task<Product?> GetProductByIdAsync(int productId, CancellationToken ct = default)

@@ -35,131 +35,149 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="Product Management" FontSize="24" FontWeight="Bold"/>
-                <TextBlock Text="Browse and manage supermarket products" FontSize="14" Foreground="Gray"/>
+                <TextBlock Text="Product" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="Browse products" FontSize="14" Foreground="Gray"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                
-                <Button>
+                <Button Command="{Binding ImportCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE898;"/>
                         <TextBlock Text="Import"/>
                     </StackPanel>
                 </Button>
-                <Button Background="Black" Foreground="White" CornerRadius="4" Command="{Binding AddProductCommand}">
+                <Button Command="{Binding AddCategoryCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8D2;"/>
+                        <TextBlock Text="New Category"/>
+                    </StackPanel>
+                </Button>
+                <Button Background="#111827" Foreground="White" CornerRadius="10" Padding="14,10" Command="{Binding AddProductCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE710;"/>
-                        <TextBlock Text="New Product"/>
+                        <TextBlock Text="New Product" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Filters Row Removed -->
+        <!-- Filters -->
+        <Grid Grid.Row="1" ColumnSpacing="12" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="1.2*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- Price Range (Simplified as slider) -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,24">
-            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
-                <TextBlock Text="Max Price:" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding MaxPriceFilter, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
-            </StackPanel>
-            <Slider Minimum="0" Maximum="1000000" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
-                <TextBlock Text="Page size:" VerticalAlignment="Center" Foreground="Gray"/>
-                <ComboBox Width="90" SelectedValuePath="Content" SelectedValue="{Binding PageSize, Mode=TwoWay}">
-                    <ComboBoxItem Content="5"/>
-                    <ComboBoxItem Content="10"/>
-                    <ComboBoxItem Content="15"/>
-                    <ComboBoxItem Content="20"/>
-                    <ComboBoxItem Content="25"/>
-                    <ComboBoxItem Content="30"/>
-                </ComboBox>
+            <TextBox Grid.Column="0" PlaceholderText="Search by product name..." Text="{Binding Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" DisplayMemberPath="CategoryName"/>
+            <ComboBox Grid.Column="2" SelectedValuePath="Tag" SelectedValue="{Binding Sort, Mode=TwoWay}">
+                <ComboBoxItem Content="Name (A-Z)" Tag="name_asc"/>
+                <ComboBoxItem Content="Price (Low?High)" Tag="price_asc"/>
+                <ComboBoxItem Content="Price (High?Low)" Tag="price_desc"/>
+                <ComboBoxItem Content="Stock (Low?High)" Tag="stock_asc"/>
+            </ComboBox>
+        </Grid>
+
+        <!-- Price Range + Paging -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,16" Spacing="8">
+            <Grid ColumnSpacing="24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
+                        <TextBlock Text="Min:" Foreground="Gray"/>
+                        <TextBlock Text="{Binding MinPriceFilter, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <Slider Minimum="0" Maximum="1000000" Value="{Binding MinPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
+                        <TextBlock Text="Max:" Foreground="Gray"/>
+                        <TextBlock Text="{Binding MaxPriceFilter, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <Slider Minimum="0" Maximum="1000000" Value="{Binding MaxPriceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                 <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
                 <AppBarSeparator/>
-                <Button Content="&lt;" Command="{Binding PreviousPageCommand}" ToolTipService.ToolTip="Previous Page"/>
-                <Button Content="&gt;" Command="{Binding NextPageCommand}" ToolTipService.ToolTip="Next Page"/>
+                <Button Content="&lt;" Command="{Binding PreviousPageCommand}"/>
+                <Button Content="&gt;" Command="{Binding NextPageCommand}"/>
             </StackPanel>
         </StackPanel>
 
-        <!-- Product List -->
-        <ListView Grid.Row="3" ItemsSource="{Binding Products}" SelectionMode="None">
-            <ListView.Header>
-                <Grid Padding="12" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="80"/>
-                        <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="1.5*"/>
-                        <ColumnDefinition Width="1.5*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Image" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="1" Text="Product Name" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="2" Text="Category" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="3" Text="Price" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="4" Text="Stock" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="5" Text="Actions" FontWeight="SemiBold" Width="80" TextAlignment="Right"/>
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="1.5*"/>
-                            <ColumnDefinition Width="1.5*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+        <!-- Product Cards -->
+        <ScrollViewer Grid.Row="3">
+            <ItemsRepeater ItemsSource="{Binding Products}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinItemWidth="240" MinItemHeight="170" ItemsJustification="Start"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate>
+                        <Border CornerRadius="14" BorderThickness="1" BorderBrush="#14000000" Background="White" Padding="12" Margin="8">
+                            <Grid RowSpacing="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
 
-                        <!-- Image (Placeholder) -->
-                        <Image Source="{Binding Image}" Width="48" Height="48" HorizontalAlignment="Left" Stretch="UniformToFill"/>
+                                <!-- Category chip + stock -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                        <!-- Product Name -->
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding ProductId}" Foreground="Gray" FontSize="12"/>
-                        </StackPanel>
+                                    <Border Background="#F3F4F6" CornerRadius="10" Padding="8,4">
+                                        <TextBlock Text="{Binding CategoryName}" FontSize="12"/>
+                                    </Border>
 
-                        <!-- Category -->
-                        <Border Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left" 
-                                BorderBrush="Gray" BorderThickness="1" CornerRadius="12" Padding="8,2">
-                            <TextBlock Text="{Binding CategoryName}" FontSize="12"/>
+                                    <Border Grid.Column="1" Background="#D1FAE5" CornerRadius="10" Padding="8,4">
+                                        <TextBlock Foreground="#065F46" FontSize="12" FontWeight="SemiBold">
+                                            <Run Text="Stock: "/>
+                                            <Run Text="{Binding Stock}"/>
+                                        </TextBlock>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Image -->
+                                <Grid Grid.Row="1">
+                                    <Image Source="{Binding Image}" Height="72" Width="72" Stretch="UniformToFill" HorizontalAlignment="Left"/>
+                                </Grid>
+
+                                <!-- Name + Price + actions -->
+                                <Grid Grid.Row="2" ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" TextWrapping="WrapWholeWords"/>
+                                        <TextBlock Text="{Binding Price, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                        <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}">
+                                            <FontIcon Glyph="&#xE70F;" FontSize="14"/>
+                                        </Button>
+                                        <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}">
+                                            <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="Red"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
                         </Border>
-
-                        <!-- Price -->
-                        <TextBlock Grid.Column="3" Text="{Binding Price, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-
-                        <!-- Stock -->
-                         <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                            <TextBlock Text="{Binding Stock}" FontWeight="SemiBold"/>
-                            <Border Background="#D1FAE5"  CornerRadius="4" Padding="6,2">
-                                <TextBlock Text="In Stock" Foreground="#065F46" FontSize="11" FontWeight="Bold"/>
-                            </Border>
-                        </StackPanel>
-
-                        <!-- Actions -->
-                        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                             <Button Background="Transparent" Padding="4">
-                                <FontIcon Glyph="&#xE7B3;" FontSize="14"/>
-                            </Button>
-                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}">
-                                <FontIcon Glyph="&#xE70F;" FontSize="14"/>
-                            </Button>
-                             <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}">
-                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="Red"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemContainerStyle>
-                 <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-        </ListView>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
     </Grid>
 </Page>
