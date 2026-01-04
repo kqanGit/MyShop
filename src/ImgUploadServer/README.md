@@ -1,5 +1,12 @@
 # ImgUploadServer - Hướng dẫn chạy & kết quả
 
+## Cấu hình
+Tạo file `.env` với nội dung:
+```env
+SUPABASE_URL=https://kakdxifllhkjnxcqukwg.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtha2R4aWZsbGhram54Y3F1a3dnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzAyNzg2MSwiZXhwIjoyMDgyNjAzODYxfQ.rMvr3wv3Yhdrctq2vNDr7NfycGkafEJ4qYBIa-Jm1yI
+```
+
 ## Cách chạy
 ```bash
 npm install
