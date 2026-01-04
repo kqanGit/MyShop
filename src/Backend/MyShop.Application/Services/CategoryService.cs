@@ -9,6 +9,7 @@ namespace MyShop.Application.Services
     {
         Task<IEnumerable<CategoryDto>> GetAllCategories();
         Task<CategoryDto> GetCategoryById(int categoryId);
+        Task<CategoryDto> CreateCategory(CreateCategoryRequest request);
     }
     public class CategoryService : ICategoryService
     {
@@ -39,6 +40,33 @@ namespace MyShop.Application.Services
             {
                 CategoryId = category.CategoryId,
                 CategoryName = category.CategoryName,
+            };
+        }
+
+        public async Task<CategoryDto> CreateCategory(CreateCategoryRequest request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.CategoryName))
+                throw new ArgumentException("Category name is required", nameof(request.CategoryName));
+
+            var normalizedName = request.CategoryName.Trim();
+
+            var exists = await _context.Categories.AnyAsync(c => c.CategoryName == normalizedName);
+            if (exists)
+                throw new InvalidOperationException("Category already exists");
+
+            var entity = new Category
+            {
+                CategoryName = normalizedName,
+            };
+
+            _context.Categories.Add(entity);
+            await _context.SaveChangesAsync();
+
+            return new CategoryDto
+            {
+                CategoryId = entity.CategoryId,
+                CategoryName = entity.CategoryName,
             };
         }
     }
