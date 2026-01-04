@@ -17,7 +17,7 @@ const upload = multer({ storage: storage });
 
 const BUCKET_NAME = 'MyShop - Product images';
 
-// 3. API Upload
+// 3. API Upload đơn
 app.post('/api/upload', upload.single('imageFile'), async (req, res) => {
     try {
         const file = req.file;
@@ -43,6 +43,45 @@ app.post('/api/upload', upload.single('imageFile'), async (req, res) => {
 
         res.json({ 
             url: publicUrlData.publicUrl 
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 4. API Upload nhiều ảnh
+app.post('/api/upload-multiple', upload.array('imageFiles', 10), async (req, res) => {
+    try {
+        const files = req.files;
+        if (!files || files.length === 0) {
+            return res.status(400).json({ error: 'Chưa gửi file nào!' });
+        }
+
+        const uploadPromises = files.map(async (file) => {
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}_${file.originalname.replace(/\s/g, '-')}`;
+            
+            const { data, error } = await supabase.storage
+                .from(BUCKET_NAME)
+                .upload(fileName, file.buffer, {
+                    contentType: file.mimetype
+                });
+
+            if (error) throw error;
+
+            const { data: publicUrlData } = supabase.storage
+                .from(BUCKET_NAME)
+                .getPublicUrl(fileName);
+
+            return publicUrlData.publicUrl;
+        });
+
+        const urls = await Promise.all(uploadPromises);
+        
+        res.json({ 
+            count: urls.length,
+            urls: urls 
         });
 
     } catch (err) {
