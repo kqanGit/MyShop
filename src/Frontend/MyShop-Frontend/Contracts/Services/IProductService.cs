@@ -15,5 +15,17 @@ namespace MyShop_Frontend.Contracts.Services
         Task<Product> AddProductAsync(Product product, CancellationToken ct = default);
         Task<Product> UpdateProductAsync(Product product, CancellationToken ct = default);
         Task DeleteProductAsync(int productId, CancellationToken ct = default);
+
+        Task<PagedResult<Product>> GetProductsAsync(
+            string? keyword,
+            int? categoryId,
+            decimal? minPrice,
+            decimal? maxPrice,
+            string? sort,
+            int pageIndex = 1,
+            int pageSize = 10,
+            CancellationToken ct = default);
+
+        Task<List<Product>> GetAllProductsAsync(CancellationToken ct = default);
     }
 }

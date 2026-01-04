@@ -69,14 +69,10 @@
     <Folder Include="Models\Auth\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
+    <Folder Include="Views\Controls\Products\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Pages\ReportPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\Controls\Order\CreateOrderControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
@@ -125,11 +121,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <Page Update="Views\Windows\AuthenticationWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
 
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
@@ -147,4 +138,10 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
   </PropertyGroup>
+  <ItemGroup>
+    <Page Remove="Views\Controls\CreateOrderDialogControl.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Views\Controls\Orders\CreateOrderDialogControl.xaml" />
+  </ItemGroup>
 </Project>

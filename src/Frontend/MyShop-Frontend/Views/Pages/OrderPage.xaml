@@ -108,6 +108,13 @@
             </Grid>
         </Border>
 
+        <!-- Paging footer -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,44,12,0">
+            <TextBlock Text="{Binding PagingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
+            <AppBarSeparator/>
+            <Button Content="&lt;" Command="{Binding PrevPageCommand}" ToolTipService.ToolTip="Previous Page"/>
+            <Button Content="&gt;" Command="{Binding NextPageCommand}" ToolTipService.ToolTip="Next Page"/>
+        </StackPanel>
 
         <!-- Data List -->
         <ListView Grid.Row="3" 
@@ -151,8 +158,8 @@
                             <FontIcon Glyph="&#xE712;"/>
                             <Button.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="View Details"/>
-                                    <MenuFlyoutItem Text="Delete" Foreground="Red"/>
+                                    <MenuFlyoutItem Text="View Details" Click="ViewDetails_Click" CommandParameter="{Binding}"/>
+                                    <MenuFlyoutItem Text="Delete" Foreground="Red" Click="DeleteOrder_Click" CommandParameter="{Binding}"/>
                                 </MenuFlyout>
                             </Button.Flyout>
                         </Button>
