@@ -116,66 +116,72 @@
         <ScrollViewer Grid.Row="3">
             <ItemsRepeater ItemsSource="{Binding Products}">
                 <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="240" MinItemHeight="170" ItemsJustification="Start"/>
+                    <UniformGridLayout MinItemWidth="200" MinItemHeight="290" ItemsJustification="Start"/>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
-                        <Border CornerRadius="14" BorderThickness="1" BorderBrush="#14000000" Background="White" Padding="12" Margin="8">
-                            <Grid RowSpacing="10">
+                        <Border CornerRadius="8" BorderThickness="1" BorderBrush="#E5E7EB" Background="White" Margin="8" Padding="0">
+                            <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Category chip + stock -->
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                                <!-- Image Area -->
+                                <Grid Height="180">
+                                    <Image Source="{Binding Image}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    
+                                    <!-- Badges Overlay -->
+                                    <Grid VerticalAlignment="Top" Margin="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- Category Badge -->
+                                        <Border Grid.Column="0" Background="#F3F4F6" CornerRadius="4" Padding="6,2" Opacity="0.9">
+                                            <TextBlock Text="{Binding CategoryName}" FontSize="10" Foreground="#374151" TextTrimming="CharacterEllipsis" MaxWidth="100"/>
+                                        </Border>
 
-                                    <Border Background="#F3F4F6" CornerRadius="10" Padding="8,4">
-                                        <TextBlock Text="{Binding CategoryName}" FontSize="12"/>
-                                    </Border>
-
-                                    <Border Grid.Column="1" Background="#D1FAE5" CornerRadius="10" Padding="8,4">
-                                        <TextBlock Foreground="#065F46" FontSize="12" FontWeight="SemiBold">
-                                            <Run Text="Stock: "/>
-                                            <Run Text="{Binding Stock}"/>
-                                        </TextBlock>
-                                    </Border>
+                                        <!-- Stock Badge -->
+                                        <Border Grid.Column="2" Background="#D1FAE5" CornerRadius="4" Padding="6,2" Opacity="0.9">
+                                            <TextBlock FontSize="10" FontWeight="SemiBold" Foreground="#065F46">
+                                                <Run Text="Stock:"/>
+                                                <Run Text="{Binding Stock}"/>
+                                            </TextBlock>
+                                        </Border>
+                                    </Grid>
                                 </Grid>
 
-                                <!-- Image -->
-                                <Grid Grid.Row="1">
-                                    <Image Source="{Binding Image}" Height="72" Width="72" Stretch="UniformToFill" HorizontalAlignment="Left"/>
-                                </Grid>
+                                <!-- Content Area -->
+                                <StackPanel Grid.Row="1" Padding="12" Spacing="8">
+                                    <!-- Name -->
+                                    <TextBlock Text="{Binding ProductName}" FontSize="14" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" Height="40" VerticalAlignment="Top"/>
+                                    
+                                    <!-- Price -->
+                                    <!-- Price and Actions Row -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Text="{Binding Price, Converter={StaticResource PriceConverter}}" FontSize="16" FontWeight="Bold" Foreground="#EE4D2D" VerticalAlignment="Center" />
 
-                                <!-- Name + Price + actions -->
-                                <Grid Grid.Row="2" ColumnSpacing="10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" TextWrapping="WrapWholeWords"/>
-                                        <TextBlock Text="{Binding Price, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold"/>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-                                        <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.ViewProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="View Images">
-                                            <FontIcon Glyph="&#xE7B3;" FontSize="14"/>
-                                        </Button>
-                                        <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}">
-                                            <FontIcon Glyph="&#xE70F;" FontSize="14"/>
-                                        </Button>
-                                        <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}">
-                                            <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="Red"/>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.ViewProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="View Images">
+                                                <FontIcon Glyph="&#xE7B3;" FontSize="14"/>
+                                            </Button>
+                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="Edit Product">
+                                                <FontIcon Glyph="&#xE70F;" FontSize="14"/>
+                                            </Button>
+                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="Delete Product">
+                                                <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="#EF4444"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </DataTemplate>
