@@ -18,6 +18,14 @@ namespace MyShop.Application.DTOs
         public int Stock { get; set; }
         public string? Image { get; set; }
         public bool IsRemoved { get; set; }
+        public List<ProductImageDto> Images { get; set; } = new();
+    }
+
+    public class ProductImageDto
+    {
+        public int ImageIndex { get; set; }
+        public string ImageUrl { get; set; }
+        public bool IsPrimary { get; set; }
     }
 
     public class CreateProductDto
