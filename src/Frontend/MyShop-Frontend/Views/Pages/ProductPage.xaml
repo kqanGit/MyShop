@@ -165,6 +165,9 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                        <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.ViewProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="View Images">
+                                            <FontIcon Glyph="&#xE7B3;" FontSize="14"/>
+                                        </Button>
                                         <Button Background="Transparent" Padding="6" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}">
                                             <FontIcon Glyph="&#xE70F;" FontSize="14"/>
                                         </Button>

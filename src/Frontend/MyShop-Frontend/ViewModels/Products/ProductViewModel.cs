@@ -102,6 +102,7 @@ namespace MyShop_Frontend.ViewModels.Products
             }
         }
 
+        public ICommand ViewProductCommand { get; }
         public ICommand LoadProductsCommand { get; }
         public ICommand AddProductCommand { get; }
         public ICommand UpdateProductCommand { get; }
@@ -148,6 +149,7 @@ namespace MyShop_Frontend.ViewModels.Products
 
             PageSize = _userSettings.GetProductsPageSize(defaultValue: 10);
 
+            ViewProductCommand = new RelayCommand<Product>(async p => await ViewProductAsync(p));
             LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
             AddProductCommand = new RelayCommand(async _ => await AddProductAsync());
             UpdateProductCommand = new RelayCommand<Product>(async p => await UpdateProductAsync(p));
@@ -538,6 +540,41 @@ namespace MyShop_Frontend.ViewModels.Products
                 Content = "Import from Excel/Access requires an import API endpoint (not provided).",
                 CloseButtonText = "OK"
             };
+            await dlg.ShowAsync();
+        }
+
+        private async Task ViewProductAsync(Product? product)
+        {
+            if (product == null) return;
+
+            // Prepare images
+            var images = new List<ProductImage>();
+            if (product.Images != null && product.Images.Any())
+            {
+                images.AddRange(product.Images);
+            }
+            else if (!string.IsNullOrEmpty(product.Image))
+            {
+                images.Add(new ProductImage { ImageUrl = product.Image, IsPrimary = true });
+            }
+
+            // Create UI
+            var flipView = new FlipView { Height = 400, Width = 600 };
+            flipView.ItemsSource = images;
+            flipView.ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(
+                @"<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>
+                    <Image Source='{Binding ImageUrl}' Stretch='Uniform' HorizontalAlignment='Center' VerticalAlignment='Center'/>
+                  </DataTemplate>");
+
+            var dlg = new ContentDialog
+            {
+                XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                Title = product.ProductName,
+                Content = flipView,
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close
+            };
+
             await dlg.ShowAsync();
         }
 

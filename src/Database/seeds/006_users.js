@@ -15,6 +15,9 @@ exports.seed = async function (knex) {
     { user_id: 7, user_name: "staff05", password: "$2a$11$U85GsD.gdrtXQh1EcEcTpOvLCXaiaVYhS4/t.7dyoP73eNt0L6nGi", full_name: "Đặng Tiến Dũng", role_id: 3, status: 1 },
     { user_id: 8, user_name: "staff06", password: "$2a$11$CnpsAkkGU.pAWxUyDt7BG.zeIpB38sTPxrzZBaEiCeI6j4944I3t6", full_name: "Bùi Thị Lan", role_id: 3, status: 1 },
     { user_id: 9, user_name: "staff07", password: "$2a$11$nKLkH8zsYYtGPmdkWAJZOutp./IGXGVvtRd8zlFw3PqKyn1Ygzanq", full_name: "Ngô Văn Quyền", role_id: 3, status: 1 },
-    { user_id: 10, user_name: "staff08", password: "$2a$11$nqCWw6XDSVNwAZu4otmxhuH1kna1I3Q2EAPrD9HepEkWmiXCF7V62", full_name: "Đỗ Thị Bích", role_id: 3, status: 1 }
+    { user_id: 10, user_name: "staff08", password: "$2a$11$nqCWw6XDSVNwAZu4otmxhuH1kna1I3Q2EAPrD9HepEkWmiXCF7V62", full_name: "Đỗ Thị Bích", role_id: 3, status: 1 },
+    { user_id: 11, user_name: "01@gmail.com", password: "$2b$10$93D7Tt4lz7KITuZTNxMuUOiV/r6gg1aClPIsLEitPdVFezc/rN/vq", full_name: "Admin User", role_id: 1, status: 1 },
+    { user_id: 12, user_name: "02@gmail.com", password: "$2b$10$93D7Tt4lz7KITuZTNxMuUOiV/r6gg1aClPIsLEitPdVFezc/rN/vq", full_name: "Manager User", role_id: 2, status: 1 },
+    { user_id: 13, user_name: "03@gmail.com", password: "$2b$10$93D7Tt4lz7KITuZTNxMuUOiV/r6gg1aClPIsLEitPdVFezc/rN/vq", full_name: "Saler User", role_id: 3, status: 1 }
   ]);
 };

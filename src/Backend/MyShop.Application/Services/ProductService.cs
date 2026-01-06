@@ -32,6 +32,7 @@ namespace MyShop.Application.Services
 
             var query = _context.Products
                 .Include(p => p.Category)
+                .Include(p => p.ProductImages)
                 .Where(p => p.IsRemoved == null || p.IsRemoved == false)
                 .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
                 .Where(p => !maxPrice.HasValue || p.Price <= maxPrice.Value);
@@ -65,8 +66,15 @@ namespace MyShop.Application.Services
                     Cost = p.Cost,
                     Price = p.Price,
                     Stock = p.Stock,
-                    Image = p.Image,
-                    IsRemoved = p.IsRemoved == true
+
+                    Image = p.ProductImages.Where(pi => pi.IsPrimary == true).Select(pi => pi.ImageUrl).FirstOrDefault() ?? p.Image ?? string.Empty,
+                    IsRemoved = p.IsRemoved == true,
+                    Images = p.ProductImages.Select(pi => new ProductImageDto
+                    {
+                        ImageIndex = pi.ImageId,
+                        ImageUrl = pi.ImageUrl ?? string.Empty,
+                        IsPrimary = pi.IsPrimary ?? false
+                    }).ToList()
                 })
                 .ToListAsync();
 
@@ -77,6 +85,7 @@ namespace MyShop.Application.Services
         {
             var product = await _context.Products
                 .Include(p => p.Category)
+                .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(p => p.ProductId == productId);
 
             if (product == null) throw new KeyNotFoundException("Product not found");
@@ -91,8 +100,15 @@ namespace MyShop.Application.Services
                 Cost = product.Cost,
                 Price = product.Price,
                 Stock = product.Stock,
-                Image = product.Image,
-                IsRemoved = product.IsRemoved == true
+
+                Image = product.ProductImages.Where(pi => pi.IsPrimary == true).Select(pi => pi.ImageUrl).FirstOrDefault() ?? product.Image ?? string.Empty,
+                IsRemoved = product.IsRemoved == true,
+                Images = product.ProductImages.Select(pi => new ProductImageDto
+                {
+                    ImageIndex = pi.ImageId,
+                    ImageUrl = pi.ImageUrl ?? string.Empty,
+                    IsPrimary = pi.IsPrimary ?? false
+                }).ToList()
             };
         }
 
