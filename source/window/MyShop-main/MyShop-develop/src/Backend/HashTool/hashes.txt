@@ -1,0 +1,10 @@
+﻿adminpassword: $2a$11$haU0Gg8K8njIqmVzZOh5DeSedMyqepoI1a0k7CQh0OdNsi601FL.a
+managerpassword: $2a$11$myhxMHgLvOXdlcjWA.jnkOE/mZH.ondwvF2q6WNaf78fXT2tdn1/m
+staffpassword1: $2a$11$.TgxJYLXQe.kpcNrNrYITeZf7X0ESV6mmRQSzvjrs9swp49.gd.u2
+staffpassword2: $2a$11$xe7AWRCXgqgWYr45zT.gdu5O4BEK21a75gWzuL9bLQDjbnlk3qVnC
+staffpassword3: $2a$11$uzZn9OJL6YOrAf7DyNlSduS8kgVz1DjzJXfSxk9xLjkI9/MHQ4qyq
+staffpassword4: $2a$11$FiqTqIgbgs/YXz9TcBG.me6MHFIP4rhF/St1hFVP.jfXgxoBtRXAG
+staffpassword5: $2a$11$PDAsJVK4rJj.oLNqKVnqFe.zGI5nX9aobfRig7t65TAujvbYXTHDG
+staffpassword6: $2a$11$wf79duoL/vtczkr3aPi7muW/Hvu7U8dVFebTbPuIiiNOg9HKgUfSG
+staffpassword7: $2a$11$b02nsguDnPLvwPxQ0/kHT.pFjMk1q/DWwrVBD.KeSVml12Qz2pOBS
+staffpassword8: $2a$11$9DLHz704fsux46muBU/7/upcZIitupr2VAQefvuanZOBuvMY903xO
