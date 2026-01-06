@@ -116,7 +116,7 @@
         <ScrollViewer Grid.Row="3">
             <ItemsRepeater ItemsSource="{Binding Products}">
                 <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="200" MinItemHeight="280" ItemsJustification="Start"/>
+                    <UniformGridLayout MinItemWidth="200" MinItemHeight="290" ItemsJustification="Start"/>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
@@ -160,18 +160,23 @@
                                     <TextBlock Text="{Binding ProductName}" FontSize="14" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" Height="40" VerticalAlignment="Top"/>
                                     
                                     <!-- Price -->
-                                    <TextBlock Text="{Binding Price, Converter={StaticResource PriceConverter}}" FontSize="16" FontWeight="Bold" Foreground="#EE4D2D" />
-
-                                    <!-- Actions -->
+                                    <!-- Price and Actions Row -->
                                     <Grid>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <TextBlock Text="{Binding Price, Converter={StaticResource PriceConverter}}" FontSize="16" FontWeight="Bold" Foreground="#EE4D2D" VerticalAlignment="Center" />
+
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                                             <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.ViewProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="View Images">
                                                 <FontIcon Glyph="&#xE7B3;" FontSize="14"/>
                                             </Button>
-                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}">
+                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.UpdateProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="Edit Product">
                                                 <FontIcon Glyph="&#xE70F;" FontSize="14"/>
                                             </Button>
-                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}">
+                                            <Button Background="Transparent" Padding="4" Command="{Binding ElementName=PageRoot, Path=DataContext.DeleteProductCommand}" CommandParameter="{Binding}" ToolTipService.ToolTip="Delete Product">
                                                 <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="#EF4444"/>
                                             </Button>
                                         </StackPanel>
