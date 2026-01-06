@@ -1,9 +1,7 @@
-﻿using MyShop_Frontend.Contracts.Dtos.Stats;
+﻿using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
-using MyShop_Frontend.ViewModels.Reports;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,126 +9,53 @@ namespace MyShop_Frontend.Services
 {
     public class ReportService : IReportService
     {
-        private readonly IApiClient _apiClient;
+        private readonly IApiClient _api;
 
-        public ReportService(IApiClient apiClient)
+        public ReportService(IApiClient api)
         {
-            _apiClient = apiClient;
+            _api = api;
         }
 
-        public async Task<ReportResponseDto> GetReportAsync(
-            DateTime fromDate,
-            DateTime toDate,
-            int groupBy,
+        public async Task<DashboardStatsDto> GetReportStatsAsync(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            StatsGroupBy groupBy = StatsGroupBy.Day,
             CancellationToken ct = default)
         {
-            try
+            var queryParams = new List<string>
             {
-                // Use same API as Dashboard: api/Stats/dashboard
-                var from = fromDate.ToString("yyyy-MM-dd");
-                var to = toDate.ToString("yyyy-MM-dd");
-                var url = $"api/Stats/dashboard?fromDate={from}&toDate={to}&groupBy={groupBy}";
-
-                var dashboardDto = await _apiClient.GetAsync<DashboardResponseDto>(url, ct);
-
-                // Convert DashboardResponseDto to ReportResponseDto
-                return ConvertToReportResponse(dashboardDto);
-            }
-            catch
-            {
-                // Return empty data if API fails
-                return new ReportResponseDto();
-            }
-        }
-
-        private static ReportResponseDto ConvertToReportResponse(DashboardResponseDto dto)
-        {
-            var chartData = dto.RevenueChart?.Select(c => new ChartDataPoint
-            {
-                DateLabel = c.DateLabel,
-                Revenue = c.Revenue,
-                Profit = c.Profit
-            }).ToList() ?? new List<ChartDataPoint>();
-
-            var topProducts = dto.TopSellingProducts?.Select(p => new TopProductDto
-            {
-                ProductName = p.ProductName,
-                QuantitySold = p.QuantitySold,
-                Revenue = p.Revenue
-            }).ToList() ?? new List<TopProductDto>();
-
-            // Calculate totals from chart data
-            int totalProductsSold = dto.RevenueChart?.Sum(c => c.TotalQuantity) ?? 0;
-            decimal avgOrderValue = dto.TotalOrders > 0 ? dto.TotalRevenue / dto.TotalOrders : 0;
-
-            // Calculate period comparisons from chart data
-            var periodComparisons = new List<PeriodComparisonDto>();
-            decimal? previousRevenue = null;
-
-            foreach (var point in chartData)
-            {
-                decimal growth = 0;
-                if (previousRevenue.HasValue && previousRevenue > 0)
-                {
-                    growth = (point.Revenue - previousRevenue.Value) / previousRevenue.Value * 100;
-                }
-
-                periodComparisons.Add(new PeriodComparisonDto
-                {
-                    PeriodLabel = point.DateLabel,
-                    Revenue = point.Revenue,
-                    Profit = point.Profit,
-                    OrderCount = 0, // Not available in chart data
-                    GrowthPercent = growth
-                });
-
-                previousRevenue = point.Revenue;
-            }
-
-            // Calculate revenue/profit change percent (compare first and last period)
-            decimal revenueChangePercent = 0;
-            decimal profitChangePercent = 0;
-
-            if (chartData.Count >= 2)
-            {
-                var first = chartData.First();
-                var last = chartData.Last();
-
-                if (first.Revenue > 0)
-                    revenueChangePercent = (last.Revenue - first.Revenue) / first.Revenue * 100;
-                if (first.Profit > 0)
-                    profitChangePercent = (last.Profit - first.Profit) / first.Profit * 100;
-            }
-
-            return new ReportResponseDto
-            {
-                TotalRevenue = dto.TotalRevenue,
-                TotalProfit = dto.TotalProfit,
-                TotalOrders = dto.TotalOrders,
-                TotalProductsSold = totalProductsSold,
-                AverageOrderValue = avgOrderValue,
-                UniqueProductsCount = topProducts.Count,
-                RevenueChangePercent = revenueChangePercent,
-                ProfitChangePercent = profitChangePercent,
-                ChartData = chartData,
-                TopProducts = topProducts,
-                CategorySales = new List<CategorySalesDto>(), // Not used - Pie chart uses TopProducts instead
-                PeriodComparisons = periodComparisons.TakeLast(6).ToList()
+                $"groupBy={(int)groupBy}"
             };
+
+            if (fromDate.HasValue)
+                queryParams.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+
+            if (toDate.HasValue)
+                queryParams.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+            var query = string.Join("&", queryParams);
+            return await _api.GetAsync<DashboardStatsDto>($"api/Stats/dashboard?{query}", ct);
         }
 
-        public Task<byte[]> ExportExcelAsync(
-            DateTime fromDate,
-            DateTime toDate,
-            int groupBy,
+        public async Task<byte[]> ExportToExcelAsync(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            StatsGroupBy groupBy = StatsGroupBy.Day,
             CancellationToken ct = default)
         {
-            // Use same API as Dashboard: api/Stats/export-excel
-            var from = fromDate.ToString("yyyy-MM-dd");
-            var to = toDate.ToString("yyyy-MM-dd");
-            var url = $"api/Stats/export-excel?fromDate={from}&toDate={to}&groupBy={groupBy}";
+            var queryParams = new List<string>
+            {
+                $"groupBy={(int)groupBy}"
+            };
 
-            return _apiClient.GetBytesAsync(url, ct);
+            if (fromDate.HasValue)
+                queryParams.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
+
+            if (toDate.HasValue)
+                queryParams.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+            var query = string.Join("&", queryParams);
+            return await _api.GetBytesAsync($"api/Stats/export-excel?{query}", ct);
         }
     }
 }

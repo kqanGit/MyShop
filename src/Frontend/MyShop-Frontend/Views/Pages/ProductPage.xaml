@@ -73,9 +73,9 @@
             <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" DisplayMemberPath="CategoryName"/>
             <ComboBox Grid.Column="2" SelectedValuePath="Tag" SelectedValue="{Binding Sort, Mode=TwoWay}">
                 <ComboBoxItem Content="Name (A-Z)" Tag="name_asc"/>
-                <ComboBoxItem Content="Price (Low?High)" Tag="price_asc"/>
-                <ComboBoxItem Content="Price (High?Low)" Tag="price_desc"/>
-                <ComboBoxItem Content="Stock (Low?High)" Tag="stock_asc"/>
+                <ComboBoxItem Content="Price (Low->High)" Tag="price_asc"/>
+                <ComboBoxItem Content="Price (High->Low)" Tag="price_desc"/>
+                <ComboBoxItem Content="Stock (Low->High)" Tag="stock_asc"/>
             </ComboBox>
         </Grid>
 

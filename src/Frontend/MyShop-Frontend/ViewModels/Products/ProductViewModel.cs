@@ -19,6 +19,8 @@ namespace MyShop_Frontend.ViewModels.Products
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly MyShop_Frontend.Contracts.Services.IUserSettingsStore _userSettings;
+        private readonly ITokenStore _tokenStore;
+        private readonly bool _canManageProducts;
         private List<Product> _allProducts = new();
         private Dictionary<int, string> _categoryIdToName = new();
 
@@ -146,19 +148,23 @@ namespace MyShop_Frontend.ViewModels.Products
             _productService = App.Services.GetRequiredService<IProductService>();
             _categoryService = App.Services.GetRequiredService<ICategoryService>();
             _userSettings = App.Services.GetRequiredService<MyShop_Frontend.Contracts.Services.IUserSettingsStore>();
+            _tokenStore = App.Services.GetRequiredService<ITokenStore>();
+
+            var role = _tokenStore.GetRole()?.ToLowerInvariant();
+            _canManageProducts = role == "1" || role == "admin" || role == "2" || role == "manager";
 
             PageSize = _userSettings.GetProductsPageSize(defaultValue: 10);
 
             ViewProductCommand = new RelayCommand<Product>(async p => await ViewProductAsync(p));
             LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
-            AddProductCommand = new RelayCommand(async _ => await AddProductAsync());
-            UpdateProductCommand = new RelayCommand<Product>(async p => await UpdateProductAsync(p));
-            DeleteProductCommand = new RelayCommand<Product>(async p => await DeleteProductAsync(p));
+            AddProductCommand = new RelayCommand(async _ => await AddProductAsync(), _ => _canManageProducts);
+            UpdateProductCommand = new RelayCommand<Product>(async p => await UpdateProductAsync(p), _ => _canManageProducts);
+            DeleteProductCommand = new RelayCommand<Product>(async p => await DeleteProductAsync(p), _ => _canManageProducts);
             NextPageCommand = new RelayCommand(async _ => { PageIndex++; await LoadProductsAsync(); }, _ => PageIndex < TotalPages);
             PreviousPageCommand = new RelayCommand(async _ => { PageIndex--; await LoadProductsAsync(); }, _ => PageIndex > 1);
 
-            AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync());
-            ImportCommand = new RelayCommand(async _ => await ImportAsync());
+            AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync(), _ => _canManageProducts);
+            ImportCommand = new RelayCommand(async _ => await ImportAsync(), _ => _canManageProducts);
 
             _ = LoadCategoriesAsync();
             _ = LoadProductsAsync();
@@ -580,9 +586,40 @@ namespace MyShop_Frontend.ViewModels.Products
 
         private void FilterProducts()
         {
+            // Normalize price range
+            if (MinPriceFilter > MaxPriceFilter)
+            {
+                MaxPriceFilter = MinPriceFilter;
+            }
+
             var filtered = _allProducts.AsEnumerable();
 
+            // Apply local keyword filter (defensive in case server-side filter not applied)
+            if (!string.IsNullOrWhiteSpace(Keyword))
+            {
+                filtered = filtered.Where(p => (p.ProductName ?? string.Empty)
+                    .Contains(Keyword, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply local category filter (defensive)
+            if (SelectedCategory is { CategoryId: > 0 })
+            {
+                filtered = filtered.Where(p => p.CategoryId == SelectedCategory.CategoryId);
+            }
+
+            // Price range filter
             filtered = filtered.Where(p => (double)p.Price <= MaxPriceFilter && (double)p.Price >= MinPriceFilter);
+
+            // Apply sort locally to reflect UI sorting
+            filtered = Sort switch
+            {
+                "name_desc" => filtered.OrderByDescending(p => p.ProductName),
+                "price_asc" => filtered.OrderBy(p => p.Price),
+                "price_desc" => filtered.OrderByDescending(p => p.Price),
+                "stock_asc" => filtered.OrderBy(p => p.Stock),
+                "stock_desc" => filtered.OrderByDescending(p => p.Stock),
+                _ => filtered.OrderBy(p => p.ProductName)
+            };
 
             Products.Clear();
             foreach (var product in filtered)

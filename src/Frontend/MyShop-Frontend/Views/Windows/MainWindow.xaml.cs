@@ -30,6 +30,7 @@ namespace MyShop_Frontend
     public sealed partial class MainWindow : Window
     {
         private readonly IUserSettingsStore _userSettings;
+        private readonly ITokenStore _tokenStore;
 
         public ViewModels.MainViewModel ViewModel { get; } = new();
         public MainWindow()
@@ -37,6 +38,9 @@ namespace MyShop_Frontend
             this.InitializeComponent();
 
             _userSettings = App.Services.GetRequiredService<IUserSettingsStore>();
+            _tokenStore = App.Services.GetRequiredService<ITokenStore>();
+
+            HideReportForStaff();
 
             var startTag = "Dashboard";
             if (_userSettings.GetRememberLastModule(defaultValue: true))
@@ -49,6 +53,24 @@ namespace MyShop_Frontend
             NavigateByTag(startTag);
 
             (this.Content as FrameworkElement).DataContext = ViewModel;
+        }
+
+        private bool IsStaffRole()
+        {
+            var role = _tokenStore.GetRole()?.ToLowerInvariant();
+            return role == "3" || role == "staff";
+        }
+
+        private void HideReportForStaff()
+        {
+            if (!IsStaffRole()) return;
+
+            var reportItem = FlattenNavItems(NavView).FirstOrDefault(i => i.Tag?.ToString() == "Report");
+            if (reportItem != null)
+            {
+                // Remove from MenuItems
+                NavView.MenuItems.Remove(reportItem);
+            }
         }
 
         private void RootNavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
@@ -126,6 +148,11 @@ namespace MyShop_Frontend
 
         private void NavigateByTag(string tag)
         {
+            if (tag == "Report" && IsStaffRole())
+            {
+                tag = "Dashboard";
+            }
+
             SelectNavigationItemByTag(tag);
 
             Type? pageType = Type.GetType($"MyShop_Frontend.Views.Pages.{tag}Page") ?? tag switch

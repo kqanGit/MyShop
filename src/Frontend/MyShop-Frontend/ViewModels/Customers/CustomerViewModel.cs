@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.Command;
 using MyShop_Frontend.Models;
@@ -74,7 +75,6 @@ namespace MyShop_Frontend.ViewModels.Customers
             }
         }
 
-        // Form Properties
         private string _formFullName = "";
         public string FormFullName { get => _formFullName; set { _formFullName = value; OnPropertyChanged(nameof(FormFullName)); } }
 
@@ -201,24 +201,23 @@ namespace MyShop_Frontend.ViewModels.Customers
             {
                 if (_isEditing)
                 {
-                    var customerToUpdate = new Customer
+                    var request = new UpdateCustomerDto
                     {
-                        CustomerId = _editingCustomerId,
                         FullName = FormFullName,
                         Phone = FormPhone,
                         Address = FormAddress
                     };
-                    await _customerService.UpdateCustomerAsync(customerToUpdate);
+                    await _customerService.UpdateCustomerAsync(_editingCustomerId, request);
                 }
                 else
                 {
-                    var newCustomer = new Customer
+                    var request = new CreateCustomerDto
                     {
                         FullName = FormFullName,
                         Phone = FormPhone,
                         Address = FormAddress
                     };
-                    await _customerService.AddCustomerAsync(newCustomer);
+                    await _customerService.CreateCustomerAsync(request);
                 }
                 await LoadCustomersAsync();
             }
@@ -257,12 +256,29 @@ namespace MyShop_Frontend.ViewModels.Customers
             try
             {
                 var tierId = SelectedTier != null && SelectedTier.TierId > 0 ? (int?)SelectedTier.TierId : null;
-                var result = await _customerService.GetCustomersAsync(PageIndex, PageSize, SearchPhone, SearchName, tierId);
+
+                PagedResult<CustomerDto> result;
+                if (string.IsNullOrWhiteSpace(SearchPhone) && string.IsNullOrWhiteSpace(SearchName) && !tierId.HasValue)
+                {
+                    result = await _customerService.GetCustomersAsync(PageIndex, PageSize);
+                }
+                else
+                {
+                    result = await _customerService.SearchCustomersAsync(PageIndex, PageSize, SearchPhone, SearchName, tierId);
+                }
 
                 Customers.Clear();
                 foreach (var customer in result.Items)
                 {
-                    Customers.Add(customer);
+                    Customers.Add(new Customer
+                    {
+                        CustomerId = customer.CustomerId,
+                        FullName = customer.FullName,
+                        Phone = customer.Phone,
+                        Address = customer.Address,
+                        Point = customer.Point,
+                        TierName = customer.TierName
+                    });
                 }
 
                 TotalRecords = result.TotalRecords;

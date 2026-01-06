@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MyShop_Frontend.Contracts;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.Command;
 using MyShop_Frontend.Services;
@@ -146,15 +147,15 @@ namespace MyShop_Frontend.ViewModels.Authentication
 
             try
             {
-                var token = await _authService.LoginAsync(Username, Password);
-                Debug.WriteLine($"Token nhận được: {(token != null ? "Có dữ liệu" : "NULL")}");
+                AuthResponseDto? result = await _authService.LoginAsync(Username, Password);
+                Debug.WriteLine($"Token nhận được: {(result != null ? "Có dữ liệu" : "NULL")}");
 
-                if (!string.IsNullOrWhiteSpace(token))
+                if (result != null && !string.IsNullOrWhiteSpace(result.Token))
                 {
                     // Lưu Remember Me
                     _tokenStore.SetRememberMe(RememberMe, Username, Password);
 
-                    Debug.WriteLine("Đăng nhập thành công! Token: " + token);
+                    Debug.WriteLine("Đăng nhập thành công! Token: " + result.Token);
                     _windowsService.ShowMainWindow();
                 }
                 else
