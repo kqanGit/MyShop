@@ -14,6 +14,8 @@
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
             <!-- Converters -->
+            <x:Double x:Key="ContentDialogMaxWidth">3000</x:Double>
+            <x:Double x:Key="ContentDialogMaxHeight">1000</x:Double>
             <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>

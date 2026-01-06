@@ -64,12 +64,12 @@
     <Folder Include="Assets\Images\" />
     <Folder Include="Assets\Icons\" />
     <Folder Include="Assets\Fonts\" />
+    <Folder Include="Contracts\Dtos\Stats\" />
     <Folder Include="Contracts\ViewModels\" />
     <Folder Include="Helpers\Extensions\" />
     <Folder Include="Models\Auth\" />
     <Folder Include="ViewModels\Orders\" />
     <Folder Include="ViewModels\Products\" />
-    <Folder Include="Views\Controls\Products\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Views\Pages\ReportPage.xaml">

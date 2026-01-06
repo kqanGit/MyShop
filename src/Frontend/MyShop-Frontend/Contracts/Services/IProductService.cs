@@ -1,8 +1,6 @@
-﻿using MyShop_Frontend.Models;
-using System;
+﻿using MyShop_Frontend.Contracts.Dtos;
+using MyShop_Frontend.Models;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,22 +8,37 @@ namespace MyShop_Frontend.Contracts.Services
 {
     public interface IProductService
     {
-        Task<PagedResult<Product>> GetProductsAsync(int pageIndex = 1, int pageSize = 5, CancellationToken ct = default);
-        Task<Product?> GetProductByIdAsync(int productId, CancellationToken ct = default);
-        Task<Product> AddProductAsync(Product product, CancellationToken ct = default);
-        Task<Product> UpdateProductAsync(Product product, CancellationToken ct = default);
-        Task DeleteProductAsync(int productId, CancellationToken ct = default);
-
-        Task<PagedResult<Product>> GetProductsAsync(
-            string? keyword,
-            int? categoryId,
-            decimal? minPrice,
-            decimal? maxPrice,
-            string? sort,
+        /// <summary>
+        /// GET /api/Product
+        /// </summary>
+        Task<Dtos.PagedResult<Product>> GetProductsAsync(
+            string? keyword = null,
+            int? categoryId = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            string? sort = null,
             int pageIndex = 1,
             int pageSize = 10,
             CancellationToken ct = default);
 
-        Task<List<Product>> GetAllProductsAsync(CancellationToken ct = default);
+        /// <summary>
+        /// GET /api/Product/{id}
+        /// </summary>
+        Task<Product> GetProductByIdAsync(int id, CancellationToken ct = default);
+
+        /// <summary>
+        /// POST /api/Product
+        /// </summary>
+        Task<Product> AddProductAsync(Product product, CancellationToken ct = default);
+
+        /// <summary>
+        /// PUT /api/Product/{id}
+        /// </summary>
+        Task<Product> UpdateProductAsync(Product product, CancellationToken ct = default);
+
+        /// <summary>
+        /// DELETE /api/Product/{id}
+        /// </summary>
+        Task<bool> DeleteProductAsync(int id, CancellationToken ct = default);
     }
 }

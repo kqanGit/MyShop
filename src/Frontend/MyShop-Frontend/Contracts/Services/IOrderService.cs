@@ -1,5 +1,4 @@
-using MyShop_Frontend.Models;
-using System;
+using MyShop_Frontend.Contracts.Dtos;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,10 +6,24 @@ namespace MyShop_Frontend.Contracts.Services
 {
     public interface IOrderService
     {
-        Task<OrderResponse> GetOrdersAsync(DateTime? fromDate, DateTime? toDate, int pageIndex = 1, int pageSize = 10, CancellationToken ct = default);
-        Task<OrderDetailDto> GetOrderByIdAsync(int id, CancellationToken ct = default);
-
+        /// <summary>
+        /// POST /api/Orders
+        /// </summary>
         Task<OrderResultDto> CreateOrderAsync(CreateOrderRequest request, CancellationToken ct = default);
-        Task DeleteOrderAsync(int id, CancellationToken ct = default);
+
+        /// <summary>
+        /// GET /api/Orders
+        /// </summary>
+        Task<PagedResult<OrderSummaryDto>> GetOrdersAsync(GetOrdersRequest request, CancellationToken ct = default);
+
+        /// <summary>
+        /// GET /api/Orders/{id}
+        /// </summary>
+        Task<OrderResponseDto> GetOrderByIdAsync(int orderId, CancellationToken ct = default);
+
+        /// <summary>
+        /// DELETE /api/Orders/{id} (if exists)
+        /// </summary>
+        Task<bool> DeleteOrderAsync(int orderId, CancellationToken ct = default);
     }
 }

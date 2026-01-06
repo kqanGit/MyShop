@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.Command;
-using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Base;
 using System;
 using System.Collections.ObjectModel;
@@ -22,7 +22,7 @@ namespace MyShop_Frontend.ViewModels.Orders
         private DateTimeOffset? _toDate;
         private string? _errorMessage;
 
-        public ObservableCollection<Order> Orders { get; } = new ObservableCollection<Order>();
+        public ObservableCollection<OrderSummaryDto> Orders { get; } = new ObservableCollection<OrderSummaryDto>();
 
         public RelayCommand ClearFilterCommand { get; }
 
@@ -167,12 +167,15 @@ namespace MyShop_Frontend.ViewModels.Orders
 
             try
             {
-                // Server side filter by date (orders endpoint does not accept search in backend currently)
-                var response = await _orderService.GetOrdersAsync(
-                    fromDate: FromDate?.DateTime,
-                    toDate: ToDate?.DateTime,
-                    pageIndex: PageIndex,
-                    pageSize: PageSize);
+                var request = new GetOrdersRequest
+                {
+                    PageIndex = PageIndex,
+                    PageSize = PageSize,
+                    FromDate = FromDate?.DateTime,
+                    ToDate = ToDate?.DateTime
+                };
+
+                var response = await _orderService.GetOrdersAsync(request);
 
                 Orders.Clear();
 
@@ -196,16 +199,13 @@ namespace MyShop_Frontend.ViewModels.Orders
 
                 foreach (var order in items)
                 {
-                    // Normalize status names for UI (English only)
-                    order.StatusName = order.StatusName switch
+                    order.StatusName = order.StatusName.ToLower() switch
                     {
-                        "Completed" => "Paid",
-                        "Canceled" => "Canceled",
-                        "Delivering" => "Paid", // backend legacy
-                        "New" => "New",
-                        _ => order.StatusName
+                        "completed" or "paid" or "hoàn thành" => "Paid",
+                        "canceled" or "cancelled" or "đã hủy" => "Canceled",
+                        "delivering" => "Paid", // legacy mapping
+                        _ => "New"
                     };
-
                     Orders.Add(order);
                 }
 

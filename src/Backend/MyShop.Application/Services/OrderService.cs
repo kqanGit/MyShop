@@ -53,9 +53,9 @@ namespace MyShop.Application.Services
                 {
                     OrderCode = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}",
                     OrderDate = DateTime.UtcNow,
-                    UserId = userId, // ID of salesperson or the logged-in user
-                    CustomerId = request.CustomerId, 
-                    Status = 1
+                    UserId = userId,
+                    CustomerId = request.CustomerId,
+                    Status = request.Status <= 0 ? 1 : request.Status
                 };
 
                 decimal totalPrice = 0;
@@ -209,7 +209,7 @@ namespace MyShop.Application.Services
                 OrderCode = o.OrderCode,
                 OrderDate = o.OrderDate,
                 FinalPrice = o.FinalPrice,
-                StatusName = o.Status switch { 1 => "New", 2 => "Delivering", 3 => "Completed", _ => "Other" },
+                StatusName = o.Status switch { 1 => "New", 2 => "Paid", 3 => "Canceled", _ => "Other" },
                 TotalItems = o.OrderDetails.Count
             }).ToList();
 
@@ -233,10 +233,10 @@ namespace MyShop.Application.Services
 
                 Status = order.Status switch
                 {
-                    1 => "Mới tạo",
-                    2 => "Đang giao",
-                    3 => "Hoàn thành",
-                    _ => "Không xác định"
+                    1 => "New",
+                    2 => "Paid",
+                    3 => "Canceled",
+                    _ => "Unknown"
                 },
                 VoucherCode = order.Voucher.VoucherCode ?? "None",
                 TotalPrice = order.TotalPrice,

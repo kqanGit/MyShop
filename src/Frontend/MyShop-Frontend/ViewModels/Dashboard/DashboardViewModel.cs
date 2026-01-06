@@ -4,7 +4,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
-using MyShop_Frontend.Contracts.Dtos.Stats;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.ViewModels.Base;
 using SkiaSharp;
@@ -162,9 +162,9 @@ namespace MyShop_Frontend.ViewModels.Dashboard
         }
 
         // ===== Collections (using DTOs directly) =====
-        public ObservableCollection<RevenueChartPointDto> RevenueChartData { get; } = new();
-        public ObservableCollection<TopSellingProductDto> TopProducts { get; } = new();
-        public ObservableCollection<LowStockProductDto> LowStockProducts { get; } = new();
+        public ObservableCollection<RevenueChartDto> RevenueChartData { get; } = new();
+        public ObservableCollection<TopProductDto> TopProducts { get; } = new();
+        public ObservableCollection<ProductLowStockDto> LowStockProducts { get; } = new();
 
         // ===== LiveCharts Properties =====
         private ISeries[] _revenueProfitSeries = [];
@@ -253,10 +253,10 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                 IsLoading = true;
                 Error = null;
 
-                var dto = await _dashboardService.GetDashboardAsync(
+                var dto = await _dashboardService.GetDashboardStatsAsync(
                     FromDate.DateTime.Date,
                     ToDate.DateTime.Date,
-                    SelectedGroupBy,
+                    (StatsGroupBy)SelectedGroupBy,
                     ct
                 );
 
@@ -278,8 +278,11 @@ namespace MyShop_Frontend.ViewModels.Dashboard
 
                 // Revenue Chart Data
                 RevenueChartData.Clear();
-                foreach (var p in dto.RevenueChart)
-                    RevenueChartData.Add(p);
+                if (dto.RevenueChart != null)
+                {
+                    foreach (var p in dto.RevenueChart)
+                        RevenueChartData.Add(p);
+                }
 
                 // Update LiveCharts
                 UpdateCharts(dto);
@@ -287,11 +290,13 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                 // Top Products with rank and formatted values
                 TopProducts.Clear();
                 int rank = 1;
-                foreach (var p in dto.TopSellingProducts)
+                if (dto.TopSellingProducts != null)
                 {
-                    p.Rank = rank++;
-                    p.RevenueText = string.Format(_culture, "{0:N0}đ", p.Revenue);
-                    TopProducts.Add(p);
+                    foreach (var p in dto.TopSellingProducts)
+                    {
+                        TopProducts.Add(p);
+                        rank++;
+                    }
                 }
 
                 // Low Stock Products
@@ -317,7 +322,7 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             }
         }
 
-        private void CalculateChangePercents(List<RevenueChartPointDto>? chartData)
+        private void CalculateChangePercents(List<RevenueChartDto>? chartData)
         {
             decimal revenueChange = 0;
             decimal profitChange = 0;
@@ -342,8 +347,11 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             ProfitChangeColor = new SolidColorBrush(profitChange >= 0 ? Colors.Green : Colors.Red);
         }
 
-        private void UpdateCharts(DashboardResponseDto dto)
+        private void UpdateCharts(DashboardStatsDto dto)
         {
+            if (dto.RevenueChart == null || dto.RevenueChart.Count == 0)
+                return;
+
             // Update Revenue/Profit Chart
             var revenueValues = dto.RevenueChart.Select(x => (double)x.Revenue).ToArray();
             var profitValues = dto.RevenueChart.Select(x => (double)x.Profit).ToArray();
@@ -401,10 +409,12 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                 var file = await picker.PickSaveFileAsync();
                 if (file != null)
                 {
-                    var bytes = await _dashboardService.ExportExcelAsync(
+                    var reportService = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IReportService>(App.Services);
+                    
+                    var bytes = await reportService.ExportToExcelAsync(
                         FromDate.DateTime.Date,
                         ToDate.DateTime.Date,
-                        SelectedGroupBy
+                        (StatsGroupBy)SelectedGroupBy
                     );
 
                     await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);

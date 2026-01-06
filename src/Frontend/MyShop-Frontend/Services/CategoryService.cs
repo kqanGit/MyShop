@@ -1,3 +1,4 @@
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Models;
 using System.Collections.Generic;
@@ -20,5 +21,10 @@ namespace MyShop_Frontend.Services
 
         public Task<Category?> GetCategoryByIdAsync(int id, CancellationToken ct = default)
             => _api.GetAsync<Category>($"api/Category/{id}", ct);
+
+        public async Task<Category> CreateCategoryAsync(CreateCategoryDto request, CancellationToken ct = default)
+        {
+            return await _api.PostAsync<Category>("api/Category", request, ct);
+        }
     }
 }

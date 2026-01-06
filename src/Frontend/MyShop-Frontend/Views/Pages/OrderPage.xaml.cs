@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
-using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Orders;
 using MyShop_Frontend.Views.Controls.Order;
 using System;
@@ -36,7 +36,7 @@ namespace MyShop_Frontend.Views.Pages
 
         private async void ViewDetails_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuFlyoutItem item && item.CommandParameter is Order order)
+            if (sender is MenuFlyoutItem item && item.CommandParameter is OrderSummaryDto order)
             {
                 try
                 {
@@ -45,7 +45,15 @@ namespace MyShop_Frontend.Views.Pages
                     var sb = new System.Text.StringBuilder();
                     sb.AppendLine($"Order: {detail.OrderCode}");
                     sb.AppendLine($"Date: {detail.OrderDate:dd/MM/yyyy HH:mm}");
-                    sb.AppendLine($"Status: {detail.Status}");
+                    var normalizedStatus = detail.Status.ToLower() switch
+                    {
+                        "completed" or "paid" or "hoàn thành" => "Paid",
+                        "canceled" or "cancelled" or "đã hủy" => "Canceled",
+                        "delivering" => "Paid",
+                        _ => "New"
+                    };
+
+                    sb.AppendLine($"Status: {normalizedStatus}");
                     sb.AppendLine($"Voucher: {detail.VoucherCode ?? "None"}");
                     sb.AppendLine($"Total: {detail.TotalPrice:N0}  Discount: {detail.DiscountAmount:N0}  Final: {detail.FinalPrice:N0}");
                     sb.AppendLine();
@@ -94,7 +102,7 @@ namespace MyShop_Frontend.Views.Pages
 
         private async void DeleteOrder_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuFlyoutItem item && item.CommandParameter is Order order)
+            if (sender is MenuFlyoutItem item && item.CommandParameter is OrderSummaryDto order)
             {
                 var confirm = new ContentDialog
                 {
