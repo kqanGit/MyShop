@@ -1,5 +1,5 @@
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
-using MyShop_Frontend.Models;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,55 +15,56 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
-        public async Task<PagedResult<Customer>> GetCustomersAsync(int pageIndex, int pageSize, string? phone = null, string? name = null, int? tierId = null, CancellationToken ct = default)
+        public async Task<PagedResult<CustomerDto>> GetCustomersAsync(int pageIndex = 1, int pageSize = 10, CancellationToken ct = default)
         {
-            string url;
-            if (!string.IsNullOrEmpty(phone) || !string.IsNullOrEmpty(name) || tierId.HasValue)
+            return await _api.GetAsync<PagedResult<CustomerDto>>($"api/customers?pageIndex={pageIndex}&pageSize={pageSize}", ct);
+        }
+
+        public async Task<PagedResult<CustomerDto>> SearchCustomersAsync(
+            int pageIndex = 1, 
+            int pageSize = 10, 
+            string? phone = null, 
+            string? name = null, 
+            int? tierId = null, 
+            CancellationToken ct = default)
+        {
+            var queryParams = new List<string>
             {
-                url = $"api/customers/search?pageIndex={pageIndex}&pageSize={pageSize}";
-                if (!string.IsNullOrEmpty(phone)) url += $"&phone={System.Uri.EscapeDataString(phone)}";
-                if (!string.IsNullOrEmpty(name)) url += $"&name={System.Uri.EscapeDataString(name)}";
-                if (tierId.HasValue) url += $"&tierId={tierId}";
-            }
-            else
-            {
-                url = $"api/customers?pageIndex={pageIndex}&pageSize={pageSize}"; // Or maybe use search endpoint always if simplified?
-            }
-            
-            return await _api.GetAsync<PagedResult<Customer>>(url, ct);
+                $"pageIndex={pageIndex}",
+                $"pageSize={pageSize}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(phone))
+                queryParams.Add($"phone={phone}");
+
+            if (!string.IsNullOrWhiteSpace(name))
+                queryParams.Add($"name={name}");
+
+            if (tierId.HasValue)
+                queryParams.Add($"tierId={tierId}");
+
+            var query = string.Join("&", queryParams);
+            return await _api.GetAsync<PagedResult<CustomerDto>>($"api/customers/search?{query}", ct);
         }
 
-        public async Task<Customer> AddCustomerAsync(Customer customer, CancellationToken ct = default)
+        public async Task<CustomerDetailDto> GetCustomerDetailAsync(int id, CancellationToken ct = default)
         {
-            return await _api.PostAsync<Customer>("api/customers", customer, ct);
+            return await _api.GetAsync<CustomerDetailDto>($"api/customers/{id}", ct);
         }
 
-        public async Task<Customer> UpdateCustomerAsync(Customer customer, CancellationToken ct = default)
+        public async Task<CustomerDto> CreateCustomerAsync(CreateCustomerDto request, CancellationToken ct = default)
         {
-            return await _api.PutAsync<Customer>($"api/customers/{customer.CustomerId}", customer, ct);
+            return await _api.PostAsync<CustomerDto>("api/customers", request, ct);
         }
 
-        public async Task DeleteCustomerAsync(int customerId, CancellationToken ct = default)
+        public async Task<CustomerDto> UpdateCustomerAsync(int id, UpdateCustomerDto request, CancellationToken ct = default)
         {
-            await _api.DeleteAsync($"api/customers/{customerId}", ct);
+            return await _api.PutAsync<CustomerDto>($"api/customers/{id}", request, ct);
         }
 
-        public async Task<IEnumerable<Customer>> SearchCustomersAsync(string? phone, string? name, CancellationToken ct = default)
+        public async Task<bool> DeleteCustomerAsync(int id, CancellationToken ct = default)
         {
-             // For now, adhere to the interface. 
-             // If the backend doesn't support this specific search yet, we might need to adjust or stub it.
-             // But the prompt demanded "GetCustomers" for the list.
-             // I will leave this as a stub or implement if I know the API.
-             // The prompt didn't specify search API. I'll return empty list or throw for now to focus on the main task.
-             // Or better, since I'm replacing mock data, I should probably try to use the same API if possible or just NotImplemented.
-             // I'll return empty to avoid crashes if called.
-             return new List<Customer>(); 
-        }
-
-        public async Task<Customer?> GetCustomerDetailAsync(int customerId, CancellationToken ct = default)
-        {
-            // Stub implementation
-            return null; 
+            return await _api.DeleteAsync($"api/customers/{id}", ct);
         }
     }
 }

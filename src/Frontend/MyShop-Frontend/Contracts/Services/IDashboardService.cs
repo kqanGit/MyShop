@@ -1,4 +1,4 @@
-﻿using MyShop_Frontend.Contracts.Dtos.Stats;
+﻿using MyShop_Frontend.Contracts.Dtos;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +7,13 @@ namespace MyShop_Frontend.Contracts.Services
 {
     public interface IDashboardService
     {
-        Task<DashboardResponseDto> GetDashboardAsync(DateTime fromDate, DateTime toDate, int groupBy, CancellationToken ct = default);
-
-        Task<byte[]> ExportExcelAsync(DateTime fromDate, DateTime toDate, int groupBy, CancellationToken ct = default);
+        /// <summary>
+        /// GET /api/Stats/dashboard
+        /// </summary>
+        Task<DashboardStatsDto> GetDashboardStatsAsync(
+            DateTime? fromDate = null, 
+            DateTime? toDate = null, 
+            StatsGroupBy groupBy = StatsGroupBy.Day, 
+            CancellationToken ct = default);
     }
 }

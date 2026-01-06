@@ -7,6 +7,7 @@ namespace MyShop.Application.DTOs
         public int CustomerId { get; set; }     
         public string? VoucherCode { get; set; } 
         public string? Note { get; set; }
+        public int Status { get; set; } = 1; // 1=New, 2=Paid, 3=Canceled
 
         public List<CartItemDto> Items { get; set; } = new List<CartItemDto>();
     }

@@ -1,6 +1,7 @@
-﻿using MyShop_Frontend.Contracts.Dtos.Stats;
+﻿using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,32 +11,30 @@ namespace MyShop_Frontend.Services
     {
         private readonly IApiClient _api;
 
-        public DashboardService(IApiClient api) => _api = api;
-
-        public Task<DashboardResponseDto> GetDashboardAsync(DateTime fromDate, DateTime toDate, int groupByIndex, CancellationToken ct = default)
+        public DashboardService(IApiClient api)
         {
-            // groupByIndex from ComboBox: 0=Day, 1=Week, 2=Month, 3=Year
-            // API expects: 1=Day, 2=Week, 3=Month, 4=Year
-            var groupBy = groupByIndex + 1;
-
-            var from = fromDate.ToString("yyyy-MM-dd");
-            var to = toDate.ToString("yyyy-MM-dd");
-
-            var url = $"api/Stats/dashboard?fromDate={from}&toDate={to}&groupBy={groupBy}";
-            return _api.GetAsync<DashboardResponseDto>(url, ct);
+            _api = api;
         }
 
-        public Task<byte[]> ExportExcelAsync(DateTime fromDate, DateTime toDate, int groupByIndex, CancellationToken ct = default)
+        public async Task<DashboardStatsDto> GetDashboardStatsAsync(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            StatsGroupBy groupBy = StatsGroupBy.Day,
+            CancellationToken ct = default)
         {
-            // groupByIndex from ComboBox: 0=Day, 1=Week, 2=Month, 3=Year
-            // API expects: 1=Day, 2=Week, 3=Month, 4=Year
-            var groupBy = groupByIndex + 1;
+            var queryParams = new List<string>
+            {
+                $"groupBy={(int)groupBy}"
+            };
 
-            var from = fromDate.ToString("yyyy-MM-dd");
-            var to = toDate.ToString("yyyy-MM-dd");
+            if (fromDate.HasValue)
+                queryParams.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
 
-            var url = $"api/Stats/export-excel?fromDate={from}&toDate={to}&groupBy={groupBy}";
-            return _api.GetBytesAsync(url, ct);
+            if (toDate.HasValue)
+                queryParams.Add($"toDate={toDate.Value:yyyy-MM-dd}");
+
+            var query = string.Join("&", queryParams);
+            return await _api.GetAsync<DashboardStatsDto>($"api/Stats/dashboard?{query}", ct);
         }
     }
 }

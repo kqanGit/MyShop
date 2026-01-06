@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.MockData;
 using MyShop_Frontend.Models;
@@ -331,15 +332,15 @@ namespace MyShop_Frontend.Views.Controls.Order
 
         // ===== Actions =====
         private void Cancel_Click(object sender, RoutedEventArgs e)
-            => Hide();
+            => _ = SubmitAsync(statusCode: 3);
 
         private void Create_Click(object sender, RoutedEventArgs e)
-            => _ = SubmitAsync(payNow: false);
+            => _ = SubmitAsync(statusCode: 1);
 
         private void Pay_Click(object sender, RoutedEventArgs e)
-            => _ = SubmitAsync(payNow: true);
+            => _ = SubmitAsync(statusCode: 2);
 
-        private async Task SubmitAsync(bool payNow, CancellationToken ct = default)
+        private async Task SubmitAsync(int statusCode, CancellationToken ct = default)
         {
             if (Lines.Count == 0)
             {
@@ -367,6 +368,7 @@ namespace MyShop_Frontend.Views.Controls.Order
                 CustomerId = customerId,
                 VoucherCode = voucher,
                 Note = null,
+                Status = statusCode,
                 Items = Lines.Select(l => new CartItemDto
                 {
                     ProductId = l.ProductId,
@@ -377,7 +379,7 @@ namespace MyShop_Frontend.Views.Controls.Order
             if (_isOffline)
             {
                 await ShowInlineInfoAsync(
-                    payNow
+                    statusCode == 2
                         ? "Offline mode: order created locally. Payment is not available offline."
                         : "Offline mode: order saved locally (not synced).",
                     closeAfter: true);
@@ -388,9 +390,14 @@ namespace MyShop_Frontend.Views.Controls.Order
             {
                 await _orderService.CreateOrderAsync(req, ct);
 
-                await ShowInlineInfoAsync(
-                    payNow ? "Order created. Continue to payment flow." : "Order created.",
-                    closeAfter: true);
+                string msg = statusCode switch
+                {
+                    2 => "Order created and marked as Paid.",
+                    3 => "Order created and marked as Canceled.",
+                    _ => "Order created."
+                };
+
+                await ShowInlineInfoAsync(msg, closeAfter: true);
             }
             catch (Exception ex)
             {

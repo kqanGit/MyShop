@@ -1,6 +1,7 @@
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
-using MyShop_Frontend.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,30 +16,37 @@ namespace MyShop_Frontend.Services
             _api = api;
         }
 
-        public Task<OrderResultDto> CreateOrderAsync(CreateOrderRequest request, CancellationToken ct = default)
-            => _api.PostAsync<OrderResultDto>("api/Orders", request, ct);
-
-        public Task<OrderResponse> GetOrdersAsync(DateTime? fromDate, DateTime? toDate, int pageIndex = 1, int pageSize = 10, CancellationToken ct = default)
+        public async Task<OrderResultDto> CreateOrderAsync(CreateOrderRequest request, CancellationToken ct = default)
         {
-            var url = $"api/Orders?pageIndex={pageIndex}&pageSize={pageSize}";
-
-            if (fromDate.HasValue)
-                url += $"&from_date={fromDate.Value:yyyy-MM-dd}";
-
-            if (toDate.HasValue)
-                url += $"&to_date={toDate.Value:yyyy-MM-dd}";
-
-            // user_id is derived from token on backend in most flows; do not pass here.
-
-            return _api.GetAsync<OrderResponse>(url, ct);
+            return await _api.PostAsync<OrderResultDto>("api/Orders", request, ct);
         }
 
-        public Task<OrderDetailDto> GetOrderByIdAsync(int id, CancellationToken ct = default)
-            => _api.GetAsync<OrderDetailDto>($"api/Orders/{id}", ct);
-
-        public async Task DeleteOrderAsync(int id, CancellationToken ct = default)
+        public async Task<PagedResult<OrderSummaryDto>> GetOrdersAsync(GetOrdersRequest request, CancellationToken ct = default)
         {
-            await _api.DeleteAsync($"api/Orders/{id}", ct);
+            var queryParams = new List<string>
+            {
+                $"pageIndex={request.PageIndex}",
+                $"pageSize={request.PageSize}"
+            };
+
+            if (request.FromDate.HasValue)
+                queryParams.Add($"fromDate={request.FromDate.Value:yyyy-MM-dd}");
+
+            if (request.ToDate.HasValue)
+                queryParams.Add($"toDate={request.ToDate.Value:yyyy-MM-dd}");
+
+            var query = string.Join("&", queryParams);
+            return await _api.GetAsync<PagedResult<OrderSummaryDto>>($"api/Orders?{query}", ct);
+        }
+
+        public async Task<OrderResponseDto> GetOrderByIdAsync(int orderId, CancellationToken ct = default)
+        {
+            return await _api.GetAsync<OrderResponseDto>($"api/Orders/{orderId}", ct);
+        }
+
+        public async Task<bool> DeleteOrderAsync(int orderId, CancellationToken ct = default)
+        {
+            return await _api.DeleteAsync($"api/Orders/{orderId}", ct);
         }
     }
 }
