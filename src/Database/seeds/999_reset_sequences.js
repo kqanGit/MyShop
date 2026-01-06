@@ -26,6 +26,7 @@ exports.seed = async function (knex) {
         await resetSequence('Product', 'product_id');
         await resetSequence('Voucher', 'voucher_id');
         await resetSequence('Order', 'order_id');
+        await resetSequence('Image', 'image_id');
 
         console.log('✅ Sequences reset successfully');
     } catch (error) {

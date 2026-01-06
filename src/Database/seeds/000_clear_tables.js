@@ -7,6 +7,7 @@
 exports.seed = async function(knex) {
   // Use a transaction and delete in child-first order
   await knex.transaction(async trx => {
+    await trx('Image').del();
     await trx('User_Config').del();
     await trx('OrderDetail').del();
     await trx('Order').del();
