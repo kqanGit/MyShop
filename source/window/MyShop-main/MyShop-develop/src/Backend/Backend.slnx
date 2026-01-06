@@ -1,6 +1,0 @@
-<Solution>
-  <Project Path="MyShop.Application/MyShop.Application.csproj" Id="c94ab67d-8b5c-40da-9595-cab153ddc2be" />
-  <Project Path="MyShop.Domain/MyShop.Domain.csproj" />
-  <Project Path="MyShop.Infrastructure/MyShop.Infrastructure.csproj" Id="89c3408e-afe6-40c6-a91f-8e1e89aef08c" />
-  <Project Path="MyShop.Presentation/MyShop.Presentation.csproj" Id="44d55ee2-5136-47fa-b0cf-a400decec1c2" />
-</Solution>
