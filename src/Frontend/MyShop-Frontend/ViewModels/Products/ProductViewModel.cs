@@ -10,7 +10,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Storage.Pickers;
+using Windows.Storage;
+using WinRT.Interop;
 
 namespace MyShop_Frontend.ViewModels.Products
 {
@@ -539,14 +543,96 @@ namespace MyShop_Frontend.ViewModels.Products
 
         private async Task ImportAsync()
         {
-            var dlg = new ContentDialog
+            var picker = new FileOpenPicker();
+            picker.ViewMode = PickerViewMode.List;
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            picker.FileTypeFilter.Add(".csv");
+
+            // Helper to initialize picker with window handle
+            var windowHandle = WindowNative.GetWindowHandle(App.MainWindow);
+            InitializeWithWindow.Initialize(picker, windowHandle);
+
+            var file = await picker.PickSingleFileAsync();
+            if (file == null) return;
+
+            IsLoading = true;
+            try
             {
-                XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
-                Title = "Import",
-                Content = "Import from Excel/Access requires an import API endpoint (not provided).",
-                CloseButtonText = "OK"
-            };
-            await dlg.ShowAsync();
+                var lines = await FileIO.ReadLinesAsync(file);
+                // Assume Header: ProductName,CategoryId,Unit,Cost,Price,Stock,Image
+                // Skip header
+                var dataLines = lines.Skip(1);
+                
+                int count = 0;
+                foreach (var line in dataLines)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    var parts = line.Split(',');
+                    if (parts.Length < 6) continue; // Basic validation
+
+                    // Simple CSV parsing (assuming no commas in values for now)
+                    /* 
+                       0: Name
+                       1: CategoryId
+                       2: Unit
+                       3: Cost
+                       4: Price
+                       5: Stock
+                       6: Image (Optional)
+                    */
+
+                    try
+                    {
+                        var product = new Product
+                        {
+                            ProductName = parts[0].Trim(),
+                            CategoryId = int.TryParse(parts[1], out var cid) ? cid : 1, // Default to 1 if invalid
+                            Unit = parts[2].Trim(),
+                            Cost = decimal.TryParse(parts[3], out var c) ? c : 0,
+                            Price = decimal.TryParse(parts[4], out var p) ? p : 0,
+                            Stock = int.TryParse(parts[5], out var s) ? s : 0,
+                            Image = parts.Length > 6 ? parts[6].Trim() : string.Empty,
+                            IsRemoved = false
+                        };
+
+                        await _productService.AddProductAsync(product);
+                        count++;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to import line: {line}. Error: {ex.Message}");
+                    }
+                }
+
+                await LoadProductsAsync();
+
+                var dlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Import Successful",
+                    Content = $"Imported {count} products successfully.",
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await dlg.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                var errorDlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Import Failed",
+                    Content = $"An error occurred: {ex.Message}",
+                    CloseButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await errorDlg.ShowAsync();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task ViewProductAsync(Product? product)
