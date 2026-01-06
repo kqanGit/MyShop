@@ -41,6 +41,7 @@ exports.seed = async function (knex) {
       discount_amount: 0,
       final_price: 60000,
       status: 2
+      
     }
   ]);
 };
