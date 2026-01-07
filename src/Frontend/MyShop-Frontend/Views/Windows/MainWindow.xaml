@@ -156,46 +156,28 @@
                         </StackPanel>
 
                         <!-- Center: Search Box -->
-                        <Border Grid.Column="1"
-                                Background="#F8FAFC"
-                                BorderBrush="#E2E8F0"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Margin="40,0"
-                                MaxWidth="480"
-                                MinWidth="280"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Padding="4">
-
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Search Icon -->
-                                <controls:AppButton Grid.Column="0"
-                                                    Background="#5D5FEF"
-                                                    CornerRadius="8"
-                                                    Padding="10"
-                                                    Margin="2">
-                                    <FontIcon Glyph="&#xE721;"
-                                              FontSize="14"
-                                              Foreground="White"/>
-                                </controls:AppButton>
-
-                                <!-- Search Input -->
-                                <TextBox Grid.Column="1"
-                                         PlaceholderText="Search products, orders, customers..."
-                                         Background="Transparent"
-                                         BorderThickness="0"
-                                         VerticalAlignment="Center"
-                                         Padding="12,10"
-                                         FontSize="14"/>
-                            </Grid>
-                        </Border>
+                        <AutoSuggestBox Grid.Column="1"
+                                        x:Name="GlobalSearchBox"
+                                        PlaceholderText="Search products, orders, customers..."
+                                        Width="400"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        QueryIcon="Find"
+                                        Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}"
+                                        ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}"
+                                        SuggestionChosen="GlobalSearchBox_SuggestionChosen">
+                            <AutoSuggestBox.ItemTemplate>
+                                <DataTemplate x:DataType="local:ViewModels.SearchResult">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Padding="4">
+                                        <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="16" Width="20"/>
+                                        <StackPanel>
+                                            <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{x:Bind Description}" FontSize="12" Foreground="Gray"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </AutoSuggestBox.ItemTemplate>
+                        </AutoSuggestBox>
 
                         <!-- Right: Actions + User -->
                         <StackPanel Grid.Column="2"

@@ -133,5 +133,8 @@ namespace MyShop_Frontend.Contracts.Dtos
 
         [JsonPropertyName("toDate")]
         public DateTime? ToDate { get; set; }
+
+        [JsonPropertyName("searchTerm")]
+        public string? SearchTerm { get; set; }
     }
 }
