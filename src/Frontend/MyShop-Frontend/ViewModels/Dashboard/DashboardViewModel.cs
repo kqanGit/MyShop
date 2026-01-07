@@ -16,23 +16,26 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using System.Data;
 
 namespace MyShop_Frontend.ViewModels.Dashboard
 {
     public sealed class DashboardViewModel : ViewModelBase
     {
         private readonly IDashboardService _dashboardService;
+        private readonly IOrderService _orderService;
         private readonly CultureInfo _culture = CultureInfo.GetCultureInfo("vi-VN");
 
         public DashboardViewModel(IDashboardService dashboardService)
         {
             _dashboardService = dashboardService;
+            _orderService = App.Services.GetRequiredService<IOrderService>();
 
-            FromDate = new DateTimeOffset(new DateTime(2020, 1, 1));
-            ToDate = new DateTimeOffset(DateTime.Today);
-            SelectedGroupBy = 3; // ComboBox index: 0=Day, 1=Week, 2=Month, 3=Year
+            FromDate = DateTimeOffset.Now;
+            ToDate = DateTimeOffset.Now;
+            SelectedGroupBy = (int)StatsGroupBy.Day;
 
-            // Initialize empty chart
             InitializeCharts();
         }
 
@@ -161,10 +164,13 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             set => SetProperty(ref _lowStockCount, value);
         }
 
-        // ===== Collections (using DTOs directly) =====
+        // ===== Collections (using display models) =====
         public ObservableCollection<RevenueChartDto> RevenueChartData { get; } = new();
-        public ObservableCollection<TopProductDto> TopProducts { get; } = new();
-        public ObservableCollection<ProductLowStockDto> LowStockProducts { get; } = new();
+        public ObservableCollection<TopProductDisplay> TopProducts { get; } = new();
+        public ObservableCollection<LowStockDisplay> LowStockProducts { get; } = new();
+
+        // Recent orders
+        public ObservableCollection<OrderSummaryDto> RecentOrders { get; } = new();
 
         // ===== LiveCharts Properties =====
         private ISeries[] _revenueProfitSeries = [];
@@ -253,63 +259,84 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                 IsLoading = true;
                 Error = null;
 
-                var dto = await _dashboardService.GetDashboardStatsAsync(
-                    FromDate.DateTime.Date,
-                    ToDate.DateTime.Date,
-                    (StatsGroupBy)SelectedGroupBy,
-                    ct
-                );
+                var today = DateTime.Today;
+                var kpiStart = today.AddDays(-1); // include yesterday
+                var monthStart = new DateTime(today.Year, today.Month, 1);
 
-                // Format KPI values
-                TotalRevenue = string.Format(_culture, "{0:N0} ₫", dto.TotalRevenue);
-                TotalProfit = string.Format(_culture, "{0:N0} ₫", dto.TotalProfit);
-                TotalOrders = dto.TotalOrders.ToString("N0", _culture);
-                NewCustomers = dto.NewCustomersCount.ToString("N0", _culture);
+                // KPIs: today only
+                var kpiTask = _dashboardService.GetDashboardStatsAsync(kpiStart, today, StatsGroupBy.Day, ct);
+                // Charts/top/low stock: current month
+                var monthTask = _dashboardService.GetDashboardStatsAsync(monthStart, today, StatsGroupBy.Day, ct);
+                // Recent 3 orders (newest first handled by API paging)
+                var ordersTask = _orderService.GetOrdersAsync(new GetOrdersRequest { PageIndex = 1, PageSize = 3 }, ct);
 
-                // Calculate total products sold and average order value
-                int totalProductsSold = dto.RevenueChart?.Sum(c => c.TotalQuantity) ?? 0;
+                await Task.WhenAll(kpiTask, monthTask, ordersTask);
+
+                var kpi = kpiTask.Result;
+                var month = monthTask.Result;
+                var recent = ordersTask.Result;
+
+                // Format KPI values from today
+                TotalRevenue = string.Format(_culture, "{0:N0} ₫", kpi.TotalRevenue);
+                TotalProfit = string.Format(_culture, "{0:N0} ₫", kpi.TotalProfit);
+                TotalOrders = kpi.TotalOrders.ToString("N0", _culture);
+                NewCustomers = kpi.NewCustomersCount.ToString("N0", _culture);
+
+                int totalProductsSold = kpi.RevenueChart?.Sum(c => c.TotalQuantity) ?? 0;
                 TotalProductsSold = totalProductsSold.ToString("N0", _culture);
 
-                decimal avgOrderValue = dto.TotalOrders > 0 ? dto.TotalRevenue / dto.TotalOrders : 0;
+                decimal avgOrderValue = kpi.TotalOrders > 0 ? kpi.TotalRevenue / kpi.TotalOrders : 0;
                 AverageOrderValue = string.Format(_culture, "{0:N0} ₫", avgOrderValue);
 
-                // Calculate change percentages from chart data
-                CalculateChangePercents(dto.RevenueChart);
+                CalculateChangePercents(month.RevenueChart);
 
-                // Revenue Chart Data
+                // Month chart data and top/low stock
                 RevenueChartData.Clear();
-                if (dto.RevenueChart != null)
+                if (month.RevenueChart != null)
                 {
-                    foreach (var p in dto.RevenueChart)
+                    foreach (var p in month.RevenueChart)
                         RevenueChartData.Add(p);
                 }
+                UpdateCharts(month);
 
-                // Update LiveCharts
-                UpdateCharts(dto);
-
-                // Top Products with rank and formatted values
                 TopProducts.Clear();
-                int rank = 1;
-                if (dto.TopSellingProducts != null)
+                if (month.TopSellingProducts != null)
                 {
-                    foreach (var p in dto.TopSellingProducts)
+                    int rank = 1;
+                    foreach (var p in month.TopSellingProducts)
                     {
-                        TopProducts.Add(p);
-                        rank++;
+                        TopProducts.Add(new TopProductDisplay
+                        {
+                            Rank = rank++,
+                            ProductName = p.ProductName ?? "Unknown",
+                            QuantitySoldText = string.Format(_culture, "{0:N0} sold", p.QuantitySold),
+                            RevenueText = string.Format(_culture, "{0:N0} ₫", p.Revenue)
+                        });
                     }
                 }
 
-                // Low Stock Products
                 LowStockProducts.Clear();
-                if (dto.LowStockProducts != null)
+                if (month.LowStockProducts != null)
                 {
-                    foreach (var p in dto.LowStockProducts)
-                        LowStockProducts.Add(p);
-                    LowStockCount = dto.LowStockProducts.Count;
+                    foreach (var p in month.LowStockProducts)
+                        LowStockProducts.Add(new LowStockDisplay
+                        {
+                            ProductName = p.ProductName ?? "Unknown",
+                            StockText = string.Format(_culture, "{0:N0} left", p.Stock)
+                        });
+                    LowStockCount = month.LowStockProducts.Count;
                 }
                 else
                 {
                     LowStockCount = 0;
+                }
+
+                // Recent orders
+                RecentOrders.Clear();
+                if (recent?.Items != null)
+                {
+                    foreach (var o in recent.Items)
+                        RecentOrders.Add(o);
                 }
             }
             catch (Exception ex)
@@ -428,6 +455,20 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             {
                 IsLoading = false;
             }
+        }
+
+        public sealed class TopProductDisplay
+        {
+            public int Rank { get; set; }
+            public string ProductName { get; set; } = string.Empty;
+            public string QuantitySoldText { get; set; } = string.Empty;
+            public string RevenueText { get; set; } = string.Empty;
+        }
+
+        public sealed class LowStockDisplay
+        {
+            public string ProductName { get; set; } = string.Empty;
+            public string StockText { get; set; } = string.Empty;
         }
     }
 }

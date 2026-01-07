@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MyShop_Frontend.Contracts.Services;
+using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Helpers.Command;
 using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Base;
@@ -9,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.Storage.Pickers;
@@ -24,6 +24,7 @@ namespace MyShop_Frontend.ViewModels.Products
         private readonly ICategoryService _categoryService;
         private readonly MyShop_Frontend.Contracts.Services.IUserSettingsStore _userSettings;
         private readonly ITokenStore _tokenStore;
+        private readonly IUserConfigService _userConfigService;
         private readonly bool _canManageProducts;
         private List<Product> _allProducts = new();
         private Dictionary<int, string> _categoryIdToName = new();
@@ -117,87 +118,135 @@ namespace MyShop_Frontend.ViewModels.Products
         public ICommand PreviousPageCommand { get; }
         public ICommand AddCategoryCommand { get; }
         public ICommand ImportCommand { get; }
-        public ICommand ExportCommand { get; }
 
         public int TotalRecords { get; set; }
         public string ShowingStatus => $"Showing {Products.Count} of {TotalRecords} products (Page {PageIndex} of {TotalPages})";
 
         public int TotalPages => TotalRecords == 0 ? 0 : (int)Math.Ceiling((double)TotalRecords / PageSize);
 
-        private int _pageIndex = 1;
-        public int PageIndex
-        {
-            get => _pageIndex;
-            set { if (_pageIndex != value) { _pageIndex = value; OnPropertyChanged(nameof(PageIndex)); OnPropertyChanged(nameof(ShowingStatus)); } }
-        }
+        public int[] PageSizeOptions { get; } = new[] { 5, 10, 20, 50 };
+ 
+         private int _pageIndex = 1;
+         public int PageIndex
+         {
+             get => _pageIndex;
+             set { if (_pageIndex != value) { _pageIndex = value; OnPropertyChanged(nameof(PageIndex)); OnPropertyChanged(nameof(ShowingStatus)); } }
+         }
+ 
+         private int _pageSize = 5;
+         public int PageSize
+         {
+             get => _pageSize;
+             set
+             {
+                 if (_pageSize == value) return;
+                 _pageSize = value;
+                 _userSettings.SetProductsPageSize(value);
+                 _ = SaveUserConfigAsync();
+                 PageIndex = 1;
+                 OnPropertyChanged(nameof(PageSize));
+                 OnPropertyChanged(nameof(TotalPages));
+                 OnPropertyChanged(nameof(ShowingStatus));
+                 _ = LoadProductsAsync();
+             }
+         }
+ 
+         private int _selectedPageSize;
+         public int SelectedPageSize
+         {
+             get => _selectedPageSize;
+             set
+             {
+                 if (_selectedPageSize == value) return;
+                 _selectedPageSize = value;
+                 PageSize = value;
+                 OnPropertyChanged(nameof(SelectedPageSize));
+             }
+         }
+ 
+         public ProductViewModel()
+         {
+             _productService = App.Services.GetRequiredService<IProductService>();
+             _categoryService = App.Services.GetRequiredService<ICategoryService>();
+             _userSettings = App.Services.GetRequiredService<MyShop_Frontend.Contracts.Services.IUserSettingsStore>();
+             _tokenStore = App.Services.GetRequiredService<ITokenStore>();
+             _userConfigService = App.Services.GetRequiredService<IUserConfigService>();
+ 
+             var role = _tokenStore.GetRole()?.ToLowerInvariant();
+             _canManageProducts = role == "1" || role == "admin" || role == "2" || role == "manager";
+ 
+             PageSize = _userSettings.GetProductsPageSize(defaultValue: 10);
+             SelectedPageSize = PageSize;
+ 
+             ViewProductCommand = new RelayCommand<Product>(async p => await ViewProductAsync(p));
+             LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
+             AddProductCommand = new RelayCommand(async _ => await AddProductAsync(), _ => _canManageProducts);
+             UpdateProductCommand = new RelayCommand<Product>(async p => await UpdateProductAsync(p), _ => _canManageProducts);
+             DeleteProductCommand = new RelayCommand<Product>(async p => await DeleteProductAsync(p), _ => _canManageProducts);
+             NextPageCommand = new RelayCommand(async _ => { PageIndex++; await LoadProductsAsync(); }, _ => PageIndex < TotalPages);
+             PreviousPageCommand = new RelayCommand(async _ => { PageIndex--; await LoadProductsAsync(); }, _ => PageIndex > 1);
 
-        private int _pageSize = 5;
-        public int PageSize
-        {
-            get => _pageSize;
-            private set
-            {
-                if (_pageSize == value) return;
-                _pageSize = value;
-                _userSettings.SetProductsPageSize(value);
-                PageIndex = 1;
-                OnPropertyChanged(nameof(PageSize));
-                OnPropertyChanged(nameof(TotalPages));
-                OnPropertyChanged(nameof(ShowingStatus));
-                _ = LoadProductsAsync();
-            }
-        }
+             AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync(), _ => _canManageProducts);
+             ImportCommand = new RelayCommand(async _ => await ImportAsync(), _ => _canManageProducts);
+ 
+             _ = LoadCategoriesAsync();
+             _ = LoadProductsAsync();
+             _ = LoadRemoteConfigAsync();
+         }
+ 
+         private async Task LoadRemoteConfigAsync()
+         {
+             try
+             {
+                 var cfg = await _userConfigService.GetConfigAsync();
+                 if (cfg != null && cfg.PerPage > 0)
+                 {
+                     PageSize = cfg.PerPage;
+                     SelectedPageSize = cfg.PerPage;
+                 }
+             }
+             catch
+             {
+                 // ignore and keep local settings
+             }
+         }
+ 
+         private async Task SaveUserConfigAsync()
+         {
+             try
+             {
+                 var lastModule = _userSettings.GetLastModule() ?? "Dashboard";
+                 await _userConfigService.SaveConfigAsync(new UserConfigClientDto
+                 {
+                     PerPage = PageSize,
+                     LastModule = lastModule
+                 });
+             }
+             catch { }
+         }
+ 
+         private async Task LoadCategoriesAsync()
+         {
+             try
+             {
+                 var cats = await _categoryService.GetCategoriesAsync();
+                 Categories.Clear();
+                 Categories.Add(new Category { CategoryId = 0, CategoryName = "All" });
+                 
+                 _categoryIdToName.Clear();
+                 foreach (var c in cats.OrderBy(c => c.CategoryName))
+                 {
+                     Categories.Add(c);
+                     _categoryIdToName[c.CategoryId] = c.CategoryName ?? $"Category {c.CategoryId}";
+                 }
 
-        public ProductViewModel()
-        {
-            _productService = App.Services.GetRequiredService<IProductService>();
-            _categoryService = App.Services.GetRequiredService<ICategoryService>();
-            _userSettings = App.Services.GetRequiredService<MyShop_Frontend.Contracts.Services.IUserSettingsStore>();
-            _tokenStore = App.Services.GetRequiredService<ITokenStore>();
-
-            var role = _tokenStore.GetRole()?.ToLowerInvariant();
-            _canManageProducts = role == "1" || role == "admin" || role == "2" || role == "manager";
-
-            PageSize = _userSettings.GetProductsPageSize(defaultValue: 10);
-
-            ViewProductCommand = new RelayCommand<Product>(async p => await ViewProductAsync(p));
-            LoadProductsCommand = new RelayCommand(async _ => await LoadProductsAsync());
-            AddProductCommand = new RelayCommand(async _ => await AddProductAsync(), _ => _canManageProducts);
-            UpdateProductCommand = new RelayCommand<Product>(async p => await UpdateProductAsync(p), _ => _canManageProducts);
-            DeleteProductCommand = new RelayCommand<Product>(async p => await DeleteProductAsync(p), _ => _canManageProducts);
-            NextPageCommand = new RelayCommand(async _ => { PageIndex++; await LoadProductsAsync(); }, _ => PageIndex < TotalPages);
-            PreviousPageCommand = new RelayCommand(async _ => { PageIndex--; await LoadProductsAsync(); }, _ => PageIndex > 1);
-
-            AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync(), _ => _canManageProducts);
-            ImportCommand = new RelayCommand(async _ => await ImportAsync(), _ => _canManageProducts);
-            ExportCommand = new RelayCommand(async _ => await ExportAsync(), _ => _canManageProducts);
-
-            _ = LoadCategoriesAsync();
-            _ = LoadProductsAsync();
-        }
-
-        private async Task LoadCategoriesAsync()
-        {
-            try
-            {
-                var cats = await _categoryService.GetCategoriesAsync();
-                Categories.Clear();
-                Categories.Add(new Category { CategoryId = 0, CategoryName = "All" });
-                
-                _categoryIdToName.Clear();
-                foreach (var c in cats.OrderBy(c => c.CategoryName))
-                {
-                    Categories.Add(c);
-                    _categoryIdToName[c.CategoryId] = c.CategoryName ?? $"Category {c.CategoryId}";
-                }
-
-                SelectedCategory ??= Categories.FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"LoadCategoriesAsync failed: {ex}");
-            }
-        }
+                 SelectedCategory ??= Categories.FirstOrDefault();
+             }
+             catch (Exception ex)
+             {
+                 System.Diagnostics.Debug.WriteLine($"LoadCategoriesAsync failed: {ex}");
+             }
+         }
 
         private async Task LoadProductsAsync()
         {
@@ -533,14 +582,23 @@ namespace MyShop_Frontend.ViewModels.Products
             var res = await dlg.ShowAsync();
             if (res != ContentDialogResult.Primary) return;
 
-            var info = new ContentDialog
+            try
             {
-                XamlRoot = dlg.XamlRoot,
-                Title = "Not Implemented",
-                Content = "POST /api/Categories is not available in the provided API list.",
-                CloseButtonText = "OK"
-            };
-            await info.ShowAsync();
+                var payload = new CreateCategoryDto { CategoryName = (nameBox.Text ?? string.Empty).Trim() };
+                await _categoryService.CreateCategoryAsync(payload);
+                await LoadCategoriesAsync();
+            }
+            catch (Exception ex)
+            {
+                var errorDlg = new ContentDialog
+                {
+                    XamlRoot = dlg.XamlRoot,
+                    Title = "Create Category Failed",
+                    Content = ex.Message,
+                    CloseButtonText = "Close"
+                };
+                await errorDlg.ShowAsync();
+            }
         }
 
         private async Task ImportAsync()
@@ -625,88 +683,6 @@ namespace MyShop_Frontend.ViewModels.Products
                 {
                     XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
                     Title = "Import Failed",
-                    Content = $"An error occurred: {ex.Message}",
-                    CloseButtonText = "Close",
-                    DefaultButton = ContentDialogButton.Close
-                };
-                await errorDlg.ShowAsync();
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        private async Task ExportAsync()
-        {
-            var picker = new FileSavePicker();
-            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
-            picker.FileTypeChoices.Add("CSV File", new List<string>() { ".csv" });
-            picker.SuggestedFileName = "Products_Export";
-
-            var windowHandle = WindowNative.GetWindowHandle(App.MainWindow);
-            InitializeWithWindow.Initialize(picker, windowHandle);
-
-            var file = await picker.PickSaveFileAsync();
-            if (file == null) return;
-
-            IsLoading = true;
-            try
-            {
-                // Fetch all products (using a large page size to get all)
-                var result = await _productService.GetProductsAsync(pageSize: 100000);
-                var products = result.Items;
-
-                var sb = new System.Text.StringBuilder();
-                // Header (matching Import expectation mostly: ProductName,CategoryId,Unit,Cost,Price,Stock,Image)
-                sb.AppendLine("ProductName,CategoryId,Unit,Cost,Price,Stock,Image");
-
-                foreach (var p in products)
-                {
-                    // Basic escaping for CSV: if contains comma, wrap in quotes. 
-                    // For now, simpler approach or just quote only name if needed.
-                    // Doing robust CSV writing manually:
-                    
-                    string Escape(string s)
-                    {
-                        if (string.IsNullOrEmpty(s)) return "";
-                        if (s.Contains(",") || s.Contains("\"") || s.Contains("\n"))
-                        {
-                            return $"\"{s.Replace("\"", "\"\"")}\"";
-                        }
-                        return s;
-                    }
-
-                    var line = string.Join(",",
-                        Escape(p.ProductName),
-                        p.CategoryId,
-                        Escape(p.Unit),
-                        p.Cost,
-                        p.Price,
-                        p.Stock,
-                        Escape(p.Image)
-                    );
-                    sb.AppendLine(line);
-                }
-
-                await FileIO.WriteTextAsync(file, sb.ToString());
-
-                var dlg = new ContentDialog
-                {
-                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
-                    Title = "Export Successful",
-                    Content = $"Exported {products.Count} products successfully to {file.Name}.",
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close
-                };
-                await dlg.ShowAsync();
-            }
-            catch (Exception ex)
-            {
-                var errorDlg = new ContentDialog
-                {
-                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
-                    Title = "Export Failed",
                     Content = $"An error occurred: {ex.Message}",
                     CloseButtonText = "Close",
                     DefaultButton = ContentDialogButton.Close

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using MyShop_Frontend.Contracts.Dtos;
 
 namespace MyShop_Frontend.ViewModels.Settings
 {
@@ -12,6 +13,7 @@ namespace MyShop_Frontend.ViewModels.Settings
     {
         private readonly IBackendConfig _backendConfig;
         private readonly IUserSettingsStore _userSettings;
+        private readonly IUserConfigService _userConfigService;
 
         private int _itemsPerPage;
         private bool _rememberLastModule;
@@ -29,12 +31,13 @@ namespace MyShop_Frontend.ViewModels.Settings
         private bool _isLoading;
         private string _error;
 
-        public int[] ItemsPerPageOptions { get; } = { 5, 10, 15, 20, 25, 30 };
+        public int[] ItemsPerPageOptions { get; } = { 5, 10, 20, 50 };
 
         public SettingViewModel(IBackendConfig backendConfig)
         {
             _backendConfig = backendConfig;
             _userSettings = App.Services.GetRequiredService<IUserSettingsStore>();
+            _userConfigService = App.Services.GetRequiredService<IUserConfigService>();
 
             // Initialize with default values
             ItemsPerPage = 20;
@@ -56,7 +59,7 @@ namespace MyShop_Frontend.ViewModels.Settings
             ResetToDefaultCommand = new Helpers.Command.RelayCommand((param) => ResetToDefault());
 
             // Load saved settings
-            LoadSettings();
+            _ = LoadSettingsAsync();
         }
 
         #region Properties
@@ -222,7 +225,7 @@ namespace MyShop_Frontend.ViewModels.Settings
 
         #region Methods
 
-        private void LoadSettings()
+        private async Task LoadSettingsAsync()
         {
             try
             {
@@ -230,6 +233,12 @@ namespace MyShop_Frontend.ViewModels.Settings
                 RememberLastModule = _userSettings.GetRememberLastModule(defaultValue: true);
 
                 ApiServerUrl = _backendConfig.GetBaseUri()?.ToString() ?? "http://localhost:5126/";
+
+                var remote = await _userConfigService.GetConfigAsync();
+                if (remote != null && ItemsPerPageOptions.Contains(remote.PerPage))
+                {
+                    ItemsPerPage = remote.PerPage;
+                }
             }
             catch (Exception ex)
             {
@@ -251,6 +260,13 @@ namespace MyShop_Frontend.ViewModels.Settings
 
                 _userSettings.SetProductsPageSize(ItemsPerPage);
                 _userSettings.SetRememberLastModule(RememberLastModule);
+
+                var lastModule = _userSettings.GetLastModule() ?? "Dashboard";
+                await _userConfigService.SaveConfigAsync(new UserConfigClientDto
+                {
+                    PerPage = ItemsPerPage,
+                    LastModule = lastModule
+                });
 
                 if (_backendConfig.GetBaseUri()?.ToString() != ApiServerUrl)
                 {
@@ -277,6 +293,12 @@ namespace MyShop_Frontend.ViewModels.Settings
 
             _userSettings.SetProductsPageSize(ItemsPerPage);
             _userSettings.SetRememberLastModule(RememberLastModule);
+
+            _ = _userConfigService.SaveConfigAsync(new UserConfigClientDto
+            {
+                PerPage = ItemsPerPage,
+                LastModule = _userSettings.GetLastModule() ?? "Dashboard"
+            });
         }
 
         #endregion

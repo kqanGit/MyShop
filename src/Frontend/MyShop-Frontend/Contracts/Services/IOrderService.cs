@@ -25,5 +25,20 @@ namespace MyShop_Frontend.Contracts.Services
         /// DELETE /api/Orders/{id} (if exists)
         /// </summary>
         Task<bool> DeleteOrderAsync(int orderId, CancellationToken ct = default);
+
+        /// <summary>
+        /// PUT /api/Orders/{id}/status
+        /// </summary>
+        Task<bool> UpdateStatusAsync(int orderId, int status, CancellationToken ct = default);
+
+        /// <summary>
+        /// PUT /api/Orders/{id}/pay
+        /// </summary>
+        Task<bool> PayOrderAsync(int orderId, CancellationToken ct = default);
+
+        /// <summary>
+        /// PUT /api/Orders/{id}/cancel
+        /// </summary>
+        Task<bool> CancelOrderAsync(int orderId, CancellationToken ct = default);
     }
 }

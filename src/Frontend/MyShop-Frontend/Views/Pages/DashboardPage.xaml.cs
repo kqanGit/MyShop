@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using MyShop_Frontend.ViewModels.Dashboard;
+using MyShop_Frontend.Views.Pages;
 
 namespace MyShop_Frontend.Views.Pages
 {
@@ -25,5 +26,17 @@ namespace MyShop_Frontend.Views.Pages
 
         private async void Export_Click(object sender, RoutedEventArgs e)
             => await ViewModel.ExportExcelAsync();
+
+        private void ViewAllOrders_Click(object sender, RoutedEventArgs e)
+        {
+            if (App.MainWindow is MainWindow main)
+            {
+                main.NavigateByTag("Order");
+            }
+            else
+            {
+                Frame?.Navigate(typeof(OrderPage));
+            }
+        }
     }
 }

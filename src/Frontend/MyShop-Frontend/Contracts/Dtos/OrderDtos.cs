@@ -137,4 +137,10 @@ namespace MyShop_Frontend.Contracts.Dtos
         [JsonPropertyName("searchTerm")]
         public string? SearchTerm { get; set; }
     }
+
+    public class UpdateOrderStatusRequest
+    {
+        [JsonPropertyName("status")]
+        public int Status { get; set; }
+    }
 }

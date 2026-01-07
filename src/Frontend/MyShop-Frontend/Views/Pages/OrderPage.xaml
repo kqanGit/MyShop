@@ -16,6 +16,8 @@
     <Page.Resources>
          <converters:DateToFormattedStringConverter x:Key="DateConverter"/>
          <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+         <converters:StatusToPayVisibilityConverter x:Key="StatusToPayVisibilityConverter"/>
+         <converters:PriceConverter x:Key="PriceConverter"/>
         <!-- Add other converters if needed -->
         <Style x:Key="PrimaryCtaButton" TargetType="Button">
             <Setter Property="Background" Value="#111827"/>
@@ -62,11 +64,11 @@
         <!-- Filters -->
         <StackPanel Grid.Row="1" Spacing="12" Margin="0,0,0,24">
             <StackPanel>
-                 <TextBlock Text="Search" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                 <TextBox PlaceholderText="Search by Order Code..." 
+                <TextBlock Text="Search" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <TextBox PlaceholderText="Search by Order Code..." 
                           Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
-           
+
             <Grid ColumnSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -75,18 +77,26 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0">
-                     <TextBlock Text="From Date" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                     <CalendarDatePicker HorizontalAlignment="Stretch" Date="{Binding FromDate, Mode=TwoWay}" PlaceholderText="mm/dd/yyyy"/>
+                    <TextBlock Text="From Date" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <CalendarDatePicker HorizontalAlignment="Stretch" Date="{Binding FromDate, Mode=TwoWay}" PlaceholderText="mm/dd/yyyy"/>
                 </StackPanel>
 
-                 <StackPanel Grid.Column="1">
-                     <TextBlock Text="To Date" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                     <CalendarDatePicker HorizontalAlignment="Stretch" Date="{Binding ToDate, Mode=TwoWay}" PlaceholderText="mm/dd/yyyy"/>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="To Date" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <CalendarDatePicker HorizontalAlignment="Stretch" Date="{Binding ToDate, Mode=TwoWay}" PlaceholderText="mm/dd/yyyy"/>
                 </StackPanel>
 
-                <Button Grid.Column="2" Content="Clear Filters" Command="{Binding ClearFilterCommand}" VerticalAlignment="Bottom"/>
+                <Button Grid.Column="2" Content="Refresh" Command="{Binding ClearFilterCommand}" VerticalAlignment="Bottom"/>
             </Grid>
+            <!-- Paging footer -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,44,12,0">
+                <TextBlock Text="{Binding PagingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
+                <AppBarSeparator/>
+                <Button Content="&lt;" Command="{Binding PrevPageCommand}" ToolTipService.ToolTip="Previous Page"/>
+                <Button Content="&gt;" Command="{Binding NextPageCommand}" ToolTipService.ToolTip="Next Page"/>
+            </StackPanel>
         </StackPanel>
+
 
         <!-- Header Row -->
         <Border Grid.Row="2" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Height="40" Margin="0,0,12,0" CornerRadius="4">
@@ -107,14 +117,6 @@
                 <TextBlock Grid.Column="5" Text="Actions" VerticalAlignment="Center" FontWeight="SemiBold" Width="40"/>
             </Grid>
         </Border>
-
-        <!-- Paging footer -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,44,12,0">
-            <TextBlock Text="{Binding PagingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
-            <AppBarSeparator/>
-            <Button Content="&lt;" Command="{Binding PrevPageCommand}" ToolTipService.ToolTip="Previous Page"/>
-            <Button Content="&gt;" Command="{Binding NextPageCommand}" ToolTipService.ToolTip="Next Page"/>
-        </StackPanel>
 
         <!-- Data List -->
         <ListView Grid.Row="3" 
@@ -143,7 +145,7 @@
                         </StackPanel>
 
                         <!-- Final Price -->
-                        <TextBlock Grid.Column="2" Text="{Binding FinalPrice}" FontWeight="Bold" Foreground="Green" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding FinalPrice, Converter={StaticResource PriceConverter}}" FontWeight="Bold" Foreground="Green" VerticalAlignment="Center"/>
 
                         <!-- Status -->
                         <Border Grid.Column="3" Background="#e0e7ff" CornerRadius="12" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -159,6 +161,8 @@
                             <Button.Flyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="View Details" Click="ViewDetails_Click" CommandParameter="{Binding}"/>
+                                    <MenuFlyoutItem Text="Pay" Click="PayOrder_Click" CommandParameter="{Binding}" Visibility="{Binding StatusName, Converter={StaticResource StatusToPayVisibilityConverter}}"/>
+                                    <MenuFlyoutItem Text="Cancel" Click="CancelOrder_Click" CommandParameter="{Binding}" Visibility="{Binding StatusName, Converter={StaticResource StatusToPayVisibilityConverter}}"/>
                                     <MenuFlyoutItem Text="Delete" Foreground="Red" Click="DeleteOrder_Click" CommandParameter="{Binding}"/>
                                 </MenuFlyout>
                             </Button.Flyout>

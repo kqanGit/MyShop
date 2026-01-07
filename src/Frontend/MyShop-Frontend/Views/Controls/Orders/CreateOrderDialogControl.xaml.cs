@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.MockData;
 using MyShop_Frontend.Models;
+using Windows.System;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,21 +24,57 @@ namespace MyShop_Frontend.Views.Controls.Order
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly IOrderService _orderService;
+        private readonly ICustomerService _customerService;
+        private readonly IVoucherService _voucherService;
 
         private readonly List<Product> _allProducts = new();
         private readonly List<Category> _allCategories = new();
+        private readonly ObservableCollection<CustomerDto> _customerSuggestions = new();
 
         private bool _isOffline;
         private string _search = string.Empty;
         private Category? _selectedCategory;
+
+        private int _selectedCustomerId = 1;
+        private string _selectedCustomerName = "Walk-in customer";
+        public string SelectedCustomerName
+        {
+            get => _selectedCustomerName;
+            private set
+            {
+                if (_selectedCustomerName == value) return;
+                _selectedCustomerName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _customerHintText = "Walk-in customer";
+        public string CustomerHintText
+        {
+            get => _customerHintText;
+            private set
+            {
+                if (_customerHintText == value) return;
+                _customerHintText = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ObservableCollection<ProductCardVm> ProductCards { get; } = new();
         public ObservableCollection<InvoiceLineVm> Lines { get; } = new();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        // Expose created order info to parent
+        public int? CreatedOrderId { get; private set; }
+        public string? CreatedOrderCode { get; private set; }
+
         // Parent (ContentDialog/Popup) nghe event này ð? ðóng
         public event EventHandler? RequestClose;
+
+        private VoucherDto? _appliedVoucher;
+        private decimal _voucherDiscountAmount;
+        private CancellationTokenSource? _voucherCts;
 
         public CreateOrderDialogControl()
         {
@@ -45,8 +83,11 @@ namespace MyShop_Frontend.Views.Controls.Order
             _productService = App.Services.GetRequiredService<IProductService>();
             _categoryService = App.Services.GetRequiredService<ICategoryService>();
             _orderService = App.Services.GetRequiredService<IOrderService>();
+            _customerService = App.Services.GetRequiredService<ICustomerService>();
+            _voucherService = App.Services.GetRequiredService<IVoucherService>();
 
-            CustomerIdBox.Value = 1;
+            CustomerBox.ItemsSource = _customerSuggestions;
+            SetSelectedCustomer(1, "Walk-in customer");
 
             InvoiceList.ItemsSource = Lines;
             ProductsRepeater.ItemsSource = ProductCards;
@@ -75,9 +116,7 @@ namespace MyShop_Frontend.Views.Controls.Order
         // ===== Totals =====
         private decimal Subtotal => Lines.Sum(l => l.Price * l.Qty);
 
-        // Hi?n t?i: discount local = 0 (voucher áp d?ng server).
-        // N?u sau này b?n có API validate voucher th? tính t?i VoucherBox_TextChanged.
-        private decimal Discount => 0m;
+        private decimal Discount => _voucherDiscountAmount;
 
         private decimal Total => Math.Max(Subtotal - Discount, 0m);
 
@@ -87,9 +126,32 @@ namespace MyShop_Frontend.Views.Controls.Order
 
         private void RaiseTotals()
         {
+            RecalculateVoucherDiscount();
             OnPropertyChanged(nameof(SubtotalText));
             OnPropertyChanged(nameof(DiscountText));
             OnPropertyChanged(nameof(TotalText));
+        }
+
+        private void RecalculateVoucherDiscount()
+        {
+            if (_appliedVoucher == null)
+            {
+                _voucherDiscountAmount = 0;
+                return;
+            }
+
+            var subtotal = Subtotal;
+            if (subtotal <= 0 || subtotal < _appliedVoucher.MinThreshold)
+            {
+                _voucherDiscountAmount = 0;
+                return;
+            }
+
+            var calc = _appliedVoucher.Type == 2
+                ? _appliedVoucher.Discount
+                : subtotal * (_appliedVoucher.Discount / 100m);
+
+            _voucherDiscountAmount = Math.Clamp(calc, 0, subtotal);
         }
 
         private static string FormatCurrency(decimal value)
@@ -101,6 +163,7 @@ namespace MyShop_Frontend.Views.Controls.Order
         private async Task InitializeAsync()
         {
             await LoadCatalogAsync();
+            await LoadCustomerSuggestionsAsync(string.Empty);
             ApplyProductFilter();
             SyncRemainingStockToCards();
         }
@@ -314,20 +377,80 @@ namespace MyShop_Frontend.Views.Controls.Order
         }
 
         // ===== Voucher =====
-        private void VoucherBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void VoucherBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            // UI yêu c?u có ô voucher + hint.
-            // Hi?n t?i discount local = 0, voucher áp d?ng server.
             var code = VoucherBox.Text?.Trim() ?? "";
+            _ = ValidateVoucherAsync(code);
+        }
+
+        private void VoucherBox_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.Enter)
+            {
+                var code = VoucherBox.Text?.Trim() ?? "";
+                _ = ValidateVoucherAsync(code);
+                e.Handled = true;
+            }
+        }
+
+        private async Task ValidateVoucherAsync(string code)
+        {
+            _voucherCts?.Cancel();
+            _voucherCts = new CancellationTokenSource();
+            var ct = _voucherCts.Token;
+
             if (string.IsNullOrWhiteSpace(code))
             {
+                _appliedVoucher = null;
+                _voucherDiscountAmount = 0;
                 VoucherHint.Text = _isOffline ? "Offline: voucher not validated" : "";
+                RaiseTotals();
                 return;
             }
 
-            VoucherHint.Text = _isOffline
-                ? "Offline: voucher not validated"
-                : "Voucher will be applied on server";
+            if (_isOffline)
+            {
+                VoucherHint.Text = "Offline: voucher not validated";
+                _appliedVoucher = null;
+                _voucherDiscountAmount = 0;
+                RaiseTotals();
+                return;
+            }
+
+            try
+            {
+                var resp = await _voucherService.CheckVoucherAsync(code, ct);
+                if (resp?.IsValid == true && resp.Voucher != null)
+                {
+                    _appliedVoucher = resp.Voucher;
+                    RecalculateVoucherDiscount();
+                    VoucherHint.Text = $"Discount: {FormatCurrency(_voucherDiscountAmount)} (Min {FormatCurrency(_appliedVoucher.MinThreshold)})";
+                    OnPropertyChanged(nameof(DiscountText));
+                    OnPropertyChanged(nameof(TotalText));
+                }
+                else
+                {
+                    _appliedVoucher = null;
+                    _voucherDiscountAmount = 0;
+                    VoucherHint.Text = resp?.Message ?? "Voucher invalid";
+                    OnPropertyChanged(nameof(DiscountText));
+                    OnPropertyChanged(nameof(TotalText));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                _appliedVoucher = null;
+                _voucherDiscountAmount = 0;
+                VoucherHint.Text = ex.Message;
+                OnPropertyChanged(nameof(DiscountText));
+                OnPropertyChanged(nameof(TotalText));
+            }
+
+            RaiseTotals();
         }
 
         // ===== Actions =====
@@ -360,7 +483,7 @@ namespace MyShop_Frontend.Views.Controls.Order
                 return;
             }
 
-            var customerId = (int)(CustomerIdBox.Value <= 0 ? 1 : CustomerIdBox.Value);
+            var customerId = _selectedCustomerId <= 0 ? 1 : _selectedCustomerId;
             var voucher = string.IsNullOrWhiteSpace(VoucherBox.Text) ? null : VoucherBox.Text.Trim();
 
             var req = new CreateOrderRequest
@@ -388,13 +511,17 @@ namespace MyShop_Frontend.Views.Controls.Order
 
             try
             {
-                await _orderService.CreateOrderAsync(req, ct);
+                var result = await _orderService.CreateOrderAsync(req, ct);
+
+                CreatedOrderId = result?.OrderId;
+                CreatedOrderCode = result?.OrderCode;
+
 
                 string msg = statusCode switch
                 {
-                    2 => "Order created and marked as Paid.",
-                    3 => "Order created and marked as Canceled.",
-                    _ => "Order created."
+                    2 => $"Order {result?.OrderCode ?? ""} created and marked as Paid.",
+                    3 => $"Order {result?.OrderCode ?? ""} created and marked as Canceled.",
+                    _ => $"Order {result?.OrderCode ?? ""} created."
                 };
 
                 await ShowInlineInfoAsync(msg, closeAfter: true);
@@ -422,6 +549,13 @@ namespace MyShop_Frontend.Views.Controls.Order
 
         private async Task ShowInlineInfoAsync(string message, bool closeAfter)
         {
+            if (closeAfter)
+            {
+                RequestClose?.Invoke(this, EventArgs.Empty);
+                try { Hide(); } catch { }
+                return;
+            }
+
             var dlg = new ContentDialog
             {
                 XamlRoot = XamlRoot,
@@ -430,13 +564,84 @@ namespace MyShop_Frontend.Views.Controls.Order
                 CloseButtonText = "OK"
             };
             await dlg.ShowAsync();
-
-            if (closeAfter)
-                RequestClose?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        // ===== Customers (searchable) =====
+        private async Task LoadCustomerSuggestionsAsync(string term, CancellationToken ct = default)
+        {
+            _customerSuggestions.Clear();
+
+            // Always include walk-in
+            _customerSuggestions.Add(new CustomerDto { CustomerId = 1, FullName = "Walk-in customer", Phone = "", Address = "" });
+
+            if (_isOffline) return;
+
+            try
+            {
+                PagedResult<CustomerDto>? resp;
+                if (string.IsNullOrWhiteSpace(term))
+                {
+                    // load first page of customers
+                    resp = await _customerService.GetCustomersAsync(pageIndex: 1, pageSize: 50, ct: ct);
+                }
+                else
+                {
+                    resp = await _customerService.SearchCustomersAsync(pageIndex: 1, pageSize: 50, phone: term, name: term, ct: ct);
+                }
+
+                if (resp?.Items != null)
+                {
+                    foreach (var c in resp.Items)
+                    {
+                        if (c.CustomerId == 1) continue;
+                        _customerSuggestions.Add(c);
+                    }
+                }
+            }
+            catch
+            {
+                // fallback: keep only walk-in
+            }
+        }
+
+        private void SetSelectedCustomer(int id, string name)
+        {
+            _selectedCustomerId = id;
+            SelectedCustomerName = string.IsNullOrWhiteSpace(name) ? "Walk-in customer" : name;
+            CustomerHintText = _selectedCustomerId == 1 ? "Walk-in customer" : $"Selected: {SelectedCustomerName} (ID {_selectedCustomerId})";
+        }
+
+        private async void CustomerBox_TextChanged(object sender, AutoSuggestBoxTextChangedEventArgs e)
+        {
+            if (e.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;
+            await LoadCustomerSuggestionsAsync(CustomerBox.Text?.Trim() ?? string.Empty);
+        }
+
+        private void CustomerBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+        {
+            if (args.SelectedItem is CustomerDto c)
+            {
+                SetSelectedCustomer(c.CustomerId, c.FullName);
+            }
+        }
+
+        private async void CustomerBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        {
+            if (args.ChosenSuggestion is CustomerDto chosen)
+            {
+                SetSelectedCustomer(chosen.CustomerId, chosen.FullName);
+                return;
+            }
+
+            // If user just types and presses enter, fetch and pick first match (or default walk-in)
+            await LoadCustomerSuggestionsAsync(args.QueryText ?? string.Empty);
+            var first = _customerSuggestions.FirstOrDefault();
+            if (first != null)
+                SetSelectedCustomer(first.CustomerId, first.FullName);
+        }
     }
 
     // ===== View-models for dialog (UI-only) =====

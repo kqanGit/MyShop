@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Data;
 using System;
+using System.Globalization;
 
 namespace MyShop_Frontend.Helpers.Converters
 {
@@ -9,7 +10,10 @@ namespace MyShop_Frontend.Helpers.Converters
         {
             if (value is DateTime dt)
             {
-                return dt.ToString("MMM dd, yyyy");
+                var format = parameter as string;
+                return string.IsNullOrWhiteSpace(format)
+                    ? dt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
+                    : dt.ToString(format, CultureInfo.InvariantCulture);
             }
             return value;
         }

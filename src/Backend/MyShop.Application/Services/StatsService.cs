@@ -124,12 +124,14 @@ namespace MyShop.Infrastructure.Services
           
             result.TopSellingProducts = orders
                 .SelectMany(o => o.OrderDetails)
-                .GroupBy(od => new { od.ProductId, od.Product.ProductName })
+                .GroupBy(od => new { od.ProductId, od.Product.ProductName, od.Product.Image })
                 .Select(g => new TopProductDto
                 {
+                    ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName ?? "Unknown",
                     QuantitySold = g.Sum(od => od.Quantity),
-                    Revenue = g.Sum(od => od.TotalLine)
+                    Revenue = g.Sum(od => od.TotalLine),
+                    Image = g.Key.Image
                 })
                 .OrderByDescending(x => x.QuantitySold) 
                 .Take(5) 
