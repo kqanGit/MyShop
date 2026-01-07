@@ -14,7 +14,7 @@
     <Page.Resources>
     </Page.Resources>
 
-    <Grid Padding="24">
+    <Grid Padding="24" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -28,129 +28,166 @@
                        CloseButtonText="Cancel"
                        DefaultButton="Primary"
                        PrimaryButtonCommand="{Binding SaveCustomerCommand}">
-            <StackPanel Spacing="12" Width="350">
-                <TextBox Header="Full Name" Text="{Binding FormFullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <TextBox Header="Phone" Text="{Binding FormPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <TextBox Header="Address" Text="{Binding FormAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <StackPanel Spacing="16" Width="400">
+                <TextBox Header="Full Name" PlaceholderText="Ex: John Doe" Text="{Binding FormFullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Header="Phone" PlaceholderText="Ex: 0912345678" Text="{Binding FormPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Header="Address" PlaceholderText="Ex: 123 Main St, City" Text="{Binding FormAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="60"/>
             </StackPanel>
         </ContentDialog>
 
-        <!-- Header Controls -->
+        <!-- Main Header -->
         <Grid Grid.Row="0" Margin="0,0,0,24">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Customers" FontSize="28" FontWeight="Bold"/>
+                <TextBlock Text="Manage your customer base" FontSize="14" Foreground="Gray"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                 <Button Command="{Binding ImportCommand}" Style="{StaticResource AccentButtonStyle}" Background="#3b82f6" Foreground="White">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8B5;"/>
+                        <TextBlock Text="Import CSV"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ExportCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE74E;"/>
+                        <TextBlock Text="Export CSV"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Filters Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,16" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Search -->
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8" Margin="0,0,16,0">
-                <TextBox PlaceholderText="Search Phone..." Width="150" 
-                         Text="{Binding SearchPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <TextBox PlaceholderText="Search Name..." Width="180" 
-                         Text="{Binding SearchName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <ComboBox PlaceholderText="Tier" Width="120"
-                          ItemsSource="{Binding Tiers}"
-                          SelectedItem="{Binding SelectedTier, Mode=TwoWay}"
-                          DisplayMemberPath="TierName"/>
-            </StackPanel>
+            <TextBox Grid.Column="0" PlaceholderText="Search by phone..." Text="{Binding SearchPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" CornerRadius="4">
+                <TextBox.Header>
+                    <TextBlock Text="Phone" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </TextBox.Header>
+            </TextBox>
             
-            <!-- <Button Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0" Command="{Binding OpenAddDialogCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE710;" FontSize="16"/>
-                    <TextBlock Text="Add Customer" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button> -->
+            <TextBox Grid.Column="1" PlaceholderText="Search by name..." Text="{Binding SearchName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" CornerRadius="4">
+                <TextBox.Header>
+                    <TextBlock Text="Name" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </TextBox.Header>
+            </TextBox>
 
-            <Button Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE8B5;" FontSize="16" />
-                    <TextBlock Text="Import" VerticalAlignment="Center" />
-                </StackPanel>
-            </Button>
-            
-            <Button Grid.Column="3" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE74E;" FontSize="16"/>
-                    <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
+             <ComboBox Grid.Column="2" HorizontalAlignment="Stretch" 
+                       ItemsSource="{Binding Tiers}"
+                       SelectedItem="{Binding SelectedTier, Mode=TwoWay}"
+                       DisplayMemberPath="TierName" CornerRadius="4">
+                 <ComboBox.Header>
+                     <TextBlock Text="Tier" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                 </ComboBox.Header>
+             </ComboBox>
         </Grid>
 
-        <!-- Header Row -->
-        <Border Grid.Row="1" Background="{ThemeResource SystemControlBackgroundChromeMediumLowBrush}" Height="40" Margin="0,0,12,0" CornerRadius="4">
-            <Grid Padding="12,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1.5*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Name" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <TextBlock Grid.Column="1" Text="Contact Info" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <TextBlock Grid.Column="2" Text="Points" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <TextBlock Grid.Column="3" Text="Tier" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                <TextBlock Grid.Column="4" Text="" VerticalAlignment="Center" FontWeight="SemiBold" Width="40"/>
-            </Grid>
-        </Border>
+        <!-- Data List Header -->
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Data List -->
-        <ListView Grid.Row="2" x:Name="CustomerList"
-                  ItemsSource="{Binding Customers}" 
-                  SelectionMode="None"
-                  Padding="0,0,12,0">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1.5*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+            <Border Grid.Row="0" Background="#F3F4F6" CornerRadius="6" Padding="12,10" Margin="0,0,12,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1.5*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="CUSTOMER" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="1" Text="CONTACT INFO" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="2" Text="POINTS" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="3" Text="TIER" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                </Grid>
+            </Border>
 
-                        <!-- Name -->
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="14"/>
-                            <TextBlock Text="{Binding CustomerId}" Foreground="Gray" FontSize="10"/>
-                        </StackPanel>
+            <!-- Data List -->
+            <ListView Grid.Row="1" x:Name="CustomerList"
+                      ItemsSource="{Binding Customers}" 
+                      SelectionMode="None"
+                      Padding="0,0,12,0">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="White" CornerRadius="6" BorderBrush="#E5E7EB" BorderThickness="1" Margin="0,4" Padding="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                        <!-- Contact Info -->
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Address}" Foreground="Gray" FontSize="12"/>
-                            <TextBlock Text="{Binding Phone}" FontSize="12"/>
-                        </StackPanel>
-                        
-                         <!-- Points -->
-                        <TextBlock Grid.Column="2" Text="{Binding Point}" VerticalAlignment="Center" FontSize="12"/>
+                                <!-- Name -->
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="14" Foreground="#111827"/>
+                                    <TextBlock Foreground="#9CA3AF" FontSize="11">
+                                        <Run Text="ID: "/>
+                                        <Run Text="{Binding CustomerId}"/>
+                                    </TextBlock>
+                                </StackPanel>
 
-                        <!-- Group (Tier) -->
-                        <Border Grid.Column="3" Background="LightGray" CornerRadius="12" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding TierName}" Foreground="Black" FontSize="12" FontWeight="Medium"/>
+                                <!-- Contact Info -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE715;" FontSize="12" Foreground="#6B7280"/>
+                                        <TextBlock Text="{Binding Address}" Foreground="#4B5563" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE717;" FontSize="12" Foreground="#6B7280"/>
+                                        <TextBlock Text="{Binding Phone}" Foreground="#4B5563" FontSize="13"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Points -->
+                                <TextBlock Grid.Column="2" Text="{Binding Point}" VerticalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="#374151"/>
+
+                                <!-- Tier Badge -->
+                                <Border Grid.Column="3" Background="#DBEAFE" CornerRadius="12" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding TierName}" Foreground="#1E40AF" FontSize="12" FontWeight="SemiBold"/>
+                                </Border>
+
+                                <!-- Actions -->
+                                <Button Grid.Column="4" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" Padding="8">
+                                    <FontIcon Glyph="&#xE712;" Foreground="#6B7280"/>
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Edit Customer" Icon="Edit" Command="{Binding DataContext.OpenEditDialogCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
+                                            <MenuFlyoutSeparator/>
+                                            <MenuFlyoutItem Text="Delete Customer" Icon="Delete" Foreground="#DC2626" Command="{Binding DataContext.DeleteCustomerCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
                         </Border>
-
-                        <!-- Actions -->
-                        <Button Grid.Column="4" Background="Transparent" BorderThickness="0" VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE712;"/>
-                            <Button.Flyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Text="Edit" Command="{Binding DataContext.OpenEditDialogCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
-                                    <MenuFlyoutItem Text="Delete" Foreground="Red" Command="{Binding DataContext.DeleteCustomerCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
-                                </MenuFlyout>
-                            </Button.Flyout>
-                        </Button>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-        </ListView>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="MinHeight" Value="0"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </Grid>
 
         <!-- Pagination -->
         <Grid Grid.Row="3" Margin="0,12,0,0">
@@ -160,11 +197,11 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
+            <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="#6B7280" FontSize="13"/>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                <Button Command="{Binding PreviousPageCommand}" Content="Previous"/>
-                <Button Command="{Binding NextPageCommand}" Content="Next"/>
+                <Button Command="{Binding PreviousPageCommand}" Content="Previous" CornerRadius="4"/>
+                <Button Command="{Binding NextPageCommand}" Content="Next" CornerRadius="4"/>
             </StackPanel>
         </Grid>
     </Grid>
