@@ -216,6 +216,28 @@ namespace MyShop_Frontend
                 }
             }
         }
+
+
+        private void GlobalSearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+        {
+            if (args.SelectedItem is MyShop_Frontend.ViewModels.SearchResult result)
+            {
+                // Navigate based on type
+                switch (result.Type)
+                {
+                    case "Customer":
+                        NavigateByTag("Customers"); 
+                        // Optionally pass data: ContentFrame.Navigate(typeof(CustomerPage), result.Data);
+                        break;
+                    case "Product":
+                        NavigateByTag("Products");
+                        break;
+                    case "Order":
+                        NavigateByTag("Order");
+                        break;
+                }
+            }
+        }
     }
 
 
