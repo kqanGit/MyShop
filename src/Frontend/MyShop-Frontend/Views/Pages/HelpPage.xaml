@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="MyShop_Frontend.Views.Pages.HelpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MyShop_Frontend.Views.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <Style x:Key="HelpSectionStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <Style x:Key="CategoryItemStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="FAQExpanderStyle" TargetType="Expander">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Padding="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Help Center" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="Find answers and learn how to use MyShop application" 
+                               FontSize="14" 
+                               Foreground="Gray" 
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <Button Background="#5D5FEF" 
+                            Foreground="White" 
+                            CornerRadius="8"
+                            Padding="16,10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8A1;" FontSize="14"/>
+                            <TextBlock Text="Contact Support"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Background="#F1F5F9" 
+                            CornerRadius="8"
+                            Padding="16,10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE8A7;" FontSize="14" Foreground="#475569"/>
+                            <TextBlock Text="View Docs" Foreground="#475569"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Search Box -->
+            <Border Grid.Row="1" 
+                    Background="White" 
+                    CornerRadius="16" 
+                    Padding="20"
+                    Margin="0,0,0,24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0"
+                             PlaceholderText="Search for help articles, tutorials, or FAQs..."
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VerticalAlignment="Center"
+                             FontSize="15"/>
+
+                    <Button Grid.Column="1"
+                            Background="#5D5FEF"
+                            Foreground="White"
+                            CornerRadius="8"
+                            Padding="16,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE721;" FontSize="14"/>
+                            <TextBlock Text="Search"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Help Content -->
+            <StackPanel Grid.Row="2">
+                <!-- Frequently Asked Questions -->
+                <Border Style="{StaticResource HelpSectionStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,20">
+                            <FontIcon Glyph="&#xE9CE;" FontSize="20" Foreground="#5D5FEF"/>
+                            <TextBlock Text="Frequently Asked Questions" FontSize="18" FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <StackPanel>
+                            <!-- FAQ 1 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="How do I add a new product?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        Navigate to the Product Management page, click the "New Product" button. Fill in the product details including name, category, price, and stock quantity. You can also upload product images. Click "Save" to add the product to your inventory.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+
+                            <!-- FAQ 2 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="How do I process a customer order?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        Go to the Orders page and click "New Order". Select the customer (or create a new one), add products to the cart, apply any discounts or vouchers, and review the total. Click "Create Order" to complete the process. You can print the receipt afterwards.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+
+                            <!-- FAQ 3 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="How do I import products from Excel?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        On the Product Management page, click the "Import" button. Select your Excel file (.xlsx format). Make sure your file follows the template format with columns: Product Name, Category, Price, Cost, Stock, Description. The system will validate and import the products.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+
+                            <!-- FAQ 4 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="How do customer loyalty points work?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        Customers earn 1 point for every $1 spent. Points accumulate to determine customer tier (Bronze, Silver, Gold, Platinum). Higher tiers unlock better vouchers and discounts. You can view customer points and tier status in the Customer Management page.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+
+                            <!-- FAQ 5 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="How do I generate sales reports?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        Visit the Dashboard page to view real-time statistics. For detailed reports, use the filter options to select date range and grouping (by day, week, month, or year). Click "Export" to download reports in Excel format for further analysis.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+
+                            <!-- FAQ 6 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="What should I do if the app can't connect to the server?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        First, check your internet connection. Then verify the server URL in Settings > Server Configuration. Click "Test Connection" to diagnose the issue. If the backend server is down, contact your system administrator. The app will work in offline mode for essential operations.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+
+                            <!-- FAQ 7 -->
+                            <Expander Style="{StaticResource FAQExpanderStyle}" 
+                                      Header="How do I change the number of items displayed per page?">
+                                <Border Background="#F8FAFC" 
+                                        CornerRadius="8" 
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <TextBlock TextWrapping="Wrap" 
+                                               Foreground="#475569"
+                                               LineHeight="22">
+                                        Go to Settings page and find the "Items Per Page" option under General Settings. Choose from 10, 20, 50, or 100 items. Click "Save Changes" to apply. This setting affects all list views including products, orders, and customers.
+                                    </TextBlock>
+                                </Border>
+                            </Expander>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Contact Support -->
+                <Border Style="{StaticResource HelpSectionStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+                                <FontIcon Glyph="&#xE8A1;" FontSize="20" Foreground="#5D5FEF"/>
+                                <TextBlock Text="Still Need Help?" FontSize="18" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="Can't find what you're looking for? Our support team is here to help you." 
+                                       Foreground="#64748B"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" 
+                                    Orientation="Vertical" 
+                                    Spacing="12"
+                                    VerticalAlignment="Center">
+                            <Button Background="#5D5FEF" 
+                                    Foreground="White" 
+                                    CornerRadius="8"
+                                    HorizontalAlignment="Stretch"
+                                    Padding="20,12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE715;" FontSize="14"/>
+                                    <TextBlock Text="Email Support"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Background="#22C55E" 
+                                    Foreground="White" 
+                                    CornerRadius="8"
+                                    HorizontalAlignment="Stretch"
+                                    Padding="20,12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8F2;" FontSize="14"/>
+                                    <TextBlock Text="Live Chat"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- System Information -->
+                <Border Style="{StaticResource HelpSectionStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,20">
+                            <FontIcon Glyph="&#xE946;" FontSize="20" Foreground="#5D5FEF"/>
+                            <TextBlock Text="System Information" FontSize="18" FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <Grid RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Application Version:" Foreground="#64748B"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="1.0.0" FontWeight="Medium"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Build Date:" Foreground="#64748B"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="December 2024" FontWeight="Medium"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Framework:" Foreground="#64748B"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text=".NET 8 / WinUI 3" FontWeight="Medium"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="License:" Foreground="#64748B"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="Educational Use" FontWeight="Medium"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Developer Team:" Foreground="#64748B"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="MyShop Development Team" FontWeight="Medium"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

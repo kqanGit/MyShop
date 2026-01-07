@@ -1,0 +1,308 @@
+﻿<ContentDialog
+    x:Class="MyShop_Frontend.Views.Controls.Order.CreateOrderDialogControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Name="Root"
+    Title="Create Order"
+    CloseButtonText="Cancel"
+    DefaultButton="Primary">
+    
+    <ContentDialog.Resources>
+        <Style x:Key="CardBorder" TargetType="Border">
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#14000000"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <Style x:Key="SmallIconBtn" TargetType="Button">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="#111827"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,10"/>
+        </Style>
+
+        <Style x:Key="GhostBtn" TargetType="Button">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,10"/>
+        </Style>
+
+        <DataTemplate x:Key="CustomerSuggestionTemplate">
+            <StackPanel>
+                <TextBlock Text="{Binding FullName}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Phone}" Opacity="0.7" FontSize="12"/>
+            </StackPanel>
+        </DataTemplate>
+    </ContentDialog.Resources>
+
+    <Grid ColumnSpacing="6">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Style="{StaticResource CardBorder}" Padding="12">
+            <Grid RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="SearchBox"
+                             PlaceholderText="Search product..."
+                             TextChanged="SearchBox_TextChanged"/>
+
+                    <ComboBox x:Name="CategoryBox"
+                              Grid.Column="1"
+                              HorizontalAlignment="Stretch"
+                              DisplayMemberPath="CategoryName"
+                              SelectionChanged="CategoryBox_SelectionChanged"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                    <ItemsRepeater x:Name="ProductsRepeater">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="240"
+                                               MinItemHeight="180"
+                                               ItemsJustification="Start"/>
+                        </ItemsRepeater.Layout>
+
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate>
+                                <Button Click="ProductCard_Click"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch">
+
+                                    <Border Style="{StaticResource CardBorder}" Padding="12" Margin="8">
+                                        <Grid RowSpacing="10">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Background="#F3F4F6" CornerRadius="10" Padding="8,4" HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding CategoryName}" FontSize="12"/>
+                                                </Border>
+
+                                                <Border Grid.Column="1" Background="#D1FAE5" CornerRadius="10" Padding="8,4">
+                                                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="#065F46">
+                                                        <Run Text="Stock: "/>
+                                                        <Run Text="{Binding Stock}"/>
+                                                    </TextBlock>
+                                                </Border>
+                                            </Grid>
+
+                                            <Grid Grid.Row="1">
+                                                <Border CornerRadius="12" Width="72" Height="72" BorderThickness="0">
+                                                    <Image Source="{Binding Image}"
+                                                           Stretch="UniformToFill"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <Grid Grid.Row="2" ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="{Binding ProductName}"
+                                                           FontWeight="SemiBold"
+                                                           TextWrapping="WrapWholeWords"/>
+
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding PriceText}"
+                                                           FontWeight="SemiBold"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Style="{StaticResource CardBorder}" Padding="12">
+            <Grid RowSpacing="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Invoice" FontSize="16" FontWeight="SemiBold"/>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Customer" Opacity="0.6" FontSize="12"/>
+                            <AutoSuggestBox x:Name="CustomerBox"
+                                            PlaceholderText="Search by name/phone"
+                                            TextMemberPath="FullName"
+                                            ItemTemplate="{StaticResource CustomerSuggestionTemplate}"
+                                            Text="{x:Bind SelectedCustomerName, Mode=OneWay}"
+                                            TextChanged="CustomerBox_TextChanged"
+                                            SuggestionChosen="CustomerBox_SuggestionChosen"
+                                            QuerySubmitted="CustomerBox_QuerySubmitted"/>
+                            <TextBlock x:Name="CustomerHint" Text="{x:Bind CustomerHintText, Mode=OneWay}" Opacity="0.6" FontSize="11"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="Voucher" Opacity="0.6" FontSize="12"/>
+                            <TextBox x:Name="VoucherBox"
+                                     PlaceholderText="Voucher code"
+                                     KeyDown="VoucherBox_KeyDown"
+                                     LostFocus="VoucherBox_LostFocus"/>
+                            <TextBlock x:Name="VoucherHint"
+                                       Opacity="0.6"
+                                       FontSize="11"
+                                       Text=""/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <ListView Grid.Row="1"
+                          x:Name="InvoiceList"
+                          SelectionMode="None"
+                          BorderBrush="#14000000"
+                          BorderThickness="1"
+                          CornerRadius="12">
+
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="10" ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold"/>
+                                    <TextBlock Opacity="0.6" FontSize="12">
+                                        <Run Text="Stock: "/>
+                                        <Run Text="{Binding Stock}"/>
+                                        <Run Text="  •  "/>
+                                        <Run Text="{Binding PriceText}"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <Border Grid.Column="1" Background="#F3F4F6" CornerRadius="10" Padding="6">
+                                    <Grid ColumnSpacing="6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="36"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button Style="{StaticResource SmallIconBtn}"
+                                                Content="−"
+                                                Click="QtyMinus_Click"
+                                                IsEnabled="{Binding CanDecrease}"/>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Qty}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="SemiBold"/>
+
+                                        <Button Grid.Column="2"
+                                                Style="{StaticResource SmallIconBtn}"
+                                                Content="+"
+
+
+                                                Click="QtyPlus_Click"
+                                                IsEnabled="{Binding CanIncrease}"/>
+                                    </Grid>
+                                </Border>
+
+                                <Button Grid.Column="2"
+                                        Style="{StaticResource SmallIconBtn}"
+                                        Background="#FEE2E2"
+                                        Click="RemoveLine_Click">
+                                    <FontIcon Glyph="&#xE74D;"
+                                              Foreground="#B91C1C"
+                                              FontFamily="Segoe Fluent Icons"
+                                              FontSize="12"/>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <StackPanel Grid.Row="2" Spacing="6" HorizontalAlignment="Stretch">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Subtotal" Opacity="0.6"/>
+                        <TextBlock Grid.Column="1" Text="{x:Bind SubtotalText, Mode=OneWay}" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Discount" Opacity="0.6"/>
+                        <TextBlock Grid.Column="1" Text="{x:Bind DiscountText, Mode=OneWay}" FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Total" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="1" Text="{x:Bind TotalText, Mode=OneWay}" FontWeight="SemiBold"/>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button Style="{StaticResource PrimaryBtn}" Click="Create_Click" Content="Create Order"/>
+                    <Button Style="{StaticResource PrimaryBtn}" Click="Pay_Click" Content="Pay"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentDialog>

@@ -1,0 +1,212 @@
+<Page
+    x:Class="MyShop_Frontend.Views.Pages.CustomerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:MyShop_Frontend.ViewModels.Customers"
+    xmlns:converters="using:MyShop_Frontend.Helpers.Converters"
+    xmlns:controls="using:MyShop_Frontend.Views.Controls"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+
+
+    <Page.Resources>
+    </Page.Resources>
+
+    <Grid Padding="24" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ContentDialog x:Name="CustomerDialog"
+                       Title="Customer Details"
+                       PrimaryButtonText="Save"
+                       CloseButtonText="Cancel"
+                       DefaultButton="Primary"
+                       PrimaryButtonCommand="{Binding SaveCustomerCommand}">
+            <StackPanel Spacing="16" Width="400">
+                <TextBox Header="Full Name" PlaceholderText="Ex: John Doe" Text="{Binding FormFullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Header="Phone" PlaceholderText="Ex: 0912345678" Text="{Binding FormPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Header="Address" PlaceholderText="Ex: 123 Main St, City" Text="{Binding FormAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" Height="60"/>
+            </StackPanel>
+        </ContentDialog>
+
+        <!-- Main Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE77B;" FontSize="24" Foreground="#5D5FEF"/>
+                    <TextBlock Text="Customers" FontSize="28" FontWeight="Bold"/>
+                </StackPanel>
+                <TextBlock Text="Manage your customer base" FontSize="14" Foreground="Gray"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                 <controls:AppButton Command="{Binding ImportCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE8B5;"/>
+                        <TextBlock Text="Import CSV"/>
+                    </StackPanel>
+                </controls:AppButton>
+                <Button Command="{Binding ExportCommand}" Style="{StaticResource SecondaryButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE74E;"/>
+                        <TextBlock Text="Export CSV"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Filters Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,16" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0" PlaceholderText="Search by phone..." Text="{Binding SearchPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" CornerRadius="4">
+                <TextBox.Header>
+                    <TextBlock Text="Phone" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </TextBox.Header>
+            </TextBox>
+            
+            <TextBox Grid.Column="1" PlaceholderText="Search by name..." Text="{Binding SearchName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" CornerRadius="4">
+                <TextBox.Header>
+                    <TextBlock Text="Name" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </TextBox.Header>
+            </TextBox>
+
+             <ComboBox Grid.Column="2" HorizontalAlignment="Stretch" 
+                       ItemsSource="{Binding Tiers}"
+                       SelectedItem="{Binding SelectedTier, Mode=TwoWay}"
+                       DisplayMemberPath="TierName" CornerRadius="4">
+                 <ComboBox.Header>
+                     <TextBlock Text="Tier" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                 </ComboBox.Header>
+             </ComboBox>
+        </Grid>
+
+        <!-- Data List Header -->
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="#F3F4F6" CornerRadius="6" Padding="12,10" Margin="0,0,12,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1.5*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="CUSTOMER" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="1" Text="CONTACT INFO" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="2" Text="POINTS" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="3" Text="TIER" FontSize="12" Foreground="#6B7280" FontWeight="Bold"/>
+                </Grid>
+            </Border>
+
+            <!-- Data List -->
+            <ListView Grid.Row="1" x:Name="CustomerList"
+                      ItemsSource="{Binding Customers}" 
+                      SelectionMode="None"
+                      Padding="0,0,12,0">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="White" CornerRadius="6" BorderBrush="#E5E7EB" BorderThickness="1" Margin="0,4" Padding="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1.5*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Name -->
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding FullName}" FontWeight="SemiBold" FontSize="14" Foreground="#111827"/>
+                                    <TextBlock Foreground="#9CA3AF" FontSize="11">
+                                        <Run Text="ID: "/>
+                                        <Run Text="{Binding CustomerId}"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Contact Info -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE715;" FontSize="12" Foreground="#6B7280"/>
+                                        <TextBlock Text="{Binding Address}" Foreground="#4B5563" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE717;" FontSize="12" Foreground="#6B7280"/>
+                                        <TextBlock Text="{Binding Phone}" Foreground="#4B5563" FontSize="13"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Points -->
+                                <TextBlock Grid.Column="2" Text="{Binding Point}" VerticalAlignment="Center" FontSize="14" FontWeight="Medium" Foreground="#374151"/>
+
+                                <!-- Tier Badge -->
+                                <Border Grid.Column="3" Background="#DBEAFE" CornerRadius="12" Padding="10,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding TierName}" Foreground="#1E40AF" FontSize="12" FontWeight="SemiBold"/>
+                                </Border>
+
+                                <!-- Actions -->
+                                <Button Grid.Column="4" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" Padding="8">
+                                    <FontIcon Glyph="&#xE712;" Foreground="#6B7280"/>
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Edit Customer" Icon="Edit" Command="{Binding DataContext.OpenEditDialogCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
+                                            <MenuFlyoutSeparator/>
+                                            <MenuFlyoutItem Text="Delete Customer" Icon="Delete" Foreground="#DC2626" Command="{Binding DataContext.DeleteCustomerCommand, ElementName=CustomerList}" CommandParameter="{Binding}"/>
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="MinHeight" Value="0"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </Grid>
+
+        <!-- Pagination -->
+        <Grid Grid.Row="3" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="#6B7280" FontSize="13"/>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding PreviousPageCommand}" Content="Previous" Style="{StaticResource SecondaryButtonStyle}"/>
+                <Button Command="{Binding NextPageCommand}" Content="Next" Style="{StaticResource SecondaryButtonStyle}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>
