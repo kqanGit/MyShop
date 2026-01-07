@@ -42,6 +42,13 @@
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="14,10"/>
         </Style>
+
+        <DataTemplate x:Key="CustomerSuggestionTemplate">
+            <StackPanel>
+                <TextBlock Text="{Binding FullName}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Phone}" Opacity="0.7" FontSize="12"/>
+            </StackPanel>
+        </DataTemplate>
     </ContentDialog.Resources>
 
     <Grid ColumnSpacing="6">
@@ -168,17 +175,23 @@
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="Customer" Opacity="0.6" FontSize="12"/>
-                            <NumberBox x:Name="CustomerIdBox"
-                                       Minimum="1"
-                                       SpinButtonPlacementMode="Inline"/>
-                            <TextBlock Text="(1 = Walk-in)" Opacity="0.6" FontSize="11"/>
+                            <AutoSuggestBox x:Name="CustomerBox"
+                                            PlaceholderText="Search by name/phone"
+                                            TextMemberPath="FullName"
+                                            ItemTemplate="{StaticResource CustomerSuggestionTemplate}"
+                                            Text="{x:Bind SelectedCustomerName, Mode=OneWay}"
+                                            TextChanged="CustomerBox_TextChanged"
+                                            SuggestionChosen="CustomerBox_SuggestionChosen"
+                                            QuerySubmitted="CustomerBox_QuerySubmitted"/>
+                            <TextBlock x:Name="CustomerHint" Text="{x:Bind CustomerHintText, Mode=OneWay}" Opacity="0.6" FontSize="11"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Spacing="4">
                             <TextBlock Text="Voucher" Opacity="0.6" FontSize="12"/>
                             <TextBox x:Name="VoucherBox"
                                      PlaceholderText="Voucher code"
-                                     TextChanged="VoucherBox_TextChanged"/>
+                                     KeyDown="VoucherBox_KeyDown"
+                                     LostFocus="VoucherBox_LostFocus"/>
                             <TextBlock x:Name="VoucherHint"
                                        Opacity="0.6"
                                        FontSize="11"

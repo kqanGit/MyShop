@@ -6,6 +6,7 @@ using MyShop.Domain.Repositories;
 using MyShop.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MyShop.Application.Services
@@ -14,8 +15,10 @@ namespace MyShop.Application.Services
     {
         Task<OrderResultDto> CheckoutAsync(CreateOrderRequest request, int userId);
 
-        Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request);
-        Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId);
+        Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request, int userId, int roleId);
+        Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId, int roleId);
+        Task DeleteOrderAsync(int orderId);
+        Task UpdateStatusAsync(int orderId, int status);
     }
     public class OrderService : IOrderService
     {
@@ -192,10 +195,13 @@ namespace MyShop.Application.Services
             }
         }
 
-        public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request)
+        public async Task<PagedResult<OrderSummaryDto>> GetMyOrdersAsync(GetOrdersRequest request, int userId, int roleId)
         {
-            // Call repository with correct date range
+            // Admin/Manager (role 1,2) see all; staff only own
+            int? filterUserId = roleId is 1 or 2 ? null : userId;
+
             var (orders, totalCount) = await _orderRepo.GetPagedOrdersAsync(
+                filterUserId,
                 request.PageIndex,
                 request.PageSize,
                 request.FromDate,
@@ -215,15 +221,23 @@ namespace MyShop.Application.Services
 
             return new PagedResult<OrderSummaryDto>(dtos, totalCount, request.PageIndex, request.PageSize);
         }
-        public async Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId)
+        public async Task<OrderResponseDto> GetOrderByIdAsync(int orderId, int userId, int roleId)
         {
       
             var order = await _orderRepo.GetOrderWithDetailsAsync(orderId);
-
+ 
             if (order == null)
             {
                 throw new KeyNotFoundException("Can not find this order");
             }
+            
+            // Staff (role 3+) can only view own orders
+            if (roleId is not 1 and not 2 && order.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("You cannot access this order.");
+            }
+
+            var details = order.OrderDetails ?? new List<OrderDetail>();
 
             var result = new OrderResponseDto
             {
@@ -238,15 +252,15 @@ namespace MyShop.Application.Services
                     3 => "Canceled",
                     _ => "Unknown"
                 },
-                VoucherCode = order.Voucher.VoucherCode ?? "None",
+                VoucherCode = order.Voucher?.VoucherCode ?? "None",
                 TotalPrice = order.TotalPrice,
                 DiscountAmount = order.DiscountAmount,
                 FinalPrice = order.FinalPrice,
 
-                OrderDetails = order.OrderDetails.Select(od => new OrderDetailResponseDto
+                OrderDetails = details.Select(od => new OrderDetailResponseDto
                 {
                     ProductId = od.ProductId,
-                    ProductName = od.Product.ProductName, 
+                    ProductName = od.Product?.ProductName ?? "Unknown product",
                     Quantity = od.Quantity,
                     PriceAtPurchase = od.CurrentPrice,
                     TotalLine = od.TotalLine
@@ -254,6 +268,43 @@ namespace MyShop.Application.Services
             };
 
             return result;
+        }
+
+        public async Task DeleteOrderAsync(int orderId)
+        {
+            var order = await _orderRepo.GetOrderWithDetailsAsync(orderId);
+            if (order == null) throw new KeyNotFoundException("Order not found");
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (order.OrderDetails != null && order.OrderDetails.Any())
+                {
+                    _context.OrderDetails.RemoveRange(order.OrderDetails);
+                }
+
+                await _orderRepo.DeleteAsync(order);
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task UpdateStatusAsync(int orderId, int status)
+        {
+            if (status < 1 || status > 3)
+                throw new ArgumentException("Invalid status value. Allowed: 1=New, 2=Paid, 3=Canceled.");
+
+            var order = await _orderRepo.GetOrderWithDetailsAsync(orderId);
+            if (order == null) throw new KeyNotFoundException("Order not found");
+
+            order.Status = status;
+            await _orderRepo.UpdateAsync(order);
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MyShop_Frontend.Contracts.Services;
+using MyShop_Frontend.Contracts.Dtos;
 using Microsoft.UI;
+using System.Threading.Tasks;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -31,6 +33,7 @@ namespace MyShop_Frontend
     {
         private readonly IUserSettingsStore _userSettings;
         private readonly ITokenStore _tokenStore;
+        private readonly IUserConfigService _userConfigService;
 
         public ViewModels.MainViewModel ViewModel { get; } = new();
         public MainWindow()
@@ -39,8 +42,11 @@ namespace MyShop_Frontend
 
             _userSettings = App.Services.GetRequiredService<IUserSettingsStore>();
             _tokenStore = App.Services.GetRequiredService<ITokenStore>();
+            _userConfigService = App.Services.GetRequiredService<IUserConfigService>();
 
             HideReportForStaff();
+
+            _ = LoadUserConfigAsync();
 
             var startTag = "Dashboard";
             if (_userSettings.GetRememberLastModule(defaultValue: true))
@@ -88,6 +94,30 @@ namespace MyShop_Frontend
                 }
             }
         }
+
+        private async Task LoadUserConfigAsync()
+        {
+            try
+            {
+                UserConfigClientDto? cfg = await _userConfigService.GetConfigAsync();
+                if (cfg is UserConfigClientDto config)
+                {
+                    if (config.PerPage > 0)
+                        _userSettings.SetProductsPageSize(config.PerPage);
+
+                    if (!string.IsNullOrWhiteSpace(config.LastModule))
+                    {
+                        _userSettings.SetLastModule(config.LastModule);
+                        NavigateByTag(config.LastModule);
+                    }
+                }
+            }
+            catch
+            {
+                // ignore and keep local settings
+            }
+        }
+
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.SelectedItem is not NavigationViewItem item)
@@ -127,6 +157,11 @@ namespace MyShop_Frontend
                 if (!tag.Equals("SignOut", StringComparison.OrdinalIgnoreCase))
                 {
                     _userSettings.SetLastModule(tag);
+                    _ = _userConfigService.SaveConfigAsync(new UserConfigClientDto
+                    {
+                        PerPage = _userSettings.GetProductsPageSize(defaultValue: 10),
+                        LastModule = tag
+                    });
                 }
             }
 
@@ -134,7 +169,7 @@ namespace MyShop_Frontend
             UpdateNavFontWeights(sender);
         }
 
-        private void SelectNavigationItemByTag(string tag)
+        public void SelectNavigationItemByTag(string tag)
         {
             var item = FlattenNavItems(NavView)
                 .FirstOrDefault(nvi => nvi.Tag?.ToString() == tag);
@@ -145,8 +180,7 @@ namespace MyShop_Frontend
                 UpdateNavFontWeights(NavView);
             }
         }
-
-        private void NavigateByTag(string tag)
+        public void NavigateByTag(string tag)
         {
             if (tag == "Report" && IsStaffRole())
             {

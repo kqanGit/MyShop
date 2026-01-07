@@ -48,5 +48,24 @@ namespace MyShop_Frontend.Services
         {
             return await _api.DeleteAsync($"api/Orders/{orderId}", ct);
         }
+
+        public async Task<bool> UpdateStatusAsync(int orderId, int status, CancellationToken ct = default)
+        {
+            var payload = new UpdateOrderStatusRequest { Status = status };
+            var res = await _api.PutAsync<object>($"api/Orders/{orderId}/status", payload, ct);
+            return res != null;
+        }
+
+        public async Task<bool> PayOrderAsync(int orderId, CancellationToken ct = default)
+        {
+            var res = await _api.PutAsync<object>($"api/Orders/{orderId}/pay", new { }, ct);
+            return res != null;
+        }
+
+        public async Task<bool> CancelOrderAsync(int orderId, CancellationToken ct = default)
+        {
+            var res = await _api.PutAsync<object>($"api/Orders/{orderId}/cancel", new { }, ct);
+            return res != null;
+        }
     }
 }

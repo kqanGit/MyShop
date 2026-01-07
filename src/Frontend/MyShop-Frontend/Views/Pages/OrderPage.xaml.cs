@@ -40,7 +40,7 @@ namespace MyShop_Frontend.Views.Pages
             {
                 try
                 {
-                    var detail = await _orders.GetOrderByIdAsync(order.OrderId);
+                   var detail = await _orders.GetOrderByIdAsync(order.OrderId);
 
                     var sb = new System.Text.StringBuilder();
                     sb.AppendLine($"Order: {detail.OrderCode}");
@@ -130,6 +130,54 @@ namespace MyShop_Frontend.Views.Pages
                     {
                         XamlRoot = this.XamlRoot,
                         Title = "Delete failed",
+                        Content = ex.Message,
+                        CloseButtonText = "OK"
+                    };
+                    await dlg.ShowAsync();
+                }
+            }
+        }
+
+        private async void PayOrder_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem item && item.CommandParameter is OrderSummaryDto order)
+            {
+                try
+                {
+                    await _orders.PayOrderAsync(order.OrderId);
+                     if (DataContext is OrderViewModel vm)
+                        await vm.LoadOrdersAsync();
+                 }
+                catch (Exception ex)
+                {
+                    var dlg = new ContentDialog
+                    {
+                        XamlRoot = this.XamlRoot,
+                        Title = "Pay failed",
+                        Content = ex.Message,
+                        CloseButtonText = "OK"
+                    };
+                    await dlg.ShowAsync();
+                }
+            }
+        }
+
+        private async void CancelOrder_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem item && item.CommandParameter is OrderSummaryDto order)
+            {
+                try
+                {
+                    await _orders.CancelOrderAsync(order.OrderId);
+                     if (DataContext is OrderViewModel vm)
+                        await vm.LoadOrdersAsync();
+                 }
+                catch (Exception ex)
+                {
+                    var dlg = new ContentDialog
+                    {
+                        XamlRoot = this.XamlRoot,
+                        Title = "Cancel failed",
                         Content = ex.Message,
                         CloseButtonText = "OK"
                     };

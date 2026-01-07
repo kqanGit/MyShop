@@ -112,6 +112,7 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                 <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="Gray"/>
+                <ComboBox Width="80" ItemsSource="{Binding PageSizeOptions}" SelectedItem="{Binding SelectedPageSize, Mode=TwoWay}" />
                 <AppBarSeparator/>
                 <Button Content="&lt;" Command="{Binding PreviousPageCommand}"/>
                 <Button Content="&gt;" Command="{Binding NextPageCommand}"/>

@@ -20,6 +20,8 @@
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
             <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
             <converters:PriceConverter x:Key="PriceConverter"/>
+            <converters:StringNullOrEmptyToVisibilityConverter x:Key="StringNullToVisibility"/>
+            <converters:StringNotNullOrEmptyToVisibilityConverter x:Key="StringNotNullToVisibility"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

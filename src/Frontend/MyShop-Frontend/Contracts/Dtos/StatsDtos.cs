@@ -62,6 +62,9 @@ namespace MyShop_Frontend.Contracts.Dtos
 
     public class TopProductDto
     {
+        [JsonPropertyName("productId")]
+        public int ProductId { get; set; }
+
         [JsonPropertyName("productName")]
         public string ProductName { get; set; } = string.Empty;
 
@@ -70,13 +73,16 @@ namespace MyShop_Frontend.Contracts.Dtos
 
         [JsonPropertyName("revenue")]
         public decimal Revenue { get; set; }
+
+        [JsonPropertyName("image")]
+        public string? Image { get; set; }
     }
 
     public enum StatsGroupBy
     {
-        Day = 0,
-        Week = 1,
-        Month = 2,
-        Year = 3
+        Day = 1,
+        Week = 2,
+        Month = 3,
+        Year = 4
     }
 }

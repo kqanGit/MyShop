@@ -25,15 +25,18 @@ namespace MyShop.Infrastructure.Repositories
                 .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
-        public async Task<(List<Order>, int)> GetPagedOrdersAsync(int pageIndex, int pageSize, DateTime? fromDate, DateTime? toDate)
+        public async Task<(List<Order>, int)> GetPagedOrdersAsync(int? userId, int pageIndex, int pageSize, DateTime? fromDate, DateTime? toDate)
         {
             // Use repository DbSet as query source
             var query = Set.AsNoTracking().AsQueryable();
 
+            // 1. Filter by user (if provided)
+            if (userId.HasValue)
+            {
+                query = query.Where(o => o.UserId == userId.Value);
+            }
 
- 
-
-            // 1. Filter by date range
+            // 2. Filter by date range
             if (fromDate.HasValue)
             {
                 query = query.Where(o => o.OrderDate >= fromDate.Value);
@@ -46,10 +49,10 @@ namespace MyShop.Infrastructure.Repositories
                 query = query.Where(o => o.OrderDate < nextDay);
             }
 
-            // 2. Sort newest first
+            // 3. Sort newest first
             query = query.OrderByDescending(o => o.OrderDate);
 
-            // 3. Count & paginate
+            // 4. Count & paginate
             int totalCount = await query.CountAsync();
 
             var items = await query

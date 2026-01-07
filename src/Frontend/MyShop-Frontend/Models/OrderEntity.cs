@@ -29,8 +29,8 @@ namespace MyShop_Frontend.Models
         public string StatusText => Status switch
         {
             1 => "New",
-            2 => "Delivering",
-            3 => "Completed",
+            2 => "Paid",
+            3 => "Canceled",
             _ => "Unknown"
         };
 
