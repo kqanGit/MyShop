@@ -55,7 +55,6 @@ namespace MyShop_Frontend.Views.Pages
 
         private async void SignInButton_Click(object sender, RoutedEventArgs e)
         {
-            // Password đã được sync qua PasswordChanged event
             await ViewModel.LoginAsync();
         }
     }

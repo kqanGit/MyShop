@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:MyShop_Frontend.ViewModels.Customers"
     xmlns:converters="using:MyShop_Frontend.Helpers.Converters"
+    xmlns:controls="using:MyShop_Frontend.Views.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -43,18 +44,21 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Spacing="4">
-                <TextBlock Text="Customers" FontSize="28" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE77B;" FontSize="24" Foreground="#5D5FEF"/>
+                    <TextBlock Text="Customers" FontSize="28" FontWeight="Bold"/>
+                </StackPanel>
                 <TextBlock Text="Manage your customer base" FontSize="14" Foreground="Gray"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                 <Button Command="{Binding ImportCommand}" Style="{StaticResource AccentButtonStyle}" Background="#3b82f6" Foreground="White">
+                 <controls:AppButton Command="{Binding ImportCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE8B5;"/>
                         <TextBlock Text="Import CSV"/>
                     </StackPanel>
-                </Button>
-                <Button Command="{Binding ExportCommand}">
+                </controls:AppButton>
+                <Button Command="{Binding ExportCommand}" Style="{StaticResource SecondaryButtonStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE74E;"/>
                         <TextBlock Text="Export CSV"/>
@@ -200,8 +204,8 @@
             <TextBlock Text="{Binding ShowingStatus}" VerticalAlignment="Center" Foreground="#6B7280" FontSize="13"/>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                <Button Command="{Binding PreviousPageCommand}" Content="Previous" CornerRadius="4"/>
-                <Button Command="{Binding NextPageCommand}" Content="Next" CornerRadius="4"/>
+                <Button Command="{Binding PreviousPageCommand}" Content="Previous" Style="{StaticResource SecondaryButtonStyle}"/>
+                <Button Command="{Binding NextPageCommand}" Content="Next" Style="{StaticResource SecondaryButtonStyle}"/>
             </StackPanel>
         </Grid>
     </Grid>

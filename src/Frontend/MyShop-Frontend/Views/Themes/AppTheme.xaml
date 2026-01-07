@@ -4,4 +4,45 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:MyShop_Frontend">
 
+    <!-- Shared brushes -->
+    <SolidColorBrush x:Key="PrimaryButtonBackground" Color="#5D5FEF"/>
+    <SolidColorBrush x:Key="PrimaryButtonForeground" Color="White"/>
+    <SolidColorBrush x:Key="SecondaryButtonBackground" Color="#F1F5F9"/>
+    <SolidColorBrush x:Key="SecondaryButtonForeground" Color="#475569"/>
+    <SolidColorBrush x:Key="SecondaryButtonBorder" Color="#CBD5E1"/>
+
+    <!-- Shared button styles -->
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource PrimaryButtonBackground}"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryButtonForeground}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinHeight" Value="40"/>
+    </Style>
+
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SecondaryButtonBackground}"/>
+        <Setter Property="Foreground" Value="{StaticResource SecondaryButtonForeground}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource SecondaryButtonBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="MinHeight" Value="36"/>
+    </Style>
+
+    <!-- Inputs rounding -->
+    <Style TargetType="TextBox">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+    <Style TargetType="ComboBox">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="8,6"/>
+    </Style>
+    <Style TargetType="CalendarDatePicker">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="8,6"/>
+    </Style>
+
 </ResourceDictionary>

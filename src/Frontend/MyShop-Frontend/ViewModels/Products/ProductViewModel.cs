@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Imaging;
 using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Contracts.Dtos;
 using MyShop_Frontend.Helpers.Command;
@@ -317,10 +318,54 @@ namespace MyShop_Frontend.ViewModels.Products
                 categoryBox.SelectedIndex = 0;
 
             var unitBox = new TextBox { PlaceholderText = "Piece / Box / Bottle..." };
-            var costBox = new NumberBox { Minimum = 0, Value = 0, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
-            var priceBox = new NumberBox { Minimum = 0, Value = 0, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
+            var costBox = new NumberBox { Minimum = 0, Value = 0, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline, SmallChange = 1000 };
+            var priceBox = new NumberBox { Minimum = 0, Value = 0, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline, SmallChange = 1000 };
             var stockBox = new NumberBox { Minimum = 0, Value = 0, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
             var imageBox = new TextBox { PlaceholderText = "https://... or file path" };
+            var imagePreview = new Image { Height = 180, Stretch = Microsoft.UI.Xaml.Media.Stretch.UniformToFill };
+
+            void UpdatePreview(string path)
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    imagePreview.Source = null;
+                    return;
+                }
+                try
+                {
+                    imagePreview.Source = new BitmapImage(new Uri(path));
+                }
+                catch
+                {
+                    imagePreview.Source = null;
+                }
+            }
+
+            imageBox.TextChanged += (_, __) => UpdatePreview(imageBox.Text);
+            UpdatePreview(imageBox.Text);
+            var pickImageButton = new Button { Content = "Select Image..." };
+            void UpdatePickButtonState() => pickImageButton.IsEnabled = string.IsNullOrWhiteSpace(imageBox.Text);
+            imageBox.TextChanged += (_, __) => UpdatePickButtonState();
+            UpdatePickButtonState();
+            pickImageButton.Click += async (s, e) =>
+            {
+                var picker = new FileOpenPicker();
+                picker.ViewMode = PickerViewMode.Thumbnail;
+                picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+                picker.FileTypeFilter.Add(".jpg");
+                picker.FileTypeFilter.Add(".jpeg");
+                picker.FileTypeFilter.Add(".png");
+
+                var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+                InitializeWithWindow.Initialize(picker, hwnd);
+
+                var file = await picker.PickSingleFileAsync();
+                if (file != null)
+                {
+                    imageBox.Text = file.Path;
+                    UpdatePreview(file.Path);
+                }
+            };
 
             var panel = new StackPanel { Spacing = 12, Padding = new Thickness(2) };
             panel.Children.Add(title);
@@ -361,8 +406,16 @@ namespace MyShop_Frontend.ViewModels.Products
 
             panel.Children.Add(new TextBlock { Text = "Image (url/path)", FontSize = 12, Opacity = 0.6 });
             panel.Children.Add(imageBox);
+            panel.Children.Add(pickImageButton);
+            panel.Children.Add(imagePreview);
 
-            var content = new ScrollViewer { MaxHeight = 560, Content = panel };
+            var content = new ScrollViewer
+            {
+                MaxHeight = 560,
+                Content = panel,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+                VerticalScrollMode = ScrollMode.Enabled
+            };
 
             var dlg = new ContentDialog
             {
@@ -443,10 +496,54 @@ namespace MyShop_Frontend.ViewModels.Products
                 categoryBox.SelectedIndex = 0;
 
             var unitBox = new TextBox { Text = product.Unit };
-            var costBox = new NumberBox { Minimum = 0, Value = (double)product.Cost, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
-            var priceBox = new NumberBox { Minimum = 0, Value = (double)product.Price, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
+            var costBox = new NumberBox { Minimum = 0, Value = (double)product.Cost, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline, SmallChange = 1000 };
+            var priceBox = new NumberBox { Minimum = 0, Value = (double)product.Price, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline, SmallChange = 1000 };
             var stockBox = new NumberBox { Minimum = 0, Value = product.Stock, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline };
             var imageBox = new TextBox { Text = product.Image };
+            var imagePreview = new Image { Height = 180, Stretch = Microsoft.UI.Xaml.Media.Stretch.UniformToFill };
+
+            void UpdatePreview(string path)
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    imagePreview.Source = null;
+                    return;
+                }
+                try
+                {
+                    imagePreview.Source = new BitmapImage(new Uri(path));
+                }
+                catch
+                {
+                    imagePreview.Source = null;
+                }
+            }
+
+            imageBox.TextChanged += (_, __) => UpdatePreview(imageBox.Text);
+            UpdatePreview(imageBox.Text);
+            var pickImageButton = new Button { Content = "Select Image..." };
+            void UpdatePickButtonState() => pickImageButton.IsEnabled = string.IsNullOrWhiteSpace(imageBox.Text);
+            imageBox.TextChanged += (_, __) => UpdatePickButtonState();
+            UpdatePickButtonState();
+            pickImageButton.Click += async (s, e) =>
+            {
+                var picker = new FileOpenPicker();
+                picker.ViewMode = PickerViewMode.Thumbnail;
+                picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+                picker.FileTypeFilter.Add(".jpg");
+                picker.FileTypeFilter.Add(".jpeg");
+                picker.FileTypeFilter.Add(".png");
+
+                var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+                InitializeWithWindow.Initialize(picker, hwnd);
+
+                var file = await picker.PickSingleFileAsync();
+                if (file != null)
+                {
+                    imageBox.Text = file.Path;
+                    UpdatePreview(file.Path);
+                }
+            };
 
             var panel = new StackPanel { Spacing = 12, Padding = new Thickness(2) };
             panel.Children.Add(new TextBlock { Text = "Product Information", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
@@ -487,8 +584,16 @@ namespace MyShop_Frontend.ViewModels.Products
 
             panel.Children.Add(new TextBlock { Text = "Image (url/path)", FontSize = 12, Opacity = 0.6 });
             panel.Children.Add(imageBox);
+            panel.Children.Add(pickImageButton);
+            panel.Children.Add(imagePreview);
 
-            var content = new ScrollViewer { MaxHeight = 560, Content = panel };
+            var content = new ScrollViewer
+            {
+                MaxHeight = 560,
+                Content = panel,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+                VerticalScrollMode = ScrollMode.Enabled
+            };
 
             var dlg = new ContentDialog
             {

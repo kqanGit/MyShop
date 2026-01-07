@@ -23,6 +23,8 @@ namespace MyShop_Frontend.Views.Controls
 {
     public sealed partial class AuthLayout : UserControl
     {
+        public string AppVersion => App.AppVersion;
+
         public AuthLayout()
         {
             InitializeComponent();

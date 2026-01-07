@@ -114,6 +114,13 @@ namespace MyShop_Frontend.ViewModels.Dashboard
             set => SetProperty(ref _newCustomers, value);
         }
 
+        private string _totalProducts = "0";
+        public string TotalProducts
+        {
+            get => _totalProducts;
+            set => SetProperty(ref _totalProducts, value);
+        }
+
         // ===== Change Indicators =====
         private string _revenueChangePercent = "0%";
         public string RevenueChangePercent
@@ -281,6 +288,7 @@ namespace MyShop_Frontend.ViewModels.Dashboard
                 TotalProfit = string.Format(_culture, "{0:N0} ₫", kpi.TotalProfit);
                 TotalOrders = kpi.TotalOrders.ToString("N0", _culture);
                 NewCustomers = kpi.NewCustomersCount.ToString("N0", _culture);
+                TotalProducts = kpi.TotalProducts.ToString("N0", _culture);
 
                 int totalProductsSold = kpi.RevenueChart?.Sum(c => c.TotalQuantity) ?? 0;
                 TotalProductsSold = totalProductsSold.ToString("N0", _culture);

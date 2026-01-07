@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:MyShop_Frontend.Views.Controls"
+    xmlns:vm="using:MyShop_Frontend.ViewModels"
     mc:Ignorable="d"
     Title="MyShop-Frontend">
 
@@ -18,7 +19,7 @@
         IsSettingsVisible="False"
         ContentTransitions="{x:Null}"
         IsPaneOpen="True"
-        OpenPaneLength="200"
+        OpenPaneLength="230"
         CompactPaneLength="56"
         Background="#F8FAFC">
 
@@ -52,7 +53,8 @@
         </NavigationView.Resources>
 
         <NavigationView.PaneHeader>
-            <StackPanel Orientation="Horizontal" Spacing="12" Margin="16,40,16,25">
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,40,16,25" VerticalAlignment="Center" HorizontalAlignment="Left">
+                <Image Source="ms-appx:///Assets/AppLogo.svg" Width="38" Height="38" Stretch="Uniform"/>
                 <TextBlock Text="My Shop"
                        FontSize="25"
                        FontWeight="SemiBold"
@@ -167,7 +169,7 @@
                                         ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}"
                                         SuggestionChosen="GlobalSearchBox_SuggestionChosen">
                             <AutoSuggestBox.ItemTemplate>
-                                <DataTemplate x:DataType="local:ViewModels.SearchResult">
+                                <DataTemplate x:DataType="vm:SearchResult">
                                     <StackPanel Orientation="Horizontal" Spacing="8" Padding="4">
                                         <FontIcon Glyph="{x:Bind IconGlyph}" FontSize="16" Width="20"/>
                                         <StackPanel>
@@ -228,13 +230,6 @@
                                                        FontSize="12" 
                                                        Foreground="#64748B"/>
                                         </StackPanel>
-
-                                        <!-- Dropdown Arrow -->
-                                        <FontIcon Glyph="&#xE70D;"
-                                                  FontSize="10"
-                                                  Foreground="#94A3B8"
-                                                  VerticalAlignment="Center"
-                                                  Margin="4,0,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Button>

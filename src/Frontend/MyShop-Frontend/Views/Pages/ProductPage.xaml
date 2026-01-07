@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:MyShop_Frontend.ViewModels.Products"
     xmlns:converters="using:MyShop_Frontend.Helpers.Converters"
+    xmlns:controls="using:MyShop_Frontend.Views.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -16,8 +17,8 @@
     </Page.DataContext>
 
     <Page.Resources>
-        <converters:PriceConverter x:Key="PriceConverter"/>
-    </Page.Resources>
+         <converters:PriceConverter x:Key="PriceConverter"/>
+     </Page.Resources>
 
     <Grid Padding="24">
         <Grid.RowDefinitions>
@@ -35,49 +36,63 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="Product" FontSize="24" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE8D1;" Foreground="#5D5FEF" FontSize="22"/>
+                    <TextBlock Text="Product" FontSize="24" FontWeight="Bold"/>
+                </StackPanel>
                 <TextBlock Text="Browse products" FontSize="14" Foreground="Gray"/>
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                <Button Command="{Binding ExportCommand}">
+                <Button Command="{Binding ExportCommand}" Style="{StaticResource SecondaryButtonStyle}" Height="40">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE74E;"/>
                         <TextBlock Text="Export"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding ImportCommand}">
+                <Button Command="{Binding ImportCommand}" Style="{StaticResource SecondaryButtonStyle}" Height="40">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE898;"/>
                         <TextBlock Text="Import"/>
                     </StackPanel>
                 </Button>
-                <Button Command="{Binding AddCategoryCommand}">
+                <Button Command="{Binding AddCategoryCommand}" Style="{StaticResource SecondaryButtonStyle}" Height="40">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE8D2;"/>
                         <TextBlock Text="New Category"/>
                     </StackPanel>
                 </Button>
-                <Button Background="#111827" Foreground="White" CornerRadius="10" Padding="14,10" Command="{Binding AddProductCommand}">
+                <controls:AppButton Command="{Binding AddProductCommand}" Height="40">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE710;"/>
                         <TextBlock Text="New Product" FontWeight="SemiBold"/>
                     </StackPanel>
-                </Button>
+                </controls:AppButton>
             </StackPanel>
         </Grid>
 
         <!-- Filters -->
         <Grid Grid.Row="1" ColumnSpacing="12" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1.2*"/>
-                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="0.58*"/>
+                <ColumnDefinition Width="0.5*"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox Grid.Column="0" PlaceholderText="Search by product name..." Text="{Binding Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" DisplayMemberPath="CategoryName"/>
+            <TextBox Grid.Column="0" PlaceholderText="Search by product name..." Text="{Binding Keyword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox.Header>
+                    <TextBlock Text="Name" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </TextBox.Header>
+            </TextBox>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" DisplayMemberPath="CategoryName">
+                <ComboBox.Header>
+                    <TextBlock Text="Category" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </ComboBox.Header>
+            </ComboBox>
             <ComboBox Grid.Column="2" SelectedValuePath="Tag" SelectedValue="{Binding Sort, Mode=TwoWay}">
+                <ComboBox.Header>
+                    <TextBlock Text="Sort" FontSize="12" Foreground="Gray" Margin="0,0,0,4"/>
+                </ComboBox.Header>
                 <ComboBoxItem Content="Name (A-Z)" Tag="name_asc"/>
                 <ComboBoxItem Content="Price (Low->High)" Tag="price_asc"/>
                 <ComboBoxItem Content="Price (High->Low)" Tag="price_desc"/>
@@ -167,7 +182,6 @@
                                     <TextBlock Text="{Binding ProductName}" FontSize="14" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" Height="40" VerticalAlignment="Top"/>
                                     
                                     <!-- Price -->
-                                    <!-- Price and Actions Row -->
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>

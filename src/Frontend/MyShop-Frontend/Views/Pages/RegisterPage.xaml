@@ -60,11 +60,7 @@
         <controls:AppButton Content="Register"
                        Height="45"
                        Width="380"
-                       Background="#5D5FEF"
-                       Foreground="White"
-                       FontWeight="SemiBold"
-                       BorderThickness="0"
-                       CornerRadius="16"/>
+                       Style="{StaticResource PrimaryButtonStyle}"/>
 
         <HyperlinkButton Content="Already have an account" 
                                 HorizontalAlignment="Center" 

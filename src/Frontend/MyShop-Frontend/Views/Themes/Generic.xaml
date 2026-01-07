@@ -7,7 +7,7 @@
 
     <!--Set màu cho Button-->
     <Style TargetType="controls:AppButton">
-        <Setter Property="CornerRadius" Value="16"/>
+        <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Background" Value="#5D5FEF"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontWeight" Value="SemiBold"/>

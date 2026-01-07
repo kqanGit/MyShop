@@ -114,20 +114,6 @@
                 <TextBlock x:Name="StatusText"
                            Text=""
                            FontSize="12"/>
-
-                <Border Width="16" Height="16"
-                        CornerRadius="2"
-
-                        BorderThickness="1"
-                        Background="White"
-                        Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE73E;"
-                              FontFamily="Segoe MDL2 Assets"
-
-                              FontSize="12"
-                              HorizontalAlignment="Center"
-                              VerticalAlignment="Center"/>
-                </Border>
             </StackPanel>
 
             <controls:AppButton Content="Back to Login"

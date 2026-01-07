@@ -20,13 +20,19 @@
             <Image  Source="/Assets/LoginImage.jpg" Stretch="UniformToFill"
                     HorizontalAlignment="Right"/>
             <StackPanel Spacing="15">
-                <TextBlock Text="MyShop 2.6.2"
-               Foreground="#101010"
-               Opacity="0.75"
-               FontSize="20"
-               FontWeight="Bold"
-               Margin="20"
-               VerticalAlignment="Top"/>
+
+                <StackPanel Margin="20" Orientation="Horizontal" Spacing="6" >
+                     <Image Source="ms-appx:///Assets/AppLogo.svg" Width="32" Height="32" Stretch="Uniform"/>
+                    <TextBlock Foreground="#101010"
+                               Opacity="0.75"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               VerticalAlignment="Top">
+                        <Run Text="MyShop "/>
+                        <Run Text="{x:Bind AppVersion, Mode=OneWay}"/>
+                    </TextBlock>
+                 </StackPanel>
+
 
                 <TextBlock Foreground="#FFFFFF"
                            FontSize="100"

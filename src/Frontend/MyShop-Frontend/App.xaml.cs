@@ -6,6 +6,8 @@ using MyShop_Frontend.Services;
 using MyShop_Frontend.ViewModels.Dashboard;
 using MyShop_Frontend.ViewModels.Reports;
 using System;
+using System.Reflection;
+using Windows.ApplicationModel;
 
 namespace MyShop_Frontend
 {
@@ -88,5 +90,25 @@ namespace MyShop_Frontend
                 http.BaseAddress = new Uri("http://localhost:5126/");
             }
         }
+
+        private static string GetAppVersion()
+        {
+            try
+            {
+                var v = Package.Current.Id.Version;
+                return $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
+            }
+            catch
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                var info = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                if (!string.IsNullOrWhiteSpace(info)) return info;
+
+                var v2 = asm.GetName().Version;
+                return v2?.ToString() ?? "1.0.0";
+            }
+        }
+
+        public static string AppVersion { get; } = GetAppVersion();
     }
 }

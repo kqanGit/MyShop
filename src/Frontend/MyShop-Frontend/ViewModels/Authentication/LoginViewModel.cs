@@ -160,8 +160,7 @@ namespace MyShop_Frontend.ViewModels.Authentication
                 }
                 else
                 {
-                    // Với AuthenticationService hiện tại, trường hợp này gần như không xảy ra (nó sẽ throw nếu token rỗng)
-                    ErrorMessage = "Đăng nhập thất bại: server không trả về token.";
+                    ErrorMessage = "Sai tài khoản hoặc mật khẩu.";
                 }
             }
             catch (HttpRequestException ex)

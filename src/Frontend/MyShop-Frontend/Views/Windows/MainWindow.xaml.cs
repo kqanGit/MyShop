@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using MyShop_Frontend.Contracts.Services;
-using MyShop_Frontend.Contracts.Dtos;
 using Microsoft.UI;
-using System.Threading.Tasks;
 using Microsoft.UI.Text;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -11,15 +9,21 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using MyShop_Frontend.Contracts.Dtos;
+using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Views.Pages;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.UI.ApplicationSettings;
+using Windows.UI.WindowManagement;
+using WinRT.Interop;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -36,15 +40,14 @@ namespace MyShop_Frontend
         private readonly IUserConfigService _userConfigService;
 
         public ViewModels.MainViewModel ViewModel { get; } = new();
+        public string AppVersion => App.AppVersion;
         public MainWindow()
         {
             this.InitializeComponent();
-
+            Title = $"MyShop {AppVersion}";
             _userSettings = App.Services.GetRequiredService<IUserSettingsStore>();
             _tokenStore = App.Services.GetRequiredService<ITokenStore>();
             _userConfigService = App.Services.GetRequiredService<IUserConfigService>();
-
-            HideReportForStaff();
 
             _ = LoadUserConfigAsync();
 
@@ -260,7 +263,7 @@ namespace MyShop_Frontend
                 switch (result.Type)
                 {
                     case "Customer":
-                        NavigateByTag("Customers"); 
+                        NavigateByTag("Customers");
                         // Optionally pass data: ContentFrame.Navigate(typeof(CustomerPage), result.Data);
                         break;
                     case "Product":
@@ -273,6 +276,5 @@ namespace MyShop_Frontend
             }
         }
     }
-
 
 }

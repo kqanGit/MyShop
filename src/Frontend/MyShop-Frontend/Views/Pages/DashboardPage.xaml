@@ -71,6 +71,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Card 1: Revenue -->
@@ -205,6 +206,37 @@
                                            Foreground="#64748B" 
                                            FontSize="13"/>
                                 <TextBlock Text="new customers" Foreground="#94A3B8" FontSize="13"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Card 5: Total Products -->
+                    <Border Grid.Column="4" Background="White" CornerRadius="16" Padding="20">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
+                                <Border Background="#EEF2FF" CornerRadius="10" Padding="10">
+                                    <FontIcon Glyph="&#xECAA;" FontSize="18" Foreground="#5D5FEF"/>
+                                </Border>
+                                <TextBlock Text="Total Products" 
+                                       Foreground="#64748B" 
+                                       VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="1" 
+                                   Text="{x:Bind ViewModel.TotalProducts, Mode=OneWay}"
+                                   FontSize="28" 
+                                   FontWeight="Bold"
+                                   Foreground="#1E293B"
+                                   Margin="0,12,0,4"/>
+
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="In catalog" Foreground="#94A3B8" FontSize="13"/>
                             </StackPanel>
                         </Grid>
                     </Border>
