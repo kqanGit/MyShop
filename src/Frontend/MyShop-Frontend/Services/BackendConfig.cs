@@ -7,11 +7,9 @@ namespace MyShop_Frontend.Services
 {
     public sealed class BackendConfig : IBackendConfig
     {
-        private readonly ApplicationDataContainer _settings = ApplicationData.Current.LocalSettings;
-
         public string? GetBaseUrl()
         {
-            var raw = _settings.Values[AppKeys.BackendBaseUrl] as string;
+            var raw = LocalSettingsHelper.GetValue<string>(AppKeys.BackendBaseUrl);
             if (string.IsNullOrWhiteSpace(raw)) return null;
 
             // luôn trả về dạng chuẩn (có scheme + có / cuối)
@@ -41,7 +39,7 @@ namespace MyShop_Frontend.Services
         {
             if (string.IsNullOrWhiteSpace(baseUrl))
             {
-                _settings.Values.Remove(AppKeys.BackendBaseUrl);
+                LocalSettingsHelper.Remove(AppKeys.BackendBaseUrl);
                 return;
             }
 
@@ -54,7 +52,7 @@ namespace MyShop_Frontend.Services
                 throw new ArgumentException($"Invalid http/https base url: {baseUrl}", nameof(baseUrl));
             }
 
-            _settings.Values[AppKeys.BackendBaseUrl] = normalized;
+            LocalSettingsHelper.SetValue(AppKeys.BackendBaseUrl, normalized);
         }
 
         private static string NormalizeBaseUrl(string input)

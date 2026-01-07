@@ -13,7 +13,6 @@ namespace MyShop_Frontend.Views.Windows
 {
     public sealed partial class ServerConfigWindow : Window
     {
-        private readonly ApplicationDataContainer _settings = ApplicationData.Current.LocalSettings;
         private readonly IBackendConfig _backendConfig;
 
         private sealed record DefaultServerConfig(string Host, string Port, string Dns);
@@ -47,7 +46,7 @@ namespace MyShop_Frontend.Views.Windows
 
         private DefaultServerConfig? LoadSavedDefault()
         {
-            var raw = _settings.Values[AppKeys.DefaultBackendConfig] as string;
+            var raw = LocalSettingsHelper.GetValue<string>(AppKeys.DefaultBackendConfig);
             if (string.IsNullOrWhiteSpace(raw)) return null;
 
             try
@@ -62,7 +61,7 @@ namespace MyShop_Frontend.Views.Windows
 
         private void SaveAsDefault(DefaultServerConfig cfg)
         {
-            _settings.Values[AppKeys.DefaultBackendConfig] = JsonSerializer.Serialize(cfg);
+            LocalSettingsHelper.SetValue(AppKeys.DefaultBackendConfig, JsonSerializer.Serialize(cfg));
         }
 
         private void ApplyDefaultToUI(bool loadFallbackIfMissing)

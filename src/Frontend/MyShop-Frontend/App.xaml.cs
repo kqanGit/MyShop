@@ -102,7 +102,11 @@ namespace MyShop_Frontend
             {
                 var asm = Assembly.GetExecutingAssembly();
                 var info = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                if (!string.IsNullOrWhiteSpace(info)) return info;
+                if (!string.IsNullOrWhiteSpace(info)) 
+                {
+                    // Remove git commit hash (e.g., 1.0.0+hash -> 1.0.0)
+                    return info.Split('+')[0];
+                }
 
                 var v2 = asm.GetName().Version;
                 return v2?.ToString() ?? "1.0.0";
