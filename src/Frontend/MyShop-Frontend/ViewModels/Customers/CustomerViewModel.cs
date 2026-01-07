@@ -5,10 +5,16 @@ using MyShop_Frontend.Helpers.Command;
 using MyShop_Frontend.Models;
 using MyShop_Frontend.ViewModels.Base;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Storage.Pickers;
+using Windows.Storage;
+using WinRT.Interop;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
 
 namespace MyShop_Frontend.ViewModels.Customers
 {
@@ -112,6 +118,8 @@ namespace MyShop_Frontend.ViewModels.Customers
         public ICommand OpenEditDialogCommand { get; }
         public ICommand SaveCustomerCommand { get; }
         public ICommand DeleteCustomerCommand { get; }
+        public ICommand ImportCommand { get; }
+        public ICommand ExportCommand { get; }
 
         public event EventHandler? RequestOpenDialog;
 
@@ -126,6 +134,8 @@ namespace MyShop_Frontend.ViewModels.Customers
             OpenEditDialogCommand = new RelayCommand<Customer>(OpenEditDialog);
             DeleteCustomerCommand = new RelayCommand<Customer>(async c => await DeleteCustomerAsync(c));
             SaveCustomerCommand = new RelayCommand(async _ => await SaveCustomerAsync());
+            ImportCommand = new RelayCommand(async _ => await ImportAsync());
+            ExportCommand = new RelayCommand(async _ => await ExportAsync());
 
             _ = LoadTiersAsync();
             _ = LoadCustomersAsync();
@@ -295,6 +305,157 @@ namespace MyShop_Frontend.ViewModels.Customers
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading customers: {ex.Message}");
                 Customers.Clear();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+            }
+
+        private async Task ImportAsync()
+        {
+            var picker = new FileOpenPicker();
+            picker.ViewMode = PickerViewMode.List;
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            picker.FileTypeFilter.Add(".csv");
+
+            // Initialize with window handle
+            var windowHandle = WindowNative.GetWindowHandle(App.MainWindow);
+            InitializeWithWindow.Initialize(picker, windowHandle);
+
+            var file = await picker.PickSingleFileAsync();
+            if (file == null) return;
+
+            IsLoading = true;
+            int count = 0;
+            try
+            {
+                var lines = await FileIO.ReadLinesAsync(file);
+                // Header: FullName,Phone,Address
+                var dataLines = lines.Skip(1);
+
+                foreach (var line in dataLines)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    
+                    var parts = line.Split(',');
+                    if (parts.Length < 3) continue;
+
+                    try
+                    {
+                        var dto = new CreateCustomerDto
+                        {
+                            FullName = parts[0].Trim(),
+                            Phone = parts[1].Trim(),
+                            Address = parts[2].Trim()
+                        };
+                        await _customerService.CreateCustomerAsync(dto);
+                        count++;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to import line: {line}. {ex.Message}");
+                    }
+                }
+
+                await LoadCustomersAsync();
+
+                var dlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Import Successful",
+                    Content = $"Imported {count} customers successfully.",
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await dlg.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                 var errorDlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Import Failed",
+                    Content = $"An error occurred: {ex.Message}",
+                    CloseButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await errorDlg.ShowAsync();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        private async Task ExportAsync()
+        {
+            var picker = new FileSavePicker();
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            picker.FileTypeChoices.Add("CSV File", new List<string>() { ".csv" });
+            picker.SuggestedFileName = "Customers_Export";
+
+            var windowHandle = WindowNative.GetWindowHandle(App.MainWindow);
+            InitializeWithWindow.Initialize(picker, windowHandle);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file == null) return;
+
+            IsLoading = true;
+            try
+            {
+                // Fetch all customers (large page size)
+                var result = await _customerService.GetCustomersAsync(1, 100000);
+                var customers = result.Items;
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("FullName,Phone,Address,Point,TierName");
+
+                foreach (var c in customers)
+                {
+                    string Escape(string s)
+                    {
+                        if (string.IsNullOrEmpty(s)) return "";
+                        if (s.Contains(",") || s.Contains("\"") || s.Contains("\n"))
+                        {
+                            return $"\"{s.Replace("\"", "\"\"")}\"";
+                        }
+                        return s;
+                    }
+
+                    var line = string.Join(",",
+                        Escape(c.FullName),
+                        Escape(c.Phone),
+                        Escape(c.Address),
+                        c.Point,
+                        Escape(c.TierName)
+                    );
+                    sb.AppendLine(line);
+                }
+
+                await FileIO.WriteTextAsync(file, sb.ToString());
+
+                var dlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Export Successful",
+                    Content = $"Exported {customers.Count} customers successfully.",
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await dlg.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                 var errorDlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Export Failed",
+                    Content = $"An error occurred: {ex.Message}",
+                    CloseButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await errorDlg.ShowAsync();
             }
             finally
             {
