@@ -117,6 +117,7 @@ namespace MyShop_Frontend.ViewModels.Products
         public ICommand PreviousPageCommand { get; }
         public ICommand AddCategoryCommand { get; }
         public ICommand ImportCommand { get; }
+        public ICommand ExportCommand { get; }
 
         public int TotalRecords { get; set; }
         public string ShowingStatus => $"Showing {Products.Count} of {TotalRecords} products (Page {PageIndex} of {TotalPages})";
@@ -169,6 +170,7 @@ namespace MyShop_Frontend.ViewModels.Products
 
             AddCategoryCommand = new RelayCommand(async _ => await AddCategoryAsync(), _ => _canManageProducts);
             ImportCommand = new RelayCommand(async _ => await ImportAsync(), _ => _canManageProducts);
+            ExportCommand = new RelayCommand(async _ => await ExportAsync(), _ => _canManageProducts);
 
             _ = LoadCategoriesAsync();
             _ = LoadProductsAsync();
@@ -623,6 +625,88 @@ namespace MyShop_Frontend.ViewModels.Products
                 {
                     XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
                     Title = "Import Failed",
+                    Content = $"An error occurred: {ex.Message}",
+                    CloseButtonText = "Close",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await errorDlg.ShowAsync();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        private async Task ExportAsync()
+        {
+            var picker = new FileSavePicker();
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            picker.FileTypeChoices.Add("CSV File", new List<string>() { ".csv" });
+            picker.SuggestedFileName = "Products_Export";
+
+            var windowHandle = WindowNative.GetWindowHandle(App.MainWindow);
+            InitializeWithWindow.Initialize(picker, windowHandle);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file == null) return;
+
+            IsLoading = true;
+            try
+            {
+                // Fetch all products (using a large page size to get all)
+                var result = await _productService.GetProductsAsync(pageSize: 100000);
+                var products = result.Items;
+
+                var sb = new System.Text.StringBuilder();
+                // Header (matching Import expectation mostly: ProductName,CategoryId,Unit,Cost,Price,Stock,Image)
+                sb.AppendLine("ProductName,CategoryId,Unit,Cost,Price,Stock,Image");
+
+                foreach (var p in products)
+                {
+                    // Basic escaping for CSV: if contains comma, wrap in quotes. 
+                    // For now, simpler approach or just quote only name if needed.
+                    // Doing robust CSV writing manually:
+                    
+                    string Escape(string s)
+                    {
+                        if (string.IsNullOrEmpty(s)) return "";
+                        if (s.Contains(",") || s.Contains("\"") || s.Contains("\n"))
+                        {
+                            return $"\"{s.Replace("\"", "\"\"")}\"";
+                        }
+                        return s;
+                    }
+
+                    var line = string.Join(",",
+                        Escape(p.ProductName),
+                        p.CategoryId,
+                        Escape(p.Unit),
+                        p.Cost,
+                        p.Price,
+                        p.Stock,
+                        Escape(p.Image)
+                    );
+                    sb.AppendLine(line);
+                }
+
+                await FileIO.WriteTextAsync(file, sb.ToString());
+
+                var dlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Export Successful",
+                    Content = $"Exported {products.Count} products successfully to {file.Name}.",
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close
+                };
+                await dlg.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                var errorDlg = new ContentDialog
+                {
+                    XamlRoot = App.MainWindow?.Content is FrameworkElement fe ? fe.XamlRoot : null,
+                    Title = "Export Failed",
                     Content = $"An error occurred: {ex.Message}",
                     CloseButtonText = "Close",
                     DefaultButton = ContentDialogButton.Close

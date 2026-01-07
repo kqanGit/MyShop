@@ -40,6 +40,12 @@
             </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                <Button Command="{Binding ExportCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE7AD;"/>
+                        <TextBlock Text="Export"/>
+                    </StackPanel>
+                </Button>
                 <Button Command="{Binding ImportCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE898;"/>
