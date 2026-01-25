@@ -68,7 +68,7 @@ namespace MyShop.Application.Services
 
                     if (product == null) throw new Exception($"Product with ID {item.ProductId} does not exist.");
 
-                    if (product.IsRemoved[0]) throw new Exception($"Product {product.ProductName} has been discontinued.");
+                    if (product.IsRemoved == true) throw new Exception($"Product {product.ProductName} has been discontinued.");
 
                     if (product.Stock < item.Quantity)
                         throw new Exception($"Product {product.ProductName} is out of stock (Remaining: {product.Stock}).");

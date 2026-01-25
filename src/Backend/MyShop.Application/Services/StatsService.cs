@@ -44,12 +44,14 @@ namespace MyShop.Infrastructure.Services
             result.TotalProducts = _context.Products
                 .Select(p => p.IsRemoved)
                 .AsEnumerable()
-                .Count(bits => !bits[0]);
+                //.Count(bits => !bits[0]);
+                .Count(isRemoved => !(isRemoved ?? false));
             // Also evaluate BitArray-based filter client-side
             result.LowStockProducts = _context.Products
                 .Select(p => new { p.ProductId, p.ProductName, p.Stock, p.IsRemoved })
                 .AsEnumerable()
-                .Where(p => !p.IsRemoved[0] && p.Stock < 5)
+                //.Where(p => !p.IsRemoved[0] && p.Stock < 5)
+                .Where(p => !(p.IsRemoved ?? false) && p.Stock < 5)
                 .OrderBy(p => p.Stock)
                 .Take(5)
                 .Select(p => new ProductLowStockDto

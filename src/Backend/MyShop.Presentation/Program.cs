@@ -54,6 +54,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IConfigService, ConfigService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Controllers + Swagger
 builder.Services.AddControllers();

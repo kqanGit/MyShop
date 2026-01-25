@@ -6,18 +6,21 @@
     xmlns:local="using:MyShop_Frontend"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:MyShop_Frontend.Views.Controls"
     mc:Ignorable="d"
     Title="MyShop-Frontend">
 
     <NavigationView 
-        x:Name="RootNavigationView"
+        x:Name="NavView"
+        SelectionChanged="NavView_SelectionChanged"
         ItemInvoked="RootNavigationView_ItemInvoked"
         PaneDisplayMode="Left" 
         IsSettingsVisible="False"
         ContentTransitions="{x:Null}"
         IsPaneOpen="True"
         OpenPaneLength="200"
-        CompactPaneLength="56">
+        CompactPaneLength="56"
+        Background="#F8FAFC">
 
         <NavigationView.Resources>
             <Style TargetType="NavigationViewItem">
@@ -48,7 +51,7 @@
         </NavigationView.Resources>
 
         <NavigationView.PaneHeader>
-            <StackPanel Orientation="Horizontal" Spacing="12" Margin="16,40,16,25 ">
+            <StackPanel Orientation="Horizontal" Spacing="12" Margin="16,40,16,25">
                 <TextBlock Text="My Shop"
                        FontSize="25"
                        FontWeight="SemiBold"
@@ -71,11 +74,6 @@
             </NavigationViewItem>
             <NavigationViewItem Content="Products" Icon="Shop" Tag="Product"/>
             <NavigationViewItem Content="Customers" Icon="People" Tag="Customers"/>
-            <NavigationViewItem Content="Report" Tag="Report">
-                <NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE9F9;"/>
-                </NavigationViewItem.Icon>
-            </NavigationViewItem>
             <NavigationViewItem Content="Help" Icon="Help" Tag="Help"/>
             <NavigationViewItem Content="Settings" Icon="Setting" Tag="Settings"/>
         </NavigationView.MenuItems>
@@ -90,7 +88,191 @@
         </NavigationView.FooterMenuItems>
 
         <NavigationView.Content>
-            <Frame x:Name="ContentFrame"/>
+            <!-- Main Content Background -->
+            <Grid Background="#F1F5F9">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- ===== HEADER (top bar) ===== -->
+                <Border Grid.Row="0"
+                        Background="White"
+                        CornerRadius="0,0,24,24"
+                        Padding="24,16"
+                        Margin="0,0,0,8">
+                    <Border.Shadow>
+                        <ThemeShadow/>
+                    </Border.Shadow>
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left: Title -->
+                        <StackPanel Grid.Column="0" 
+                                    Orientation="Vertical"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="{Binding ElementName=NavView, Path=SelectedItem.Content}"
+                                       FontSize="24"
+                                       FontWeight="SemiBold"
+                                       Foreground="#1E293B"/>
+                            <TextBlock Text="Welcome back! Here's what's happening."
+                                       FontSize="13"
+                                       Foreground="#94A3B8"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <!-- Center: Search Box -->
+                        <Border Grid.Column="1"
+                                Background="#F8FAFC"
+                                BorderBrush="#E2E8F0"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Margin="40,0"
+                                MaxWidth="480"
+                                MinWidth="280"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Padding="4">
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Search Icon -->
+                                <controls:AppButton Grid.Column="0"
+                                                    Background="#5D5FEF"
+                                                    CornerRadius="8"
+                                                    Padding="10"
+                                                    Margin="2">
+                                    <FontIcon Glyph="&#xE721;"
+                                              FontSize="14"
+                                              Foreground="White"/>
+                                </controls:AppButton>
+
+                                <!-- Search Input -->
+                                <TextBox Grid.Column="1"
+                                         PlaceholderText="Search products, orders, customers..."
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         VerticalAlignment="Center"
+                                         Padding="12,10"
+                                         FontSize="14"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Right: Actions + User -->
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="12"
+                                    VerticalAlignment="Center">
+
+                            <!-- Notification Bell --><!--
+                            <Button Style="{StaticResource DefaultButtonStyle}"
+                                    ToolTipService.ToolTip="Notifications"
+                                    Background="#F1F5F9"
+                                    BorderThickness="0"
+                                    CornerRadius="10"
+                                    Padding="10"
+                                    Width="44"
+                                    Height="44">
+                                <Grid>
+                                    <FontIcon Glyph="&#xE7ED;" 
+                                              FontSize="18"
+                                              Foreground="#475569"/>
+                                    --><!-- Notification Badge --><!--
+                                    <Border Background="#EF4444"
+                                            CornerRadius="6"
+                                            Width="12"
+                                            Height="12"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Margin="0,-2,-2,0">
+                                        <TextBlock Text="3"
+                                                   FontSize="8"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="Bold"/>
+                                    </Border>
+                                </Grid>
+                            </Button>-->
+
+                            <!-- Divider -->
+                            <Border Width="1" 
+                                    Height="32" 
+                                    Background="#E2E8F0"
+                                    Margin="4,0"/>
+
+                            <!-- User Info Card -->
+                            <Button Style="{StaticResource DefaultButtonStyle}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="0"
+                                    CornerRadius="12">
+                                <Border Background="#F8FAFC"
+                                        BorderBrush="#E2E8F0"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        Padding="8,6,12,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <!-- Avatar -->
+                                        <Grid>
+                                            <PersonPicture Width="38" 
+                                                           Height="38" 
+                                                           DisplayName="{x:Bind ViewModel.Username, Mode=OneWay}"/>
+                                            <!-- Online Status Indicator -->
+                                            <Border Background="#22C55E"
+                                                    BorderBrush="White"
+                                                    BorderThickness="2"
+                                                    CornerRadius="6"
+                                                    Width="12"
+                                                    Height="12"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Bottom"/>
+                                        </Grid>
+                                        
+                                        <!-- User Name & Role -->
+                                        <StackPanel VerticalAlignment="Center" Margin="2,0,0,0">
+                                            <TextBlock Text="{x:Bind ViewModel.Username, Mode=OneWay}" 
+                                                       FontWeight="SemiBold"
+                                                       FontSize="14"
+                                                       Foreground="#1E293B"/>
+                                            <TextBlock Text="{x:Bind ViewModel.RoleDisplayName, Mode=OneWay}" 
+                                                       FontSize="12" 
+                                                       Foreground="#64748B"/>
+                                        </StackPanel>
+                                        
+                                        <!-- Dropdown Arrow -->
+                                        <FontIcon Glyph="&#xE70D;"
+                                                  FontSize="10"
+                                                  Foreground="#94A3B8"
+                                                  VerticalAlignment="Center"
+                                                  Margin="4,0,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- ===== CONTENT AREA ===== -->
+                <Border Grid.Row="1"
+                        Background="White"
+                        CornerRadius="24,24,0,0"
+                        Margin="12,0,12,0"
+                        Padding="8">
+                    <Frame x:Name="ContentFrame"
+                           BorderThickness="0"/>
+                </Border>
+            </Grid>
         </NavigationView.Content>
     </NavigationView>
 </Window>

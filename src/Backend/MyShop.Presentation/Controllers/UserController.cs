@@ -6,7 +6,7 @@ using MyShop.Application.Services;
 namespace MyShop.Presentation.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {

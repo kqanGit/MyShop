@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MyShop.Presentation.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {

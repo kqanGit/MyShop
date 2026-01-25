@@ -1,28 +1,70 @@
-﻿using Microsoft.UI.Xaml;
-using MyShop_Frontend.Contracts; 
+﻿using Microsoft.Extensions.DependencyInjection;
+using MyShop_Frontend.Contracts;
+using MyShop_Frontend.Contracts.Services;
 using MyShop_Frontend.Helpers.Command;
 using MyShop_Frontend.Services;
-using MyShop_Frontend.Servies;
 using MyShop_Frontend.ViewModels.Base;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace MyShop_Frontend.ViewModels.Authentication
 {
     public class LoginViewModel : ViewModelBase
     {
-
         private readonly IAuthenticationService _authService;
+        private readonly ITokenStore _tokenStore;
+        private readonly WindowsService _windowsService;
+
+        public RelayCommand SignInCommand { get; }
+
+        public LoginViewModel()
+        {
+            _authService = App.Services.GetRequiredService<IAuthenticationService>();
+            _tokenStore = App.Services.GetRequiredService<ITokenStore>();
+            _windowsService = App.Windows;
+
+            SignInCommand = new RelayCommand(
+                execute: _ => _ = LoginAsync(),
+                canExecute: _ => !IsBusy
+                                 && !string.IsNullOrWhiteSpace(Username)
+                                 && !string.IsNullOrWhiteSpace(Password)
+            );
+
+            // Load saved credentials nếu Remember Me được bật
+            LoadSavedCredentials();
+        }
+
+        private void LoadSavedCredentials()
+        {
+            if (_tokenStore.GetRememberMe())
+            {
+                RememberMe = true;
+                Username = _tokenStore.GetSavedUsername() ?? "";
+                Password = _tokenStore.GetSavedPassword() ?? "";
+            }
+        }
+
+        // ===== Helper =====
+        private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? name = null)
+        {
+            if (Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(name ?? string.Empty);
+            return true;
+        }
+
+        // ===== Properties =====
         private bool _isBusy;
-        private  WindowsService _windowsService = new WindowsService();
         public bool IsBusy
         {
             get => _isBusy;
-            set { _isBusy = value; OnPropertyChanged(nameof(IsBusy)); SignInCommand.RaiseCanExecuteChanged(); }
+            set
+            {
+                if (SetProperty(ref _isBusy, value))
+                    SignInCommand.RaiseCanExecuteChanged();
+            }
         }
 
         private string _username = "";
@@ -31,65 +73,120 @@ namespace MyShop_Frontend.ViewModels.Authentication
             get => _username;
             set
             {
-                if (_username != value)
+                if (SetProperty(ref _username, value))
                 {
-                    _username = value;
-                    OnPropertyChanged(nameof(Username));
                     SignInCommand.RaiseCanExecuteChanged();
+                    if (!string.IsNullOrEmpty(value) && HasError)
+                        ClearError();
                 }
             }
         }
+
         private string _password = "";
         public string Password
         {
             get => _password;
             set
             {
-                if (_password != value)
+                if (SetProperty(ref _password, value))
                 {
-                    _password = value;
-                    OnPropertyChanged(nameof(Password));
                     SignInCommand.RaiseCanExecuteChanged();
+                    if (!string.IsNullOrEmpty(value) && HasError)
+                        ClearError();
                 }
             }
         }
-
-        public RelayCommand SignInCommand { get; }
-
-        public LoginViewModel()
+                
+        private bool _rememberMe;
+        public bool RememberMe
         {
-            _authService = new AuthenticationService();
-
-
-            SignInCommand = new RelayCommand(
-                execute: _ => _login(),
-                canExecute: _ => !IsBusy && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password)
-            );
+            get => _rememberMe;
+            set => SetProperty(ref _rememberMe, value);
         }
 
-        public async Task _login()
+        private string? _errorMessage;
+        public string? ErrorMessage
         {
+            get => _errorMessage;
+            set
+            {
+                SetProperty(ref _errorMessage, value);  
+                OnPropertyChanged(nameof(HasError));
+            }
+        }
+
+        public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
+        private void ClearError()
+        {
+            ErrorMessage = null;
+        }
+
+        // ===== Login Method =====
+        public async Task LoginAsync()
+        {
+            if (IsBusy) return;
+
+            // Validation
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                ErrorMessage = "Vui lòng nhập tên đăng nhập.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                ErrorMessage = "Vui lòng nhập mật khẩu.";
+                return;
+            }
+
             IsBusy = true;
-            var token = await _authService.LoginAsync(Username, Password);
-            Debug.WriteLine($"Token nhận được: {(token != null ? "Có dữ liệu" : "NULL")}");
+            ErrorMessage = null;
 
-            //Waiting for fixing navigation service!
-            if (!string.IsNullOrEmpty(token))
+            try
             {
-                Debug.WriteLine("Đăng nhập thành công! Token: " + token);
-                _windowsService.ShowMainWindow();
-                // TODO: Lưu token và điều hướng sang trang chính
-                // App.CurrentServices.GetService<INavigationService>().NavigateTo("MainPage");
+                var token = await _authService.LoginAsync(Username, Password);
+                Debug.WriteLine($"Token nhận được: {(token != null ? "Có dữ liệu" : "NULL")}");
+
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    // Lưu Remember Me
+                    _tokenStore.SetRememberMe(RememberMe, Username, Password);
+
+                    Debug.WriteLine("Đăng nhập thành công! Token: " + token);
+                    _windowsService.ShowMainWindow();
+                }
+                else
+                {
+                    ErrorMessage = "Sai tài khoản hoặc mật khẩu.";
+                    Debug.WriteLine(ErrorMessage);
+                }
             }
-            else
+            catch (System.Net.Http.HttpRequestException ex)
             {
-                Debug.WriteLine("Sai tài khoản hoặc mật khẩu");
-
+                if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+                {
+                    ErrorMessage = "Sai tài khoản hoặc mật khẩu.";
+                }
+                else if (ex.Message.Contains("502") || ex.Message.Contains("503"))
+                {
+                    ErrorMessage = "Không thể kết nối đến server. Vui lòng kiểm tra cấu hình.";
+                }
+                else
+                {
+                    ErrorMessage = "Lỗi kết nối. Vui lòng thử lại sau.";
+                }
+                Debug.WriteLine($"HTTP Error: {ex}");
             }
-
-
-            //_windowsService.ShowMainWindow();
-            IsBusy = false;
+            catch (Exception ex)
+            {
+                ErrorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
+                Debug.WriteLine($"Lỗi hệ thống: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
     }
 }
